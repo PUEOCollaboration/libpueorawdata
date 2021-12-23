@@ -52,11 +52,9 @@ SIMPLE_PUEO_IO_IMPL(packet_head)
 //helpers for pueo_waveform_t (which must be embedded into another datatype) 
 static int write_waveform(pueo_handle_t*h, const pueo_waveform_t * wf) 
 {
-  int nwr = 0; 
-  nwr += h->write_bytes(offsetof(pueo_waveform_t, data), wf, h->aux); 
-  nwr += h->write_bytes(wf->length*sizeof(*wf->data), wf->data, h->aux); 
-  return nwr; 
+  return h->write_bytes(offsetof(pueo_waveform_t, data) + wf->length * sizeof(*wf->data), wf, h->aux); 
 }
+
 static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf) 
 {
   int hdrsize = offsetof(pueo_waveform_t,data); 
