@@ -58,7 +58,7 @@ int pueo_packet_init(pueo_packet_t * p, int capacity);
 
 
 
-/** This defines a generic interface for something  we read or write from. 
+/** This defines a generic interface for something we read or write from. 
  *
  * It is not expected most users will need to do this (see methods below) , but the interface is exported in case. 
  * 
@@ -66,8 +66,6 @@ int pueo_packet_init(pueo_packet_t * p, int capacity);
 typedef struct
 {
   uint32_t packet_write_counter;  //Will increment each time when writing. 
-                                //If you want to preserve it when transforming data, you'll need to write it out out-of-band (e.g. by writing the original PacketHead_t  to a separate stream)
-                                //This mostly concerns e.g. telemetry reception 
                                 
   pueo_packet_head_t last_read_header; //you can use this to interrogate the packet number, and also if you need to make more room 
   int required_read_size;  //if non-zero, that means the last read didn't have enough space to fit the payload. This tells you how much space it needs. 
@@ -113,11 +111,11 @@ int pueo_handle_init_fd(pueo_handle_t * h, int fd);
 
 int pueo_handle_init_udp(pueo_handle_t *h, int port, const char *hostname, const char * mode); 
 
-// This  will normally be equivalent just calls h->close(h->aux) 
+// This  will normally be equivalent to something like h->close(h->aux) 
 int pueo_handle_close(pueo_handle_t  *h); 
 
 
-
+/** In-memory size of type */
 int pueo_size_inmem(pueo_datatype_t type); 
 
  

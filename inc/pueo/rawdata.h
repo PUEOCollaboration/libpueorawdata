@@ -8,7 +8,7 @@
  *
  * These are the in-memory raw formats. Please pay attention to struct padding. 
  *
- * All formats that can be written to disk should be added to the pueo_data_type_t enum, the PUEO_IO_DISPATCH_TABLE in pueoio.h and should have an appropriately named _VER macro.
+ * All formats that can be written to disk should be added to the pueo_data_type_t enum, the PUEO_IO_DISPATCH_TABLE in rawio.h and should have an appropriately named _VER macro.
  *
  *
  * If you want to update a struct and we already have data written to disk that we still want to read out in the future, you must consider the versioning.
@@ -111,7 +111,7 @@ typedef struct pueo_single_waveform
 #define PUEO_SINGLE_WAVEFORM_VER 0
 
 
-/* see pueo/encode.h to convert*/ 
+/* see pueo/encode.h to convert, once implemented*/ 
 typedef struct pueo_encoded_waveform 
 {
   uint32_t run; 

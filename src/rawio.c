@@ -306,11 +306,11 @@ static int maybe_read_header(pueo_handle_t *h)
   h->flags |= PUEO_HANDLE_ALREADY_READ_HEAD; 
   return nread;
 }
+
 /** Implement pueo_read_X, which is a combination of checking if the header is correct and the  pueo_read_packet_X methods 
  * Returns EOF if there's nothing left, but 0 if it's the wrong type! 
  *
  **/
-
 #define X_PUEO_READ_IMPL(PACKET_TYPE, STRUCT_NAME) \
 int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p)\
 {\

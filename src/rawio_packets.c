@@ -22,16 +22,17 @@
  * bytes_written on the handle appropriately. 
  *
  * You can count on pueo_X_size(ver) to return the correct value provided that the macros 
- * in versions. c
+ * in versions.c are dfeined. 
  *
  ****/
 
-#define SIMPLE_PUEO_IO_IMPL(STRUCT_NAME) \
+#define SIMPLE_PUEO_O_IMPL(STRUCT_NAME) \
   int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t *p ) \
   { \
     int nwr = h->write_bytes( sizeof(pueo_##STRUCT_NAME##_t), p, h->aux); \
     h->bytes_written += nwr; return nwr; \
-  } \
+  } 
+#define SIMPLE_PUEO_I_IMPL(STRUCT_NAME) \
   int pueo_read_packet_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t *p, int ver ) \
   { \
     int versize = pueo_##STRUCT_NAME##_size(ver); \
@@ -42,8 +43,11 @@
     return nread; \
   }  
 
-SIMPLE_PUEO_IO_IMPL(packet_head) 
+#define SIMPLE_PUEO_IO_IMPL(STRUCT_NAME) \
+   SIMPLE_PUEO_I_IMPL(STRUCT_NAME) \
+   SIMPLE_PUEO_O_IMPL(STRUCT_NAME) 
 
+SIMPLE_PUEO_IO_IMPL(packet_head) 
 
 
 
@@ -79,7 +83,7 @@ int pueo_write_packet_single_waveform(pueo_handle_t *h, const pueo_single_wavefo
 }
 
 
-int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p) 
+int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p, int ver) 
 {
   int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h->aux); 
   if (total_read != offsetof(pueo_single_waveform_t, wf)) return -1; 
@@ -103,7 +107,7 @@ int pueo_write_packet_full_waveforms(pueo_handle_t *h, const pueo_full_waveforms
   return nwr; 
 }
 
-int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p) 
+int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p, int ver) 
 {
   int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h->aux); 
   if (total_read != offsetof(pueo_single_waveform_t, wf)) return -1; 

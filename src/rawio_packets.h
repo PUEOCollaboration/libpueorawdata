@@ -3,7 +3,7 @@
 
 /** \file rawio_packets.h 
  *
- * private internal header for io packets. Note exported! 
+ * private internal header for io packets. Not exported! 
  *
  * This file is part of libpueorawdata, developed by the PUEO collaboration.
  * \copyright Copyright (C) 2021 PUEO Collaboration 
@@ -23,8 +23,6 @@
  
  *
  */ 
-
-
 
 
 #include <pueo/rawio.h> 
