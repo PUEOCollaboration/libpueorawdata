@@ -1,12 +1,12 @@
 #ifndef PUEO_RAWIO_PACKETS_H
 #define PUEO_RAWIO_PACKETS_H
 
-/** \file rawio_packets.h 
+/** \file rawio_packets.h
  *
- * private internal header for io packets. Not exported! 
+ * private internal header for io packets. Not exported!
  *
  * This file is part of libpueorawdata, developed by the PUEO collaboration.
- * \copyright Copyright (C) 2021 PUEO Collaboration 
+ * \copyright Copyright (C) 2021 PUEO Collaboration
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -20,12 +20,12 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <https://www.gnu.org/licenses/>.
- 
+
  *
- */ 
+ */
 
 
-#include <pueo/rawio.h> 
+#include <pueo/rawio.h>
 
 
 // Set up write packet method for each type
@@ -39,4 +39,4 @@
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE_PACKET)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ_PACKET)
 
-#endif 
+#endif

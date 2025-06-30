@@ -47,8 +47,6 @@
    SIMPLE_PUEO_I_IMPL(STRUCT_NAME) \
    SIMPLE_PUEO_O_IMPL(STRUCT_NAME) 
 
-SIMPLE_PUEO_IO_IMPL(packet_head) 
-
 
 
 ///////// More complicated implementations here
