@@ -70,7 +70,7 @@ static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf)
 
 /* Write a single waveform. First write the part before the pueo_waveform_t, then the part after
  * If not padded properly, this should still roundtrip ok... 
- **/ 
+ **/
 int pueo_write_packet_single_waveform(pueo_handle_t *h, const pueo_single_waveform_t *p) 
 {
   int nwr = 0; 
@@ -117,5 +117,17 @@ int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p, 
   }
   h->bytes_written += total_read; 
   return total_read; 
+}
+
+int pueo_write_packet_encoded_waveforms(pueo_handle_t *h, const pueo_encoded_waveform_t *p)
+{
+  //TODO
+  return -1;
+}
+
+int pueo_read_packet_encoded_waveforms(pueo_handle_t *h, pueo_encoded_waveform_t *p, int ver)
+{
+  //TODO
+  return -1;
 }
 

@@ -171,7 +171,8 @@ int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode)
     const char * slashes = strstr(remainder,"//");
     if (!slashes) return -1;
     int port = atoi(remainder);
-    return pueo_handle_init_udp(h, port, slashes+2, mode);
+    fprintf(stderr,"Not handling UDP  yet\n");
+    return -1; //pueo_handle_init_udp(h, port, slashes+2, mode);
   }
   return pueo_handle_init_file(h,uri,mode);
 }

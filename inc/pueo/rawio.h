@@ -108,7 +108,7 @@ int pueo_handle_init_file(pueo_handle_t * h, const char * file, const char * mod
 /* This initailizes an fd-like handle */
 int pueo_handle_init_fd(pueo_handle_t * h, int fd);
 
-int pueo_handle_init_udp(pueo_handle_t *h, int port, const char *hostname, const char * mode);
+//int pueo_handle_init_udp(pueo_handle_t *h, int port, const char *hostname, const char * mode);
 
 // This  will normally be equivalent to something like h->close(h->aux)
 int pueo_handle_close(pueo_handle_t  *h);
