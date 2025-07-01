@@ -54,8 +54,9 @@ enum
   PUEO_SENSOR_VOLTS = 'V',
   PUEO_SENSOR_AMPS = 'A',
   PUEO_SENSOR_CELSIUS = 'C',
-  PUEO_SENSOR_MICROTESLA = 'M',
-  PUEO_SENSOR_BITMASK = 'B',
+  PUEO_SENSOR_WATTS = 'W',
+  PUEO_SENSOR_GAUSS = 'G',
+  PUEO_SENSOR_BITMASK = 'X',
 } e_pueo_sensor_kind;
 
 
@@ -65,13 +66,208 @@ enum
 //and building a compatibility shim. You can add stuff at the end though.
 // This is an X macro
 // Syntax is subsystem, name, typetag (U,I,F), kind (VACMB)
-#define ALL_THE_PUEO_SENSORS(SENSOR)        \
-  SENSOR(HK,    CCLocalTemp,    'F', 'C')   \
-  SENSOR(HK,    CCLocalRemote,  'F', 'C')   \
-  SENSOR(HK,    CCBattVoltage,  'F', 'V')   \
-  SENSOR(HK,    CCHours,        'F', 'V')
-
-
+#define ALL_THE_PUEO_SENSORS(SENSOR)                     \
+SENSOR(W1TEMPS,  ChargeContrHeatsink,       'F','C')     \
+SENSOR(W1TEMPS,  PowerBoxBaseplate,         'F','C')     \
+SENSOR(W1TEMPS,  24VVicor,                  'F','C')     \
+SENSOR(W1TEMPS,  5VVicor,                   'F','C')     \
+SENSOR(W1TEMPS,  4VVicor,                   'F','C')     \
+SENSOR(W1TEMPS,  12V_AFlex,                 'F','C')     \
+SENSOR(W1TEMPS,  12V_BFlex,                 'F','C')     \
+SENSOR(W1TEMPS,  12V_CFlex,                 'F','C')     \
+SENSOR(W1TEMPS,  StatRadPlateInt,           'F','C')     \
+SENSOR(W1TEMPS,  SideofOutboardFPB,         'F','C')     \
+SENSOR(W1TEMPS,  FrontofNavEncl,            'F','C')     \
+SENSOR(W1TEMPS,  FrontofHDAQCrate,          'F','C')     \
+SENSOR(W1TEMPS,  FrontofSciStack,           'F','C')     \
+SENSOR(W1TEMPS,  DynRadPlateInt,            'F','C')     \
+SENSOR(W1TEMPS,  TopofPowerFPB,             'F','C')     \
+SENSOR(W1TEMPS,  FrontofCPUCrate,           'F','C')     \
+SENSOR(W1TEMPS,  FrontofVDAQCrate,          'F','C')     \
+SENSOR(W1TEMPS,  TopofPowerBox,             'F','C')     \
+SENSOR(W1TEMPS,  PVActuator1,               'F','C')     \
+SENSOR(W1TEMPS,  PVActuator2,               'F','C')     \
+SENSOR(W1TEMPS,  LFActuator1,               'F','C')     \
+SENSOR(W1TEMPS,  LFActuator2,               'F','C')     \
+SENSOR(W1TEMPS,  StatRadPlateExt,           'F','C')     \
+SENSOR(W1TEMPS,  DynRadPlateExt,            'F','C')     \
+SENSOR(W1TEMPS,  MIELidExt,                 'F','C')     \
+SENSOR(W1TEMPS,  BatteryBox1Face,           'F','C')     \
+SENSOR(W1TEMPS,  BatteryBox2Face,           'F','C')     \
+SENSOR(W1TEMPS,  SunSensorPhiSect7,         'F','C')     \
+SENSOR(W1TEMPS,  SunSensorPhiSect19,        'F','C')     \
+SENSOR(W1TEMPS,  LFOutwardofBoard4,         'F','C')     \
+SENSOR(W1TEMPS,  LFInwardofBoard6,          'F','C')     \
+SENSOR(W1TEMPS,  LFInwardofBoard3,          'F','C')     \
+SENSOR(W1TEMPS,  LFPowerBoard,              'F','C')     \
+SENSOR(W1TEMPS,  LFOutwardofBoard7,         'F','C')     \
+SENSOR(W1TEMPS,  LFInwardofBoard8,          'F','C')     \
+SENSOR(W1TEMPS,  LFOutwardofBoard1,         'F','C')     \
+SENSOR(W1TEMPS,  AMPA_186,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_223,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_011,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_073,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_181,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_028,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_064,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_179,                  'F','C')     \
+SENSOR(W1TEMPS,  UpperIMU,                  'F','C')     \
+SENSOR(W1TEMPS,  StarlinkDishyMount,        'F','C')     \
+SENSOR(W1TEMPS,  StarlinkPowerBox,          'F','C')     \
+SENSOR(W1TEMPS,  ToqueCorner,               'F','C')     \
+SENSOR(W1TEMPS,  AutoBelay,                 'F','C')     \
+SENSOR(W1TEMPS,  AMPA_040,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_021,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_007,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_105,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_075,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_163,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_132,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_034,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_152,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_145,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_112,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_200,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_169,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_085,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_119,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_161,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_139,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_012,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_035,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_208,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_219,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_025,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_027,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_026,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_094,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_190,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_153,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_157,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_226,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_204,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_099,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_185,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_149,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_144,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_217,                  'F','C')     \
+SENSOR(W1TEMPS,  AMPA_108,                  'F','C')     \
+SENSOR(W1TEMPS,  PV1PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV5PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV4PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV3PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV7PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV2PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV6PhiSect,                'F','C')     \
+SENSOR(W1TEMPS,  PV8PhiSect,                'F','C')     \
+SENSOR(CPU,      Core10,                    'F','C')     \
+SENSOR(CPU,      Core2,                     'F','C')     \
+SENSOR(CPU,      Core9,                     'F','C')     \
+SENSOR(CPU,      Core13,                    'F','C')     \
+SENSOR(CPU,      Core12,                    'F','C')     \
+SENSOR(CPU,      Core4,                     'F','C')     \
+SENSOR(CPU,      Core5,                     'F','C')     \
+SENSOR(CPU,      Core11,                    'F','C')     \
+SENSOR(CPU,      Core1,                     'F','C')     \
+SENSOR(CPU,      Core8,                     'F','C')     \
+SENSOR(CPU,      Core3,                     'F','C')     \
+SENSOR(CPU,      Core0,                     'F','C')     \
+SENSOR(CPU,      Package0,                  'F','C')     \
+SENSOR(CPU,      Ambient,                   'F','C')     \
+SENSOR(CPU,      PCH,                       'F','C')     \
+SENSOR(CPU,      LeftRail,                  'F','C')     \
+SENSOR(CPU,      RightRail,                 'F','C')     \
+SENSOR(CPU,      GPU,                       'F','C')     \
+SENSOR(Mag,      B0,                        'F','G')     \
+SENSOR(Mag,      B1,                        'F','G')     \
+SENSOR(Mag,      B2,                        'F','G')     \
+SENSOR(CC,       Output_Power,              'F','W')     \
+SENSOR(CC,       Input_Power,               'F','W')     \
+SENSOR(CC,       PV,                        'F','V')     \
+SENSOR(CC,       VmpLastSweep,              'F','V')     \
+SENSOR(CC,       VocLastSweep,              'F','V')     \
+SENSOR(CC,       FilteredBattVoltage,       'F','V')     \
+SENSOR(CC,       BatteryMin,                'F','V')     \
+SENSOR(CC,       BatteryMax,                'F','V')     \
+SENSOR(CC,       HoursOn,                   'F','V')     \
+SENSOR(CC,       FaultBits,                 'U','X')     \
+SENSOR(CC,       ChargingCurrent,           'F','A')     \
+SENSOR(HK,       24V,                       'F','V')     \
+SENSOR(HK,       BATTERY,                   'F','V')     \
+SENSOR(HK,       12V_C_V,                   'F','V')     \
+SENSOR(HK,       RF_OFF_INV,                'F','V')     \
+SENSOR(HK,       12V_B_V,                   'F','V')     \
+SENSOR(HK,       12V_A_V,                   'F','V')     \
+SENSOR(HK,       12V_rail,                  'F','V')     \
+SENSOR(HK,       3_3V_rail,                 'F','V')     \
+SENSOR(HK,       12VD,                      'F','V')     \
+SENSOR(HK,       12V_C_I,                   'F','A')     \
+SENSOR(HK,       12V_B_I,                   'F','A')     \
+SENSOR(HK,       12V_A_I,                   'F','A')     \
+SENSOR(RF,       RB1,                       'F','C')     \
+SENSOR(RF,       RB2,                       'F','C')     \
+SENSOR(RF,       RB3,                       'F','C')     \
+SENSOR(RF,       RB4,                       'F','C')     \
+SENSOR(RF,       RB5,                       'F','C')     \
+SENSOR(RF,       RB6,                       'F','C')     \
+SENSOR(DAQ,      T_RPU_TURF,                'F','C')     \
+SENSOR(DAQ,      T_APU_TURF,                'F','C')     \
+SENSOR(DAQ,      T_TURFIO_0,                'F','C')     \
+SENSOR(DAQ,      T_TURFIO_1,                'F','C')     \
+SENSOR(DAQ,      T_TURFIO_2,                'F','C')     \
+SENSOR(DAQ,      T_TURFIO_3,                'F','C')     \
+SENSOR(DAQ,      T_SURF1HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF2HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF3HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF4HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF5HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF6HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF7HS_0,               'F','C')     \
+SENSOR(DAQ,      T_SURF1HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF2HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF3HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF4HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF5HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF6HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF7HS_1,               'F','C')     \
+SENSOR(DAQ,      T_SURF1HS_2,               'F','C')     \
+SENSOR(DAQ,      T_SURF2HS_2,               'F','C')     \
+SENSOR(DAQ,      T_SURF3HS_2,               'F','C')     \
+SENSOR(DAQ,      T_SURF4HS_2,               'F','C')     \
+SENSOR(DAQ,      T_SURF5HS_2,               'F','C')     \
+SENSOR(DAQ,      T_SURF6HS_2,               'F','C')     \
+SENSOR(DAQ,      T_SURF1HS_3,               'F','C')     \
+SENSOR(DAQ,      T_SURF2HS_3,               'F','C')     \
+SENSOR(DAQ,      T_SURF3HS_3,               'F','C')     \
+SENSOR(DAQ,      T_SURF4HS_3,               'F','C')     \
+SENSOR(DAQ,      T_SURF5HS_3,               'F','C')     \
+SENSOR(DAQ,      T_SURF6HS_3,               'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_5,              'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_7,              'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_8,              'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_9,              'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_10,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_11,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_12,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_13,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_14,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_16,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_18,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_19,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_20,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_21,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_22,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_23,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_24,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_25,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_26,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_27,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_28,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_29,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_30,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_31,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_32,             'F','C')     \
+SENSOR(DAQ,      T_APU_SURF_33,             'F','C')
 
 
 #define PUEO_SENSOR_ENUM_DEF(SUBSYS,NAME,TYPETAG,KIND) PUEO_SENSOR_##SUBSYS##_##NAME,
@@ -83,7 +279,8 @@ enum
 
 
 
-#define PUEO_SENSOR_ID(subsys,name) PUEO_SENSOR_##SUBSYS##_##NAME
+
+#define PUEO_SID(subsys,name) PUEO_SENSOR_##SUBSYS##_##NAME
 
 const char * pueo_sensor_id_get_subsystem(uint16_t sensid);
 const char * pueo_sensor_id_get_name(uint16_t sensid);
