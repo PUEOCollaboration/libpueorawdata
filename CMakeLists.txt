@@ -13,7 +13,10 @@ set(default_build_type "RelWithDebInfo")
 
 find_package(ZLIB)
 
-set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c)
+set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c)
+set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/pueo.h)
+set(PRIVATE_HEADERS src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
+set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
 add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})

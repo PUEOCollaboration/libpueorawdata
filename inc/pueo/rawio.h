@@ -108,7 +108,7 @@ int pueo_handle_init_file(pueo_handle_t * h, const char * file, const char * mod
 /* This initailizes an fd-like handle */
 int pueo_handle_init_fd(pueo_handle_t * h, int fd);
 
-//int pueo_handle_init_udp(pueo_handle_t *h, int port, const char *hostname, const char * mode);
+int pueo_handle_init_udp(pueo_handle_t *h, int port, const char *hostname, const char * mode);
 
 // This  will normally be equivalent to something like h->close(h->aux)
 int pueo_handle_close(pueo_handle_t  *h);
@@ -158,6 +158,10 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
   X(PUEO_FULL_WAVEFORMS, full_waveforms)\
   X(PUEO_SINGLE_WAVEFORM, single_waveform)\
   X(PUEO_ENCODED_WAVEFORM, encoded_waveform)\
+  X(PUEO_NAV_ATT, nav_att)\
+  X(PUEO_SENSORS_TELEM, sensors_telem)\
+  X(PUEO_SENSORS_DISK, sensors_disk)
+
 
 // Set up write method for each type
 #define X_PUEO_WRITE(IGNORE,STRUCT_NAME) \

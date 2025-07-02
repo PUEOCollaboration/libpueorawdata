@@ -103,7 +103,6 @@ static int gz_close(void * auxptr)
 
 
 
-
 static int hinit(pueo_handle_t *h)
 {
   // zero out
@@ -326,4 +325,21 @@ int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p)\
 
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ_IMPL)
 
+/** Implement pueo_write_X, which is adding a header and the  pueo_write_packet_X methods
+ * Returns EOF if there's nothing left, but 0 if it's the wrong type!
+ *
+ **/
+#define X_PUEO_WRITE_IMPL(PACKET_TYPE, STRUCT_NAME) \
+int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p)\
+{\
+  pueo_packet_head_t  hd = pueo_packet_header_for_##STRUCT_NAME(p); \
+  int ret = h->write_bytes(sizeof(hd), &hd, h->aux); \
+  if (ret != sizeof(hd)) return -1; \
+  int ret2= pueo_write_packet_##STRUCT_NAME(h, p);\
+  if (ret2 < 0) return ret2;\
+  return ret+ ret2;\
+}\
 
+
+
+PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE_IMPL)

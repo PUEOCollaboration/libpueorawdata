@@ -62,12 +62,15 @@ extern "C"
 typedef enum e_pueo_datatype
 {
   PUEO_PACKET_INVALID = 0,
-  PUEO_PACKET_HEAD = 0xda7a , //pueo_full_waveforms_t
+  PUEO_PACKET_HEAD = 0x0ead , // if we write out headres, for some reason
   PUEO_FULL_WAVEFORMS = 0xda7a , //pueo_full_waveforms_t
   PUEO_SINGLE_WAVEFORM = 0xea7a, //pueo_single_waveform_t
   PUEO_ENCODED_WAVEFORM = 0xabcd, // pueo_encoded_waveform_t
-  PUEO_PACKET_NAV =0xde1a,
-  PUEO_PACKET_SENSORS =0xcb1e
+  PUEO_NAV_ATT =0xa771,
+  PUEO_SENSORS_TELEM =0xb1de,
+  PUEO_SENSORS_DISK =0xcb1d,
+  PUEO_CMD_ECHO = 0xecc0,
+  PUEO_LOGS = 0x7a11
 } pueo_datatype_t;
 
 /**
@@ -137,6 +140,8 @@ typedef struct pueo_encoded_waveform
 #define MAX_SENSORS_PER_PACKET_DISK 256
 #define MAX_SENSORS_PER_PACKET_TELEM 256
 
+
+// THESE ARE NOT WRITTEN OUT DIRECTLY
 typedef struct pueo_sensor_telem
 {
   uint16_t sensor_id  : 10;
@@ -150,6 +155,8 @@ typedef struct pueo_sensor_telem
 } pueo_sensor_telem_t;
 
 
+
+// THESE ARE NOT WRITTEN OUT DIRECTLY
 typedef struct pueo_sensor_disk
 {
   uint16_t sensor_type;
@@ -165,13 +172,14 @@ typedef struct pueo_sensor_disk
 
 
 
-
 typedef struct pueo_sensors_disk
 {
   uint16_t num_packets; // Number of sensor packets here
   uint16_t sensor_id_magic;
   pueo_sensor_disk_t sensors[MAX_SENSORS_PER_PACKET_DISK];
 } pueo_sensors_disk_t;
+
+#define PUEO_SENSORS_DISK_VER 0
 
 typedef struct pueo_sensors_telem
 {
@@ -181,9 +189,61 @@ typedef struct pueo_sensors_telem
   pueo_sensor_telem_t sensors[MAX_SENSORS_PER_PACKET_TELEM];
 } pueo_sensors_telem_t;
 
+#define PUEO_SENSORS_TELEM_VER 0
+
+
+typedef struct pueo_time
+{
+  uint64_t utc_secs : 34;
+  uint32_t utc_nsecs : 30;
+} pueo_time_t;
 
 
 
+typedef struct pueo_nav_att
+{
+  enum
+  {
+    PUEO_NAV_CPT7,
+    PUEO_NAV_BOREAS,
+    PUEO_NAV_ABX2
+  } source;
+
+  pueo_time_t readout_time;
+  pueo_time_t gps_time;
+
+  float lat;
+  float lon;
+  float alt;
+
+  float heading;
+  float pitch;
+  float roll;
+
+  float v[3];
+  float acc[3];
+
+  float vdop;
+  float hdop;
+
+  uint8_t nsats;
+  uint8_t flags;
+
+} pueo_nav_att_t;
+
+#define  PUEO_NAV_ATT_VER 0
+
+
+typedef struct pueo_cmd_echo
+{
+  uint32_t when;
+  uint32_t len_m1 : 8;
+  uint32_t count : 24;
+  uint8_t data[256];
+} pueo_cmd_echo_t;
+
+
+#define PUEO_CMD_ECHO_VER 0
 
 #ifdef __cplusplus
 }
