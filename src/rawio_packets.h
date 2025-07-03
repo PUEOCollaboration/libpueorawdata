@@ -36,9 +36,11 @@
 #define X_PUEO_READ_PACKET(IGNORE,STRUCT_NAME) \
   int pueo_read_packet_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p, int ver);\
 
-// Set up read prepare_header method for each type
+// Set up prepare_header method for each type
 #define X_PUEO_PACKET_HEADER(IGNORE,STRUCT_NAME) \
   pueo_packet_head_t pueo_packet_header_for_##STRUCT_NAME(const pueo_##STRUCT_NAME##_t * p);\
+
+
 
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE_PACKET)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ_PACKET)

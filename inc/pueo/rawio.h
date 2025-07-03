@@ -33,6 +33,7 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
 #include <pueo/pueo.h>
 #include <pueo/rawdata.h>
 
@@ -157,28 +158,34 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
 #define PUEO_IO_DISPATCH_TABLE(X) \
   X(PUEO_FULL_WAVEFORMS, full_waveforms)\
   X(PUEO_SINGLE_WAVEFORM, single_waveform)\
-  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)\
   X(PUEO_NAV_ATT, nav_att)\
   X(PUEO_SENSORS_TELEM, sensors_telem)\
   X(PUEO_SENSORS_DISK, sensors_disk)
 
+//  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)\
+
 
 // Set up write method for each type
 #define X_PUEO_WRITE(IGNORE,STRUCT_NAME) \
-  int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p); \
+  int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p); 
 
 // Set up read method for each type
 #define X_PUEO_READ(IGNORE,STRUCT_NAME) \
-  int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p);\
+  int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p);
 
 // This sets up safe-ish methods for using a pueo_packet_t. Will either return the pointer, or NULL if not the right type.
 #define X_PUEO_CAST(IGNORE,STRUCT_NAME) \
-  const pueo_##STRUCT_NAME##_t* pueo_packet_as_##STRUCT_NAME(const pueo_packet_t * p);\
+  const pueo_##STRUCT_NAME##_t* pueo_packet_as_##STRUCT_NAME(const pueo_packet_t * p);
+
+// This sets up a dumper
+#define X_PUEO_DUMP(IGNORE,STRUCT_NAME) \
+  int  pueo_dump_##STRUCT_NAME(FILE* f, const pueo_##STRUCT_NAME##_t * p);
 
 
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_CAST)
+PUEO_IO_DISPATCH_TABLE(X_PUEO_DUMP)
 
 
 #endif

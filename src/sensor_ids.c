@@ -35,6 +35,7 @@
 
 #define SENSOR_SUBSYS_DEF(SUBSYS,NAME,TT, K) #SUBSYS,
 #define SENSOR_NAME_DEF(SUBSYS,NAME,TT, K) #NAME,
+#define SENSOR_SUBSYSNAME_DEF(SUBSYS,NAME,TT, K) #SUBSYS"_"#NAME,
 #define SENSOR_TT_DEF(SUBSYS,NAME,TT, K) TT,
 #define SENSOR_K_DEF(SUBSYS,NAME,TT, K) K,
 
@@ -46,6 +47,13 @@ static const char * sensor_subsystems[] = {
 static const char * sensor_names[] = {
   ALL_THE_PUEO_SENSORS(SENSOR_NAME_DEF)
 };
+
+static const char * sensor_subsysnames[] = {
+  ALL_THE_PUEO_SENSORS(SENSOR_SUBSYSNAME_DEF)
+};
+
+
+
 static const char  sensor_type_tags[] = {
   ALL_THE_PUEO_SENSORS(SENSOR_TT_DEF)
 };
@@ -75,6 +83,13 @@ const char * pueo_sensor_id_get_name(uint16_t sensid)
   assert(sensid < MAX_SENSORS);
   return sensor_names[sensid];
 }
+
+const char * pueo_sensor_id_get_subsystem_plus_name(uint16_t sensid)
+{
+  assert(sensid < MAX_SENSORS);
+  return sensor_subsysnames[sensid];
+}
+
 
 char pueo_sensor_id_get_type_tag(uint16_t sensid)
 {

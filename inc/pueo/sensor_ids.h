@@ -1,5 +1,5 @@
-#ifndef _PUEO_RAW_DATA_H
-#define _PUEO_RAW_DATA_H
+#ifndef _PUEO_SENSOR_IDS_H
+#define _PUEO_SENSOR_IDS_H
 
 /**
  * \file pueo/sensor_ids.h
@@ -42,14 +42,14 @@
 
 #define PUEO_SENSOR_ID_BITS 10
 
-enum
+enum e_pueo_sensor_type_tag
 {
   PUEO_SENSOR_FLOAT = 'F',
   PUEO_SENSOR_INT = 'I',
   PUEO_SENSOR_UINT = 'U',
-} e_pueo_sensor_type_tag;
+};
 
-enum
+enum  e_pueo_sensor_kind
 {
   PUEO_SENSOR_VOLTS = 'V',
   PUEO_SENSOR_AMPS = 'A',
@@ -57,7 +57,7 @@ enum
   PUEO_SENSOR_WATTS = 'W',
   PUEO_SENSOR_GAUSS = 'G',
   PUEO_SENSOR_BITMASK = 'X',
-} e_pueo_sensor_kind;
+};
 
 
 
@@ -308,10 +308,10 @@ SENSOR(DAQ,      T_APU_SURF6_VR,            'F','C')
 
 #define PUEO_SENSOR_ENUM_DEF(SUBSYS,NAME,TYPETAG,KIND) PUEO_SENSOR_##SUBSYS##_##NAME,
 
-enum
+enum e_pueo_sensors
 {
   ALL_THE_PUEO_SENSORS(PUEO_SENSOR_ENUM_DEF)
-} e_pueo_sensors;
+};
 
 
 
@@ -320,9 +320,9 @@ enum
 
 const char * pueo_sensor_id_get_subsystem(uint16_t sensid);
 const char * pueo_sensor_id_get_name(uint16_t sensid);
+const char * pueo_sensor_id_get_subsystem_plus_name(uint16_t sensid);
 char pueo_sensor_id_get_type_tag(uint16_t sensid);
 char pueo_sensor_id_get_kind(uint16_t sensid);
-
 
 
 

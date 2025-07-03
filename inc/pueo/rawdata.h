@@ -159,12 +159,12 @@ typedef struct pueo_sensor_telem
 // THESE ARE NOT WRITTEN OUT DIRECTLY
 typedef struct pueo_sensor_disk
 {
-  uint16_t sensor_type;
+  uint16_t sensor_id;
   uint16_t time_ms;  //millisecond part of time
   uint32_t time_secs; //second part of time
   union
   {
-    float val;
+    float fval;
     int32_t ival;
     uint32_t uval;
   } val;

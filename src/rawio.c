@@ -192,6 +192,21 @@ int pueo_ll_write(pueo_handle_t * h, pueo_datatype_t type, const void *p)
 }
 
 
+int pueo_size_inmem(pueo_datatype_t type)
+{
+#define X_INMEM_SIZE(PACKET_TYPE, TYPENAME) \
+    case PACKET_TYPE:\
+      return sizeof(pueo_##TYPENAME##_t);
+
+  switch (type)
+  {
+    PUEO_IO_DISPATCH_TABLE(X_INMEM_SIZE)
+
+    default:
+      return -1;
+  }
+}
+
 int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
 {
 
@@ -257,12 +272,18 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
   return nread;
 }
 
+int pueo_packet_init(pueo_packet_t * p, int capacity)
+{
+  memset(&p->head,0,sizeof(p->head));
+  p->payload_capacity = capacity;
+}
 
 int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest)
 {
   // Nothing has been allocated. Let's allocate with a capacity of 512 since why not
   if (!*dest)
   {
+    *dest = malloc(sizeof(pueo_packet_t) + 512);
     pueo_packet_init(*dest, 512);
   }
 
@@ -271,6 +292,7 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest)
   if (nread == -EMSGSIZE)
   {
     free(*dest);
+    *dest = malloc(sizeof(pueo_packet_t) + h->required_read_size);
     pueo_packet_init(*dest, h->required_read_size);
     nread = pueo_ll_read(h,*dest);
   }

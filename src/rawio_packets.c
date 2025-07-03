@@ -35,7 +35,7 @@
   }
 
 #define SIMPLE_PUEO_H_IMPL(STRUCT_NAME, TYPE_NAME) \
-  pueo_packet_head_t pueo_packet_head_for_##STRUCT_NAME(const pueo_##STRUCT_NAME##_t *p ) \
+  pueo_packet_head_t pueo_packet_header_for_##STRUCT_NAME(const pueo_##STRUCT_NAME##_t *p ) \
   { \
     pueo_packet_head_t hd = {\
       .type = PUEO_##TYPE_NAME,\
@@ -65,6 +65,8 @@
 
 
 SIMPLE_PUEO_IO_IMPL(nav_att, NAV_ATT)
+SIMPLE_PUEO_IO_IMPL(sensors_disk, SENSORS_DISK)
+SIMPLE_PUEO_IO_IMPL(sensors_telem, SENSORS_TELEM)
 
 ///////// More complicated implementations here
 
@@ -114,6 +116,7 @@ pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_wave
   update_len_cksum_waveform(&len,&crc,&p->wf);
   hd.num_bytes = len;
   hd.cksum = crc;
+  return hd;
 }
 
 
@@ -138,6 +141,7 @@ pueo_packet_head_t pueo_packet_header_for_full_waveforms(const pueo_full_wavefor
   for (int i = 0; i < PUEO_NCHAN; i++) update_len_cksum_waveform(&len,&crc,&p->wfs[i]);
   hd.num_bytes = len;
   hd.cksum = crc;
+  return hd;
 }
 
 int pueo_write_packet_full_waveforms(pueo_handle_t *h, const pueo_full_waveforms_t *p)

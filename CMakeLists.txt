@@ -10,10 +10,11 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(default_build_type "RelWithDebInfo")
+set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init) 
 
 find_package(ZLIB)
 
-set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c)
+set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c)
 set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/pueo.h)
 set(PRIVATE_HEADERS src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
 set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
@@ -39,5 +40,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+add_executable(write-wf test/write-wf.c)
+target_link_libraries(write-wf pueorawdata)
 
+add_executable(read-wf test/read-wf.c)
+target_link_libraries(read-wf pueorawdata)
 
