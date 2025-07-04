@@ -336,11 +336,16 @@ static int maybe_read_header(pueo_handle_t *h)
 #define X_PUEO_READ_IMPL(PACKET_TYPE, STRUCT_NAME) \
 int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p)\
 {\
+  if (!p) return 0;  \
   int nread = maybe_read_header(h); \
   if (nread == EOF) return EOF; \
   if (h->last_read_header.type == PACKET_TYPE) {\
     h->flags &= ~PUEO_HANDLE_ALREADY_READ_HEAD; \
-    return pueo_read_packet_##STRUCT_NAME(h, p, h->last_read_header.version); \
+    int nrd = pueo_read_packet_##STRUCT_NAME(h, p, h->last_read_header.version); \
+    pueo_packet_head_t check = pueo_packet_header_for_##STRUCT_NAME(p); \
+    if (check.cksum != h->last_read_header.cksum) fprintf(stderr,"Checksum check failed (hd: %hx, reconstructed: %hx)!\n", h->last_read_header.cksum, check.cksum);\
+    if (nrd != h->last_read_header.num_bytes || h->last_read_header.num_bytes != check.num_bytes) fprintf(stderr,"Length check failed (header: %u, nrd: %d, reconstructed_header: %u)!\n", h->last_read_header.num_bytes, nrd, check.num_bytes);\
+    return nrd;\
   }\
   return 0;\
 }\
