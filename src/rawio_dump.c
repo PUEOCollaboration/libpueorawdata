@@ -17,7 +17,7 @@ static int dump_ntabs = 0;
 #define DUMPU16(f,x,wut) DUMPVAL(f,x,wut,"%hu")
 #define DUMPI16(f,x,wut) DUMPVAL(f,x,wut,"%hd")
 #define DUMPU8(f,x,wut) DUMPVAL(f,x,wut,"%hhu")
-#define DUMPX8(f,x,wut) DUMPVAL(f,x,wut,"%hhx")
+#define DUMPX8(f,x,wut) DUMPVAL(f,x,wut,"0x%hhx")
 #define DUMPFLT(f,x,wut) DUMPVAL(f,x,wut,"%f")
 #define DUMPARRAY(f,x,wut,N,frmt) ret+=fprintf(f,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf==N-1 ? ' ' : ','); ret+=fprintf(f,"],\n")
 #define DUMPEND(f) ret+=fprintf(f,"\%.*s}\n", --dump_ntabs, dump_tabs)
