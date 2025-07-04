@@ -76,7 +76,7 @@ typedef enum e_pueo_datatype
 /**
  * pueo_packet_head_t
  *
- * This 4-byte header prefaces all PUEO data when written to disk or telemetry
+ * This 8-byte header prefaces all PUEO data when written to disk or telemetry
  *
  *
  */
