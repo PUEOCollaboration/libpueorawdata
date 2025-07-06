@@ -178,9 +178,9 @@ SENSOR(CPU,      PCH,                       'F','C')     \
 SENSOR(CPU,      LeftRail,                  'F','C')     \
 SENSOR(CPU,      RightRail,                 'F','C')     \
 SENSOR(CPU,      GPU,                       'F','C')     \
-SENSOR(Mag,      B0,                        'F','G')     \
-SENSOR(Mag,      B1,                        'F','G')     \
-SENSOR(Mag,      B2,                        'F','G')     \
+SENSOR(MAG,      B0,                        'F','G')     \
+SENSOR(MAG,      B1,                        'F','G')     \
+SENSOR(MAG,      B2,                        'F','G')     \
 SENSOR(CC,       OutputPower,               'F','W')     \
 SENSOR(CC,       InputPower,                'F','W')     \
 SENSOR(CC,       MaxLastSweepPower,         'F','W')     \
