@@ -101,8 +101,8 @@ int pueo_dump_sensors_disk(FILE *f, const pueo_sensors_disk_t *t)
     DUMPKEYVAL(f,"decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
     DUMPKEYVAL(f,"decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
     DUMPKEYVAL(f,"decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
-    DUMPU16(f,s,time_secs);
-    DUMPU32(f,s,time_ms);
+    DUMPU32(f,s,time_secs);
+    DUMPU16(f,s,time_ms);
 
     switch(pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id))
     {
