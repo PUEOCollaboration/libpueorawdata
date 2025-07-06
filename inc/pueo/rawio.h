@@ -162,7 +162,7 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
   X(PUEO_SENSORS_TELEM, sensors_telem)\
   X(PUEO_SENSORS_DISK, sensors_disk)
 
-//  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)\
+//  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)
 
 
 // Set up write method for each type
