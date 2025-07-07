@@ -56,6 +56,29 @@ int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
   return ret;
 }
 
+int pueo_dump_full_waveforms(FILE *f, const pueo_full_waveforms_t * wf)
+{
+  int ret = 0;
+  DUMPSTART(f,"single_waveform");
+  DUMPU32(f,wf,run);
+  DUMPU32(f,wf,event);
+  DUMPU32(f,wf,event_second);
+  DUMPU32(f,wf,event_time);
+  DUMPU32(f,wf,last_pps);
+  DUMPU32(f,wf,llast_pps);
+  DUMPU32(f,wf,trigger_meta[0]);
+  DUMPU32(f,wf,trigger_meta[1]);
+  DUMPU32(f,wf,trigger_meta[2]);
+  DUMPU32(f,wf,trigger_meta[3]);
+  for (int i = 0; i < PUEO_NCHAN; i++)
+  {
+    ret+=pueo_dump_waveform(f,&wf->wfs[i]);
+  }
+  DUMPEND(f);
+  return ret;
+}
+
+
 
 int pueo_dump_sensors_telem(FILE *f, const pueo_sensors_telem_t *t)
 {

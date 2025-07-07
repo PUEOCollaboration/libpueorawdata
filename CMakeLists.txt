@@ -46,3 +46,11 @@ target_link_libraries(write-wf pueorawdata)
 add_executable(read-wf test/read-wf.c)
 target_link_libraries(read-wf pueorawdata)
 
+add_executable(write-wfs test/write-wfs.c)
+target_link_libraries(write-wfs pueorawdata)
+
+add_executable(read-wfs test/read-wfs.c)
+target_link_libraries(read-wfs pueorawdata)
+
+add_executable(read-sensors-telem test/read-sensors-telem.c)
+target_link_libraries(read-sensors-telem pueorawdata)
