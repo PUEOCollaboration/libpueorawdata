@@ -14,6 +14,10 @@ int main(int nargs, char ** args)
   pueo_write_single_waveform(&h, &wf);
   printf("{");
   pueo_dump_single_waveform(stdout, &wf);
+  wf.event++;
+  for (int i = 0; i < 1024;i++) wf.wf.data[i] = i*2;
+  pueo_write_single_waveform(&h, &wf);
+  pueo_dump_single_waveform(stdout, &wf);
   printf("}\n");
   return 0;
 }
