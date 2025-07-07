@@ -60,8 +60,8 @@ extern "C"
 #define PUEO_NLF_ANT 8
 #define PUEO_NANT (PUEO_NQRH_ANT + PUEO_NLF_ANT)
 
-
-#define PUEO_NSURF 26
+//2 are virtual, will throw them out later
+#define PUEO_NSURF 28
 #define PUEO_NCHAN_PER_SURF 8
 #define PUEO_NCHAN (PUEO_NSURF * PUEO_NCHAN_PER_SURF)
 

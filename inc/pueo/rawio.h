@@ -168,7 +168,7 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
 
 // Set up write method for each type
 #define X_PUEO_WRITE(IGNORE,STRUCT_NAME) \
-  int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p); 
+  int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p);
 
 // Set up read method for each type
 #define X_PUEO_READ(IGNORE,STRUCT_NAME) \

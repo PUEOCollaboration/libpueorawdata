@@ -43,6 +43,14 @@ int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
   DUMPSTART(f,"single_waveform");
   DUMPU32(f,wf,run);
   DUMPU32(f,wf,event);
+  DUMPU32(f,wf,event_second);
+  DUMPU32(f,wf,event_time);
+  DUMPU32(f,wf,last_pps);
+  DUMPU32(f,wf,llast_pps);
+  DUMPU32(f,wf,trigger_meta[0]);
+  DUMPU32(f,wf,trigger_meta[1]);
+  DUMPU32(f,wf,trigger_meta[2]);
+  DUMPU32(f,wf,trigger_meta[3]);
   ret+=pueo_dump_waveform(f,&wf->wf);
   DUMPEND(f);
   return ret;
