@@ -160,7 +160,8 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
   X(PUEO_SINGLE_WAVEFORM, single_waveform)\
   X(PUEO_NAV_ATT, nav_att)\
   X(PUEO_SENSORS_TELEM, sensors_telem)\
-  X(PUEO_SENSORS_DISK, sensors_disk)
+  X(PUEO_SENSORS_DISK, sensors_disk)\
+  X(PUEO_SLOW, slow)
 
 //  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)
 

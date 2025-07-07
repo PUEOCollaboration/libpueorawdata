@@ -70,7 +70,8 @@ typedef enum e_pueo_datatype
   PUEO_SENSORS_TELEM =0xb1de,
   PUEO_SENSORS_DISK =0xcb1d,
   PUEO_CMD_ECHO = 0xecc0,
-  PUEO_LOGS = 0x7a11
+  PUEO_LOGS = 0x7a11,
+  PUEO_SLOW = 0x510e,
 } pueo_datatype_t;
 
 /**
@@ -243,7 +244,30 @@ typedef struct pueo_cmd_echo
 } pueo_cmd_echo_t;
 
 
+
+
 #define PUEO_CMD_ECHO_VER 0
+
+
+typedef struct pueo_slow
+{
+  uint16_t ncmds;
+  uint16_t time_since_last_cmd;
+  uint32_t last_cmd : 8;
+  uint32_t sipd_uptime : 24;
+  uint32_t cpu_time;
+  uint32_t cpu_uptime : 24;
+  uint32_t can_ping_world : 1;
+  uint32_t starlink_on : 1;
+  uint32_t los_on : 1;
+  uint16_t current_run;
+  uint16_t current_run_secs;
+  uint32_t current_run_events;
+  uint16_t L1_rates[12];
+  uint8_t L2_rates[12];
+} pueo_slow_t;
+
+#define PUEO_SLOW_VER 0
 
 #ifdef __cplusplus
 }

@@ -144,4 +144,24 @@ int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
   DUMPEND(f);
 }
 
+int pueo_dump_slow(FILE *f, const pueo_slow_t * s)
+{
+  int ret = 0;
+  DUMPSTART(f,"slow");
+  DUMPU16(f,s,ncmds);
+  DUMPU16(f,s,time_since_last_cmd);
+  DUMPU8(f,s,last_cmd);
+  DUMPU32(f,s,sipd_uptime);
+  DUMPU32(f,s,cpu_time);
+  DUMPU32(f,s,cpu_uptime);
+  DUMPU32(f,s,can_ping_world);
+  DUMPU32(f,s,starlink_on);
+  DUMPU32(f,s,los_on);
+  DUMPU16(f,s,current_run);
+  DUMPU16(f,s,current_run_secs);
+  DUMPU32(f,s,current_run_events);
+
+  DUMPEND(f);
+
+}
 
