@@ -153,6 +153,11 @@ int pueo_handle_init_fd(pueo_handle_t *h, int fd )
   return 0;
 }
 
+int pueo_handle_close(pueo_handle_t *h)
+{
+  h->close(h->aux);
+  hinit(h);
+}
 
 int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode)
 {
