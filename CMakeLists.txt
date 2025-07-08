@@ -54,3 +54,6 @@ target_link_libraries(read-wfs pueorawdata)
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
+
+add_executable(convert-to-csv test/convert-to-csv.c)
+target_link_libraries(convert-to-csv pueorawdata)
