@@ -193,8 +193,8 @@ SENSOR(CC,       BatteryMax,                'F','V')     \
 SENSOR(CC,       HoursOn,                   'F','V')     \
 SENSOR(CC,       FaultBits,                 'U','X')     \
 SENSOR(CC,       ChargingCurrent,           'F','A')     \
-SENSOR(CC,       TLocal,                    'F','c')     \
-SENSOR(CC,       TRemote,                   'F','c')     \
+SENSOR(CC,       TLocal,                    'F','C')     \
+SENSOR(CC,       TRemote,                   'F','C')     \
 SENSOR(HK,       24V,                       'F','V')     \
 SENSOR(HK,       BATTERY,                   'F','V')     \
 SENSOR(HK,       PV,                        'F','V')     \
