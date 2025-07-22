@@ -18,6 +18,7 @@ static int dump_ntabs = 0;
 #define DUMPI16(f,x,wut) DUMPVAL(f,x,wut,"%hd")
 #define DUMPU8(f,x,wut) DUMPVAL(f,x,wut,"%hhu")
 #define DUMPX8(f,x,wut) DUMPVAL(f,x,wut,"0x%hhx")
+#define DUMPX32(f,x,wut) DUMPVAL(f,x,wut,"0x%x")
 #define DUMPFLT(f,x,wut) DUMPVAL(f,x,wut,"%f")
 #define DUMPARRAY(f,x,wut,N,frmt) ret+=fprintf(f,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf==N-1 ? ' ' : ','); ret+=fprintf(f,"],\n")
 #define DUMPEND(f) ret+=fprintf(f,"\%.*s}\n", --dump_ntabs, dump_tabs)
@@ -47,10 +48,10 @@ int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
   DUMPU32(f,wf,event_time);
   DUMPU32(f,wf,last_pps);
   DUMPU32(f,wf,llast_pps);
-  DUMPU32(f,wf,trigger_meta[0]);
-  DUMPU32(f,wf,trigger_meta[1]);
-  DUMPU32(f,wf,trigger_meta[2]);
-  DUMPU32(f,wf,trigger_meta[3]);
+  DUMPX32(f,wf,trigger_meta[0]);
+  DUMPX32(f,wf,trigger_meta[1]);
+  DUMPX32(f,wf,trigger_meta[2]);
+  DUMPX32(f,wf,trigger_meta[3]);
   ret+=pueo_dump_waveform(f,&wf->wf);
   DUMPEND(f);
   return ret;
@@ -59,17 +60,17 @@ int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
 int pueo_dump_full_waveforms(FILE *f, const pueo_full_waveforms_t * wf)
 {
   int ret = 0;
-  DUMPSTART(f,"single_waveform");
+  DUMPSTART(f,"full_waveform");
   DUMPU32(f,wf,run);
   DUMPU32(f,wf,event);
   DUMPU32(f,wf,event_second);
   DUMPU32(f,wf,event_time);
   DUMPU32(f,wf,last_pps);
   DUMPU32(f,wf,llast_pps);
-  DUMPU32(f,wf,trigger_meta[0]);
-  DUMPU32(f,wf,trigger_meta[1]);
-  DUMPU32(f,wf,trigger_meta[2]);
-  DUMPU32(f,wf,trigger_meta[3]);
+  DUMPX32(f,wf,trigger_meta[0]);
+  DUMPX32(f,wf,trigger_meta[1]);
+  DUMPX32(f,wf,trigger_meta[2]);
+  DUMPX32(f,wf,trigger_meta[3]);
   for (int i = 0; i < PUEO_NCHAN; i++)
   {
     ret+=pueo_dump_waveform(f,&wf->wfs[i]);
