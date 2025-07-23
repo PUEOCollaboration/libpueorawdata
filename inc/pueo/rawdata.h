@@ -210,15 +210,33 @@ typedef struct pueo_time
 } pueo_time_t;
 
 
+enum
+{
+  PUEO_NAV_ABX2 = 'A',
+  PUEO_NAV_BOREAS = 'B',
+  PUEO_NAV_CPT7 = 'C',
+  PUEO_NAV_TURF = 'T',
+} e_pueo_nav_src;
+
+enum
+{
+  PUEO_NAV_SV_GPSL1,
+  PUEO_NAV_SV_GPSL2,
+  PUEO_NAV_SV_GPSL5,
+  PUEO_NAV_SV_GLOL1,
+  PUEO_NAV_SV_GLOL2,
+  PUEO_NAV_SV_GALE1,
+  PUEO_NAV_SV_GALE5,
+  PUEO_NAV_SV_BEID1,
+  PUEO_NAV_SV_BEID2,
+  PUEO_NAV_SV_QZSSL1,
+  PUEO_NAV_SV_QZSSL2
+} e_pueo_nav_svtype;
+
+
 
 typedef struct pueo_nav_att
 {
-  enum
-  {
-    PUEO_NAV_CPT7,
-    PUEO_NAV_BOREAS,
-    PUEO_NAV_ABX2
-  } source;
 
   pueo_time_t readout_time;
   pueo_time_t gps_time;
@@ -237,12 +255,33 @@ typedef struct pueo_nav_att
   float vdop;
   float hdop;
 
+  char source;
   uint8_t nsats;
   uint8_t flags;
 
 } pueo_nav_att_t;
 
 #define  PUEO_NAV_ATT_VER 0
+
+
+typedef struct pueo_nav_sat
+{
+  pueo_time_t readout_time;
+  pueo_time_t gps_time;
+  uint8_t nsats;
+  char source;
+
+  struct sat
+  {
+    uint8_t type : 4;
+    uint8_t qualityInd : 4;
+    uint8_t svid;
+    _Float16 el;
+    _Float16 az;
+    _Float16 cno;
+    _Float16 prRes;
+  } sats[255]; //many won't be populated
+} pueo_nav_sat_t;
 
 
 typedef struct pueo_cmd_echo
