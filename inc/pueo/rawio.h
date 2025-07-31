@@ -64,7 +64,7 @@ int pueo_packet_init(pueo_packet_t * p, int capacity);
  * It is not expected most users will need to do this (see methods below) , but the interface is exported in case.
  *
  * */
-typedef struct
+typedef struct pueo_handle
 {
   uint32_t packet_write_counter;  //Will increment each time when writing.
   pueo_packet_head_t last_read_header; //you can use this to interrogate the packet number, and also if you need to make more room
@@ -75,9 +75,9 @@ typedef struct
   uint64_t bytes_read;
 
   //Function pointers
-  int (*write_bytes) (int nbytes, const void *bytes, void* auxptr);
-  int (*read_bytes)  (int nbytes, void * bytes, void* auxptr);
-  int (*close) (void *auxptr);
+  int (*write_bytes) (int nbytes, const void *bytes, struct pueo_handle * h);
+  int (*read_bytes)  (int nbytes, void * bytes, struct pueo_handle * h);
+  int (*close) (struct pueo_handle *p);
 
   void *aux;
 } pueo_handle_t;

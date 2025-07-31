@@ -30,7 +30,7 @@
 #define SIMPLE_PUEO_O_IMPL(STRUCT_NAME, IGNORED) \
   int pueo_write_packet_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t *p ) \
   { \
-    int nwr = h->write_bytes( sizeof(pueo_##STRUCT_NAME##_t), p, h->aux); \
+    int nwr = h->write_bytes( sizeof(pueo_##STRUCT_NAME##_t), p, h); \
     h->bytes_written += nwr; return nwr; \
   }
 
@@ -52,7 +52,7 @@
   {\
     int versize = pueo_##STRUCT_NAME##_size(ver); \
     if (versize < 0 || versize > sizeof(pueo_##STRUCT_NAME##_t)) { fprintf(stderr,"bad ver size of %d for ver %d\n", versize, ver, #STRUCT_NAME); return -1; } \
-    int nread = h->read_bytes( versize, p, h->aux);\
+    int nread = h->read_bytes( versize, p, h);\
     memset(p+versize, 0, sizeof(pueo_##STRUCT_NAME##_t) - versize); \
     h->bytes_read += nread; \
     return nread; \
@@ -74,15 +74,15 @@ SIMPLE_PUEO_IO_IMPL(slow, SLOW)
 //helpers for pueo_waveform_t (which must be embedded into another datatype)
 static int write_waveform(pueo_handle_t*h, const pueo_waveform_t * wf)
 {
-  return h->write_bytes(offsetof(pueo_waveform_t, data) + wf->length * sizeof(*wf->data), wf, h->aux);
+  return h->write_bytes(offsetof(pueo_waveform_t, data) + wf->length * sizeof(*wf->data), wf, h);
 }
 
 static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf)
 {
   int hdrsize = offsetof(pueo_waveform_t,data);
-  int nrd = h->read_bytes(hdrsize, wf, h->aux);
+  int nrd = h->read_bytes(hdrsize, wf, h);
   if (nrd != hdrsize) return -1;
-  nrd += h->read_bytes(wf->length*sizeof(*wf->data), wf->data, h->aux);
+  nrd += h->read_bytes(wf->length*sizeof(*wf->data), wf->data, h);
   if (nrd != hdrsize + wf->length*sizeof(*wf->data)) return -1;
   return nrd;
 }
@@ -101,7 +101,7 @@ static void update_len_cksum_waveform(uint32_t * len, uint16_t * cksum, const pu
 int pueo_write_packet_single_waveform(pueo_handle_t *h, const pueo_single_waveform_t *p)
 {
   int nwr = 0;
-  nwr += h->write_bytes(offsetof(pueo_single_waveform_t, wf), p, h->aux);
+  nwr += h->write_bytes(offsetof(pueo_single_waveform_t, wf), p, h);
   nwr += write_waveform(h, &p->wf);
   h->bytes_written += nwr;
   return nwr;
@@ -123,7 +123,7 @@ pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_wave
 
 int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p, int ver)
 {
-  int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h->aux);
+  int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h);
   if (total_read != offsetof(pueo_single_waveform_t, wf)) return -1;
   int nrd = read_waveform(h, &p->wf);
   if (nrd < 0) return -1;
@@ -148,7 +148,7 @@ pueo_packet_head_t pueo_packet_header_for_full_waveforms(const pueo_full_wavefor
 int pueo_write_packet_full_waveforms(pueo_handle_t *h, const pueo_full_waveforms_t *p)
 {
   int nwr = 0;
-  nwr += h->write_bytes(offsetof(pueo_full_waveforms_t, wfs), p, h->aux);
+  nwr += h->write_bytes(offsetof(pueo_full_waveforms_t, wfs), p, h);
   for (int i = 0; i < PUEO_NCHAN; i++)
   {
     nwr += write_waveform(h, &p->wfs[i]);
@@ -160,7 +160,7 @@ int pueo_write_packet_full_waveforms(pueo_handle_t *h, const pueo_full_waveforms
 
 int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p, int ver)
 {
-  int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h->aux);
+  int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h);
   if (total_read != offsetof(pueo_single_waveform_t, wf)) return -1;
   for (int i = 0; i < PUEO_NCHAN; i++)
   {
