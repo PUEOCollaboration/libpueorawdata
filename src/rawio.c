@@ -23,16 +23,25 @@
 
 #include "pueo/rawio.h"
 #include "rawio_packets.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <assert.h>
 #include <zlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 
 enum pueo_handle_flags
 {
-  PUEO_HANDLE_ALREADY_READ_HEAD = 1
+  PUEO_HANDLE_ALREADY_READ_HEAD = 1,
+  PUEO_HANDLE_PEEK_IF_NEEDED = 2,
+  PUEO_HANDLE_NEEDED_TO_PEEK = 3 //TODO: this is a hack. right now we assume this was only for a header!
 };
 
 static int check_uri_prefix(const char * uri, const char * prefix, const char ** remainder)
@@ -49,58 +58,89 @@ static int check_uri_prefix(const char * uri, const char * prefix, const char **
 }
 
 /******************* Useful function pointer definitions********* */
-static int fd_writebytes(int nbytes, const void * bytes,void *auxptr)
+static int fd_writebytes(int nbytes, const void * bytes, pueo_handle_t * h)
 {
-  int fd = (intptr_t) auxptr;
+  int fd = (intptr_t) h->aux;
   return write(fd, bytes, nbytes);
 }
 
-static int fd_readbytes(int nbytes, void * bytes, void *auxptr)
+static int fd_readbytes(int nbytes, void * bytes, pueo_handle_t  *h)
 {
-  int fd = (intptr_t) auxptr;
+  int fd = (intptr_t) h->aux;
   return read(fd, bytes, nbytes);
 }
 
-static int fd_close(void * auxptr)
+static int fd_close(pueo_handle_t * h)
 {
-  int fd = (intptr_t) auxptr;
+  int fd = (intptr_t) h->aux;
   return close(fd);
 }
 
-static int file_writebytes(int nbytes, const void * bytes, void *auxptr)
+//this is super hacky because we have to peek to read a header...
+static int socket_readbytes(int nbytes, void * bytes, pueo_handle_t  *h)
 {
-  FILE *f  = (FILE*) auxptr;
+  int socket = (intptr_t) h->aux;
+  // we have to peek in this case
+  if (h->flags & PUEO_HANDLE_PEEK_IF_NEEDED)
+  {
+    //we only support this case right now, otherwise we have to store how many bytes were peeked
+    assert(nbytes == sizeof(pueo_packet_head_t));
+    ssize_t  s = recv(socket, bytes, nbytes, MSG_PEEK);
+    h->flags |= PUEO_HANDLE_NEEDED_TO_PEEK;
+    h->flags &= ~PUEO_HANDLE_PEEK_IF_NEEDED;
+    return s;
+  }
+
+  if (h->flags & PUEO_HANDLE_NEEDED_TO_PEEK)
+  {
+    h->flags &= ~PUEO_HANDLE_NEEDED_TO_PEEK; //clear flag
+
+    //ignore the pueo_packet_head_t bytes in this case
+    struct iovec iov[2]  = {
+      {  .iov_base = NULL, .iov_len = sizeof(pueo_packet_head_t) },
+      {  .iov_base = bytes, .iov_len = nbytes }
+    };
+    struct msghdr msg = { .msg_iov = iov, .msg_iovlen = 2 };
+    return recvmsg(socket,&msg,0);
+  }
+
+  return read(socket, bytes, nbytes);
+}
+
+
+static int file_writebytes(int nbytes, const void * bytes, pueo_handle_t *h )
+{
+  FILE *f  = (FILE*) h->aux;
   return fwrite(bytes, 1, nbytes, f);
 }
-static int file_readbytes(int nbytes, void * bytes, void *auxptr)
+static int file_readbytes(int nbytes, void * bytes, pueo_handle_t * h)
 {
-  FILE *f = (FILE*) auxptr;
+  FILE *f = (FILE*) h->aux;
   return fread(bytes, 1, nbytes, f);
 }
 
-static int file_close(void * auxptr)
+static int file_close(pueo_handle_t * h)
 {
-  FILE * f = (FILE*) auxptr;
+  FILE * f = (FILE*) h->aux;
   return fclose(f);
 }
 
-static int gz_writebytes(int nbytes, const void * bytes,void *auxptr)
+static int gz_writebytes(int nbytes, const void * bytes, pueo_handle_t *h)
 {
-  gzFile  f  = (gzFile) auxptr;
+  gzFile  f  = (gzFile) h->aux;
   return gzwrite(f, bytes, nbytes);
 }
-static int gz_readbytes(int nbytes, void * bytes,void *auxptr)
+static int gz_readbytes(int nbytes, void * bytes, pueo_handle_t *h)
 {
-  gzFile f = (gzFile) auxptr;
+  gzFile f = (gzFile) h->aux;
   return gzread(f, bytes, nbytes);
 }
 
-static int gz_close(void * auxptr)
+static int gz_close(pueo_handle_t  * h)
 {
-  gzFile f = (gzFile) auxptr;
+  gzFile f = (gzFile) h->aux;
   return gzclose(f);
 }
-
 
 
 static int hinit(pueo_handle_t *h)
@@ -159,11 +199,77 @@ int pueo_handle_close(pueo_handle_t *h)
   hinit(h);
 }
 
+
+int pueo_handle_init_udp(pueo_handle_t * h, int port, const char *hostname, const char * mode)
+{
+  hinit(h); 
+
+  bool am_reading = !!strchr(mode,'r');
+  bool am_writing = !!strchr(mode,'w');
+  bool valid_mode = am_reading ^ am_writing;
+  if (!valid_mode)
+  {
+    fprintf(stderr,"pueo_handle_udp: mode must have one of r and w in it\n");
+    return -1;
+  }
+
+
+  int sock = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sock < 0)
+  {
+    fprintf(stderr,"Couldn't create socket\n");
+    return -1;
+  }
+
+  struct addrinfo hints =
+  {
+    .ai_family = AF_INET,
+    .ai_socktype = SOCK_DGRAM,
+  };
+
+  struct addrinfo * result = 0;
+  if (getaddrinfo(hostname,NULL,&hints,&result))
+  {
+    fprintf(stderr,"pueo_handle_udp: problem with getaddrinfo\n");
+    return -1;
+  }
+
+
+  struct sockaddr_in sa = { .sin_family = AF_INET, .sin_port = htons(port) };
+  memcpy(&sa.sin_addr, &((struct sockaddr_in*) result->ai_addr)->sin_addr, sizeof(sa.sin_addr));
+  freeaddrinfo(result);
+
+  if (am_reading)
+  {
+
+    if (bind(sock, (struct sockaddr*)  &sa, sizeof(sa)))
+    {
+      fprintf(stderr,"pueo_handle_udp: couldn't bind to %s:%d\n", inet_ntoa(sa.sin_addr),port);
+      return 1;
+    }
+  }
+  else
+  {
+    if (connect(sock,  (struct sockaddr*) &sa, sizeof(sa)))
+    {
+
+      fprintf(stderr,"pueo_handle_udp: couldn't connect to %s:%d\n", inet_ntoa(sa.sin_addr),port);
+      return 1;
+    }
+
+  }
+  h->aux = (void*) ( (intptr_t) sock);
+  h->close = fd_close;
+  h->write_bytes = fd_writebytes;
+  h->read_bytes = socket_readbytes;
+  return 0;
+}
+
 int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode)
 {
 
-  // check for some prefixes
 
+  // check for some prefixes
   const char * remainder = 0;
   if (check_uri_prefix(uri,"file://", &remainder))
   {
@@ -175,8 +281,7 @@ int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode)
     const char * slashes = strstr(remainder,"//");
     if (!slashes) return -1;
     int port = atoi(remainder);
-    fprintf(stderr,"Not handling UDP  yet\n");
-    return -1; //pueo_handle_init_udp(h, port, slashes+2, mode);
+    pueo_handle_init_udp(h, port, slashes+2, mode);
   }
   return pueo_handle_init_file(h,uri,mode);
 }
@@ -212,6 +317,23 @@ int pueo_size_inmem(pueo_datatype_t type)
   }
 }
 
+static int maybe_read_header(pueo_handle_t *h)
+{
+  if (h->flags & PUEO_HANDLE_ALREADY_READ_HEAD)
+  {
+    return 0 ;
+  }
+
+  // if we have a socket, we must peek
+  h->flags |= PUEO_HANDLE_PEEK_IF_NEEDED;
+  int nread =  h->read_bytes(sizeof(pueo_packet_head_t), &h->last_read_header, h);
+  h->flags &= ~PUEO_HANDLE_PEEK_IF_NEEDED;
+  if (!nread) return EOF;
+  h->bytes_read +=nread;
+  h->flags |= PUEO_HANDLE_ALREADY_READ_HEAD;
+  return nread;
+}
+
 int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
 {
 
@@ -221,14 +343,8 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
   // and set required_read_size
   if (!h->required_read_size)
   {
-    int nread =  h->read_bytes(sizeof(pueo_packet_head_t),  &h->last_read_header, h->aux);
-    if (!nread) return 0;
-
-    h->bytes_read += nread;
-
-    //uhoh
-    if (nread < sizeof(pueo_packet_head_t))
-    {
+    if (maybe_read_header(h) < sizeof(pueo_packet_head_t))
+    { //uhoh
       return -EIO;
     }
 
@@ -320,19 +436,7 @@ PUEO_IO_DISPATCH_TABLE(X_PUEO_CAST_IMPL)
 
 
 
-static int maybe_read_header(pueo_handle_t *h)
-{
-  if (h->flags & PUEO_HANDLE_ALREADY_READ_HEAD)
-  {
-    return 0 ;
-  }
 
-  int nread =  h->read_bytes(sizeof(pueo_packet_head_t), &h->last_read_header, h->aux);
-  if (!nread) return EOF;
-  h->bytes_read +=nread;
-  h->flags |= PUEO_HANDLE_ALREADY_READ_HEAD;
-  return nread;
-}
 
 /** Implement pueo_read_X, which is a combination of checking if the header is correct and the  pueo_read_packet_X methods
  * Returns EOF if there's nothing left, but 0 if it's the wrong type!
@@ -347,6 +451,7 @@ int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p)\
   if (h->last_read_header.type == PACKET_TYPE) {\
     h->flags &= ~PUEO_HANDLE_ALREADY_READ_HEAD; \
     int nrd = pueo_read_packet_##STRUCT_NAME(h, p, h->last_read_header.version); \
+    h->bytes_read += nrd; \
     pueo_packet_head_t check = pueo_packet_header_for_##STRUCT_NAME(p); \
     if (check.cksum != h->last_read_header.cksum) fprintf(stderr,"Checksum check failed (hd: %hx, reconstructed: %hx)!\n", h->last_read_header.cksum, check.cksum);\
     if (nrd != h->last_read_header.num_bytes || h->last_read_header.num_bytes != check.num_bytes) fprintf(stderr,"Length check failed (header: %u, nrd: %d, reconstructed_header: %u)!\n", h->last_read_header.num_bytes, nrd, check.num_bytes);\
@@ -365,10 +470,13 @@ PUEO_IO_DISPATCH_TABLE(X_PUEO_READ_IMPL)
 int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p)\
 {\
   pueo_packet_head_t  hd = pueo_packet_header_for_##STRUCT_NAME(p); \
-  int ret = h->write_bytes(sizeof(hd), &hd, h->aux); \
+  int ret = h->write_bytes(sizeof(hd), &hd, h); \
   if (ret != sizeof(hd)) return -1; \
+  h->bytes_written += ret; \
   int ret2= pueo_write_packet_##STRUCT_NAME(h, p);\
   if (ret2 < 0) return ret2;\
+  h->bytes_written += ret2; \
+  h->packet_write_counter++; \
   return ret+ ret2;\
 }\
 
