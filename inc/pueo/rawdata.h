@@ -209,16 +209,15 @@ typedef struct pueo_time
   uint32_t utc_nsecs : 30;
 } pueo_time_t;
 
-
-enum
+enum e_pueo_nav_src
 {
   PUEO_NAV_ABX2 = 'A',
   PUEO_NAV_BOREAS = 'B',
   PUEO_NAV_CPT7 = 'C',
   PUEO_NAV_TURF = 'T',
-} e_pueo_nav_src;
+};
 
-enum
+enum e_pueo_nav_svtype
 {
   PUEO_NAV_SV_GPSL1,
   PUEO_NAV_SV_GPSL2,
@@ -231,7 +230,7 @@ enum
   PUEO_NAV_SV_BEID2,
   PUEO_NAV_SV_QZSSL1,
   PUEO_NAV_SV_QZSSL2
-} e_pueo_nav_svtype;
+};
 
 
 
