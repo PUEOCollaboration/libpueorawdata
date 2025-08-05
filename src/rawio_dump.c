@@ -1,4 +1,4 @@
-/* here we have the dumpers for each waveform type*/
+/* here we have the dumpers for each data type*/
 
 #include <stdio.h>
 #include "pueo/rawio.h"
