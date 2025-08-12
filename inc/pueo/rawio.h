@@ -77,9 +77,12 @@ typedef struct pueo_handle
   //Function pointers
   int (*write_bytes) (int nbytes, const void *bytes, struct pueo_handle * h);
   int (*read_bytes)  (int nbytes, void * bytes, struct pueo_handle * h);
-  int (*close) (struct pueo_handle *p);
+  int (*close) (struct pueo_handle *h);
 
   void *aux;
+
+  //needed for UDP, when done writing.
+  int (*done_write_packet) (struct pueo_handle *h);
 } pueo_handle_t;
 
 
