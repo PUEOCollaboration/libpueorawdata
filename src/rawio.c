@@ -233,7 +233,7 @@ int pueo_handle_init_fd(pueo_handle_t *h, int fd )
 
 int pueo_handle_close(pueo_handle_t *h)
 {
-  h->close(h->aux);
+  h->close(h);
   hinit(h);
 }
 
