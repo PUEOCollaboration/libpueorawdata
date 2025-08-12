@@ -1,18 +1,17 @@
 /* here we have DB Insertion scripts for each datatype we want to insert into the database
  **/
+#include <fcntl.h>
 #include <stdio.h>
-#include "pueo/rawio.h"
-#include "pueo/rawdata.h"
-#include "pueo/sensor_ids.h"
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <errno.h>
 #include <sys/types.h>
-
+#include <errno.h>
+#include "pueo/rawio.h"
+#include "pueo/rawdata.h"
+#include "pueo/sensor_ids.h"
 
 #ifdef PGSQL_ENABLED
 #include <libpq-fe.h>
@@ -68,7 +67,7 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir)
 {
   // Attempt to make the directory (it might already exist though)
   errno = 0;
-  if (mkdir(dir, 00644))
+  if (mkdir(dir, 0775))
   {
     if (errno != EEXIST)
     {
@@ -78,7 +77,7 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir)
   }
 
   //now try to open it
-  int dirfd = open(dir, O_DIRECTORY | O_RDWR);
+  int dirfd = open(dir, O_DIRECTORY);
   if (dirfd < 0)
   {
     fprintf(stderr,"Could not open %s as directory or don't have permissions to write\n", dir);
@@ -90,6 +89,24 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir)
   h->backend.sqldir.dirfd = dirfd;
   h->state = DB_READY;
   return h;
+}
+
+pueo_db_handle_t * pueo_db_handle_open(const char * uri)
+{
+  if (strstr(uri,"postgresql://") == uri)
+  {
+    return pueo_db_handle_open_pgsql(uri);
+  }
+  // made up uri scheme for old style pgsql conninfo
+  else if (strstr(uri,"PGSQL_CONNINFO:") == uri)
+  {
+    return pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"));
+  }
+  else if (strstr(uri,"sqldir://")==uri)
+  {
+    return pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"));
+  }
+  else return NULL;
 }
 
 pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo)
@@ -141,10 +158,10 @@ static FILE * begin_sql_stream(pueo_db_handle_t * h)
     }
 
     char fname[128];
-    sprintf(fname,"%02d-%02d-%04dT%02d.%02d.%02d.%03d.sql",
+    sprintf(fname,"%02d-%02d-%04dT%02d.%02d.%02d.%09d.sql",
         current_tm.tm_mon+1, current_tm.tm_mday,
         current_tm.tm_year+1900, current_tm.tm_hour,
-        current_tm.tm_min, current_tm.tm_sec, h->txn_begin.tv_nsec / 1e6);
+        current_tm.tm_min, current_tm.tm_sec, h->txn_begin.tv_nsec);
 
 
     int fd = openat(h->backend.sqldir.dirfd, fname, O_CREAT | O_RDWR | O_EXCL, 00644);

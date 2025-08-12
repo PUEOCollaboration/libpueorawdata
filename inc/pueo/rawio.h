@@ -191,6 +191,8 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
 // all of the bits for this will be in rawio_db.c (including for each datatype)
 typedef struct pueo_db_handle pueo_db_handle_t;
 
+pueo_db_handle_t * pueo_db_handle_open(const char * uri);
+
 // Open a handle to a PGSQL database (requires libpq)
 pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo);
 
