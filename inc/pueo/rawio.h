@@ -103,6 +103,7 @@ typedef struct pueo_handle
 int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode);
 
 /** This initializes a handle corresponding to a file. If it ends with .gz, zlib is used automatically,
+ * If it ends with .zst, zstd is used autoagically.
  * If writing a gzfile, mode is passed to gzopen so you can use it to set compression level /strategy
 
  **/
@@ -186,10 +187,29 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
   int  pueo_dump_##STRUCT_NAME(FILE* f, const pueo_##STRUCT_NAME##_t * p);
 
 
+// database entry, for serializing packets to database (mostly for housekeeping)
+// all of the bits for this will be in rawio_db.c (including for each datatype)
+typedef struct pueo_db_handle pueo_db_handle_t;
+
+// Open a handle to a PGSQL database (requires libpq)
+pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo);
+
+// Write .sql files to a directory
+pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir);
+
+//Close a DB handle (and also frees associated memory and sets h to NULL)
+void pueo_db_handle_close(pueo_db_handle_t ** h);
+
+// This sets up a database insertion
+#define X_PUEO_INSERT_DB(IGNORE,STRUCT_NAME) \
+  int  pueo_db_insert_##STRUCT_NAME(pueo_db_handle_t * h, const pueo_##STRUCT_NAME##_t * p);
+
+
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_CAST)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_DUMP)
+PUEO_IO_DISPATCH_TABLE(X_PUEO_INSERT_DB)
 
 
 #endif
