@@ -10,7 +10,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(default_build_type "RelWithDebInfo")
-set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init) 
+set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
 find_package(ZLIB REQUIRED)
 
@@ -28,6 +28,7 @@ set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
 add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 
+target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB)
 target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
 
