@@ -75,8 +75,8 @@ typedef struct pueo_handle
   uint64_t bytes_read;
 
   //Function pointers
-  int (*write_bytes) (int nbytes, const void *bytes, struct pueo_handle * h);
-  int (*read_bytes)  (int nbytes, void * bytes, struct pueo_handle * h);
+  int (*write_bytes) (size_t nbytes, const void *bytes, struct pueo_handle * h);
+  int (*read_bytes)  (size_t nbytes, void * bytes, struct pueo_handle * h);
   int (*close) (struct pueo_handle *h);
 
   void *aux;
@@ -198,6 +198,9 @@ pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo);
 
 // Write .sql files to a directory
 pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir);
+
+// open a handle to a sqlite database (requires sqlite)
+pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * sqlite);
 
 //Close a DB handle (and also frees associated memory and sets h to NULL)
 void pueo_db_handle_close(pueo_db_handle_t ** h);

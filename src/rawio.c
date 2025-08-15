@@ -66,13 +66,13 @@ static int check_uri_prefix(const char * uri, const char * prefix, const char **
 }
 
 /******************* Useful function pointer definitions********* */
-static int fd_writebytes(int nbytes, const void * bytes, pueo_handle_t * h)
+static int fd_writebytes(size_t nbytes, const void * bytes, pueo_handle_t * h)
 {
   int fd = (intptr_t) h->aux;
   return write(fd, bytes, nbytes);
 }
 
-static int fd_readbytes(int nbytes, void * bytes, pueo_handle_t  *h)
+static int fd_readbytes(size_t nbytes, void * bytes, pueo_handle_t  *h)
 {
   int fd = (intptr_t) h->aux;
   return read(fd, bytes, nbytes);
@@ -95,10 +95,9 @@ static int socket_close(pueo_handle_t *h)
 }
 
 #define UDP_MAX 65507
-static int socket_writebytes(int nbytes, const void * bytes, pueo_handle_t *h)
+static int socket_writebytes(size_t nbytes, const void * bytes, pueo_handle_t *h)
 {
   struct udp_aux  * aux = ( struct udp_aux*)  h->aux;
-  int socket = aux->socket;
 
   if (aux->nin + nbytes > UDP_MAX)
   {
@@ -123,10 +122,9 @@ static int socket_done(pueo_handle_t * h)
   return r;
 }
 
-static int socket_readbytes(int nbytes, void * bytes, pueo_handle_t  *h)
+static int socket_readbytes(size_t nbytes, void * bytes, pueo_handle_t  *h)
 {
   struct udp_aux  * aux = ( struct udp_aux*)  h->aux;
-  int socket = aux->socket;
 
   //we have a new thing
   if (aux->nin == aux->nout )
@@ -146,12 +144,12 @@ static int socket_readbytes(int nbytes, void * bytes, pueo_handle_t  *h)
 }
 
 
-static int file_writebytes(int nbytes, const void * bytes, pueo_handle_t *h )
+static int file_writebytes(size_t nbytes, const void * bytes, pueo_handle_t *h )
 {
   FILE *f  = (FILE*) h->aux;
   return fwrite(bytes, 1, nbytes, f);
 }
-static int file_readbytes(int nbytes, void * bytes, pueo_handle_t * h)
+static int file_readbytes(size_t nbytes, void * bytes, pueo_handle_t * h)
 {
   FILE *f = (FILE*) h->aux;
   return fread(bytes, 1, nbytes, f);
@@ -163,12 +161,12 @@ static int file_close(pueo_handle_t * h)
   return fclose(f);
 }
 
-static int gz_writebytes(int nbytes, const void * bytes, pueo_handle_t *h)
+static int gz_writebytes(size_t nbytes, const void * bytes, pueo_handle_t *h)
 {
   gzFile  f  = (gzFile) h->aux;
   return gzwrite(f, bytes, nbytes);
 }
-static int gz_readbytes(int nbytes, void * bytes, pueo_handle_t *h)
+static int gz_readbytes(size_t nbytes, void * bytes, pueo_handle_t *h)
 {
   gzFile f = (gzFile) h->aux;
   return gzread(f, bytes, nbytes);
@@ -185,6 +183,7 @@ static int hinit(pueo_handle_t *h)
 {
   // zero out
   memset(h,0,sizeof(pueo_handle_t));
+  return 0;
 }
 
 
@@ -234,7 +233,7 @@ int pueo_handle_init_fd(pueo_handle_t *h, int fd )
 int pueo_handle_close(pueo_handle_t *h)
 {
   h->close(h);
-  hinit(h);
+  return hinit(h);
 }
 
 
@@ -342,6 +341,8 @@ int pueo_ll_write(pueo_handle_t * h, pueo_datatype_t type, const void *p)
   switch(type)
   {
     PUEO_IO_DISPATCH_TABLE(X_PUEO_SWITCH_WRITE)
+    default:
+      return -1;
   }
 }
 
@@ -383,7 +384,7 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
   // and set required_read_size
   if (!h->required_read_size)
   {
-    if (maybe_read_header(h) < sizeof(pueo_packet_head_t))
+    if ((size_t) maybe_read_header(h) < sizeof(pueo_packet_head_t))
     { //uhoh
       return -EIO;
     }
@@ -416,7 +417,7 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
 //x macro for read
 #define X_PUEO_SWITCH_READ_PACKET(PACKET_TYPE, TYPENAME)\
   case PACKET_TYPE: \
-    nread += pueo_read_packet_##TYPENAME(h, (pueo_##TYPENAME##_t*) dest->payload, h->last_read_header.version);
+    nread += pueo_read_packet_##TYPENAME(h, (pueo_##TYPENAME##_t*) dest->payload, h->last_read_header.version); break;
 
   switch (h->last_read_header.type)
   {
@@ -437,6 +438,7 @@ int pueo_packet_init(pueo_packet_t * p, int capacity)
 {
   memset(&p->head,0,sizeof(p->head));
   p->payload_capacity = capacity;
+  return 0;
 }
 
 int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest)
@@ -467,7 +469,7 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest)
 #define X_PUEO_CAST_IMPL(PACKET_TYPE, STRUCT_NAME) \
 const pueo_##STRUCT_NAME##_t* pueo_packet_as_##STRUCT_NAME(const pueo_packet_t * p)\
 {  \
-  return (p->head.type == PACKET_TYPE && p->payload_capacity > sizeof(pueo_##STRUCT_NAME##_t))\
+  return (p->head.type == PACKET_TYPE && p->payload_capacity > (int) sizeof(pueo_##STRUCT_NAME##_t))\
      ? (const pueo_##STRUCT_NAME##_t*) p->payload : NULL; \
 }
 
