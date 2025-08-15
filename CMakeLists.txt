@@ -18,6 +18,7 @@ find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
 find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
 
 find_package(PostgreSQL)
+find_package(SQLite3)
 
 
 set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c)
@@ -47,6 +48,15 @@ if (PostgreSQL_FOUND)
   add_compile_definitions(PGSQL_ENABLED)
 else()
   message(STATUS "PostgreSQL not found")
+endif()
+
+if (SQLite3_FOUND)
+  message(STATUS "Found SQLite3")
+  target_link_libraries(pueorawdata PRIVATE ${SQLite3_LIBRARIES})
+  target_include_directories(pueorawdata PRIVATE ${SQLite3_INCLUDE_DIRS})
+  add_compile_definitions(SQLITE_ENABLED)
+else()
+  message(STATUS "SQLite3 not found")
 endif()
 
 
