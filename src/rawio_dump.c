@@ -173,6 +173,7 @@ int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
   DUMPU8(f,n,nsats);
   DUMPX8(f,n,flags);
   DUMPEND(f);
+  return ret;
 }
 
 int pueo_dump_slow(FILE *f, const pueo_slow_t * s)
@@ -194,5 +195,6 @@ int pueo_dump_slow(FILE *f, const pueo_slow_t * s)
 
   DUMPEND(f);
 
+  return ret;
 }
 
