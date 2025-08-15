@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -19,6 +20,12 @@
 typedef void PGconn;
 #endif
 
+#ifdef SQLITE_ENABLED
+#include <sqlite3.h>
+#else
+typedef void sqlite3;
+#endif
+
 
 
 struct pueo_db_handle
@@ -26,7 +33,8 @@ struct pueo_db_handle
   enum
   {
     DB_PGSQL,
-    DB_SQLDIR
+    DB_SQLDIR,
+    DB_SQLITE
   } type;
 
   char * description;
@@ -48,14 +56,20 @@ struct pueo_db_handle
       FILE * current;
     } sqldir;
 
-    struct
+    struct  //keep these binary compatible after the first field
     {
       PGconn * psql;
       FILE * memstream;
       char * buf;
       size_t bufN;
     } psql;
-
+    struct  //keep these binary compatible after the first field
+    {
+      sqlite3 * db;
+      FILE * memstream;
+      char * buf;
+      size_t bufN;
+    }sqlite;
   } backend;
 
   struct timespec txn_begin;
@@ -86,27 +100,41 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir)
 
   pueo_db_handle_t * h = calloc(1, sizeof(pueo_db_handle_t));
   h->type = DB_SQLDIR;
+  asprintf(&h->description,"SQLDIR %s", dir);
   h->backend.sqldir.dirfd = dirfd;
   h->state = DB_READY;
   return h;
 }
 
+
+
+static int init_db(pueo_db_handle_t * h);
+
 pueo_db_handle_t * pueo_db_handle_open(const char * uri)
 {
+  pueo_db_handle_t * h = NULL;
   if (strstr(uri,"postgresql://") == uri)
   {
-    return pueo_db_handle_open_pgsql(uri);
+    h = pueo_db_handle_open_pgsql(uri);
   }
   // made up uri scheme for old style pgsql conninfo
   else if (strstr(uri,"PGSQL_CONNINFO:") == uri)
   {
-    return pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"));
+    h = pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"));
   }
   else if (strstr(uri,"sqldir://")==uri)
   {
-    return pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"));
+    h = pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"));
+  }
+  else if (strstr(uri,"sqlite://")==uri)
+  {
+    h = pueo_db_handle_open_sqlite(uri + strlen("sqlite://"));
   }
   else return NULL;
+
+  init_db(h);
+
+  return h;
 }
 
 pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo)
@@ -130,6 +158,42 @@ pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo)
   return h;
 #endif
 }
+
+static void sqlite_to_time(sqlite3_context *ctx, int nargs, sqlite3_value ** args);
+
+pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * dbfile)
+{
+#ifndef SQLITE_ENABLED
+  fprintf(stderr, "You asked to open a sqlite handle but compiled without sqlite support. What were you expecting to happen?\n"); 
+  return NULL;
+#else
+  sqlite3* db = NULL;
+  int r = sqlite3_open(dbfile, &db);
+  if (r)
+  {
+    fprintf(stderr,"Failed to open sqlite db %s: %s\n", dbfile, sqlite3_errmsg(db));
+    sqlite3_close(db);
+    return NULL;
+  }
+
+
+  // register to_time polyfill
+
+  r = sqlite3_create_function(db, "to_time", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, 0, sqlite_to_time, 0, 0);
+  if (r)
+  {
+    fprintf(stderr,"Failed to create to_time polyfill for sqlite. Probably bad things will happen\n");
+  }
+
+  pueo_db_handle_t * h = calloc(1, sizeof(pueo_db_handle_t));
+  h->type = DB_SQLITE;
+  asprintf(&h->description,"SQLITE connection to %s", dbfile);
+  h->backend.sqlite.db = db;
+  h->state = DB_READY;
+  return h;
+#endif
+}
+
 
 
 static FILE * begin_sql_stream(pueo_db_handle_t * h)
@@ -158,7 +222,7 @@ static FILE * begin_sql_stream(pueo_db_handle_t * h)
     }
 
     char fname[128];
-    sprintf(fname,"%02d-%02d-%04dT%02d.%02d.%02d.%09d.sql",
+    sprintf(fname,"%02d-%02d-%04dT%02d.%02d.%02d.%09ld.sql",
         current_tm.tm_mon+1, current_tm.tm_mday,
         current_tm.tm_year+1900, current_tm.tm_hour,
         current_tm.tm_min, current_tm.tm_sec, h->txn_begin.tv_nsec);
@@ -182,7 +246,7 @@ static FILE * begin_sql_stream(pueo_db_handle_t * h)
     }
     return h->backend.sqldir.current;
   }
-  else if (h->type == DB_PGSQL)
+  else if (h->type == DB_PGSQL || h->type == DB_SQLITE)
   {
 
     // we will open a memstream that will be used for the transaction.
@@ -214,7 +278,7 @@ static int commit_sql_stream(pueo_db_handle_t *h)
 
   clock_gettime(CLOCK_REALTIME, &h->txn_end);
 
-  if (h->type = DB_SQLDIR)
+  if (h->type == DB_SQLDIR)
   {
 
     errno = 0;
@@ -248,6 +312,27 @@ static int commit_sql_stream(pueo_db_handle_t *h)
     return ret ;
   }
 #endif
+#ifdef SQLITE_ENABLED
+  else if (h->type == DB_SQLITE)
+  {
+
+    fclose(h->backend.sqlite.memstream);
+    char * errmsg = NULL;
+    int r = sqlite3_exec(h->backend.sqlite.db, h->backend.sqlite.buf, NULL,NULL,&errmsg);
+    if (r)
+    {
+      fprintf(stderr,"sqlite error: %s\n", errmsg);
+      fprintf(stderr,"Query was: %s\n", h->backend.sqlite.buf);
+      sqlite3_free(errmsg);
+    }
+    h->backend.sqlite.bufN  = 0;
+
+    h->state = DB_READY;
+    free(h->backend.sqlite.buf);
+    return r ;
+  }
+#endif
+
 
   h->state = DB_FAIL;
   return -1;
@@ -262,7 +347,7 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
   //helper local functions
 
 #define DB_INSERT_TEMPLATE(X)\
-    const char * X##_insert_string = "INSERT INTO " #X "s (time, device, sensor, "#X ") VALUES (TO_TIME(%u), '%s', '%s',"
+    const char * X##_insert_string  = "INSERT INTO " #X "s (time, device, sensor, "#X ") VALUES (TO_TIME(%u), '%s', '%s',"
 
   DB_INSERT_TEMPLATE(temperature);
   DB_INSERT_TEMPLATE(voltage);
@@ -290,7 +375,7 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
       case 'G':
         return magnetic_field_insert_string;
       default:
-        return NULL;
+        return "yikes!";
     }
   }
 
@@ -329,7 +414,7 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
 
      fprintf(f, get_insert_string(sensor_kind), when, sensor_subsystem, sensor_name);
      telem_sensor_print_val(f,t->sensors[i]);
-     fprintf(f,"); ");
+     fprintf(f,");\n");
  }
 
   return commit_sql_stream(h);
@@ -359,8 +444,65 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
     PQfinish(h->backend.psql.psql);
   }
 #endif
+#ifdef SQLITE_ENABLED
+  else if (h->type == DB_SQLITE)
+  {
+    sqlite3_close(h->backend.sqlite.db);
+  }
+#endif
 
   free(h);
 }
 
+static int init_db(pueo_db_handle_t * h)
+{
 
+#define DB_MAYBE_CREATE_HSK_TEMPLATE(X,T)\
+    const char * X##_create_string_##T = "CREATE TABLE IF NOT EXISTS " #X "s (uid INTEGER PRIMARY KEY AUTOINCREMENT,  time " #T " NOT NULL , device VARCHAR(32), sensor VARCHAR(90), "#X " FLOAT);\n";
+
+  FILE * f = begin_sql_stream(h);
+
+#define DB_MAYBE_CREATE_HSK(X) \
+  DB_MAYBE_CREATE_HSK_TEMPLATE(X,DATETIME) \
+  DB_MAYBE_CREATE_HSK_TEMPLATE(X,TIMESTAMP) \
+  fputs(h->type == DB_SQLITE ? X##_create_string_DATETIME: X##_create_string_TIMESTAMP,f);
+
+
+  DB_MAYBE_CREATE_HSK(temperature)
+  DB_MAYBE_CREATE_HSK(voltage)
+  DB_MAYBE_CREATE_HSK(current)
+  DB_MAYBE_CREATE_HSK(power)
+  DB_MAYBE_CREATE_HSK(flag)
+  DB_MAYBE_CREATE_HSK(magnetic_field)
+
+  commit_sql_stream(h);
+
+  return 0;
+}
+
+
+//polyfill for SQLITE so can use same to_time as in pgsq
+static void sqlite_to_time(sqlite3_context *ctx, int nargs, sqlite3_value ** args)
+{
+  if (nargs < 1)
+  {
+    sqlite3_result_null(ctx);
+    return;
+  }
+
+  int64_t as_int = sqlite3_value_int64(args[0]);
+  if (as_int == 0)
+  {
+    // treat 0 as NULL time
+    sqlite3_result_null(ctx);
+    return;
+  }
+
+  time_t t = (time_t) as_int;
+  struct tm tm = {0};
+  gmtime_r(&t, &tm);
+
+  char formatted[32];
+  size_t len = strftime(formatted,sizeof(formatted), "%Y-%m-%d %H:%M:%S", &tm);
+  sqlite3_result_text(ctx, formatted, len, SQLITE_TRANSIENT);
+}
