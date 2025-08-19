@@ -10,11 +10,18 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(default_build_type "RelWithDebInfo")
-set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init) 
+set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
-find_package(ZLIB)
+find_package(ZLIB REQUIRED)
 
-set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c)
+find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
+find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
+
+find_package(PostgreSQL)
+find_package(SQLite3)
+
+
+set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c)
 set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/pueo.h)
 set(PRIVATE_HEADERS src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
 set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
@@ -22,13 +29,35 @@ set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
 add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 
-target_link_libraries(pueorawdata ZLIB::ZLIB)
+target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
+target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB)
+target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
+
 target_include_directories(pueorawdata PUBLIC inc)
 target_include_directories(pueorawdata PRIVATE src)
+target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
+target_include_directories(pueorawdata PRIVATE ${ZLIB_INCLUDE_DIR})
 
 target_include_directories(pueorawdata-static PUBLIC inc)
 target_include_directories(pueorawdata-static PRIVATE src)
 
+if (PostgreSQL_FOUND)
+  message(STATUS "Found PostgreSQL")
+  target_link_libraries(pueorawdata PRIVATE PostgreSQL::PostgreSQL)
+  target_include_directories(pueorawdata PRIVATE ${PostgreSQL_INCLUDE_DIRS})
+  add_compile_definitions(PGSQL_ENABLED)
+else()
+  message(STATUS "PostgreSQL not found")
+endif()
+
+if (SQLite3_FOUND)
+  message(STATUS "Found SQLite3")
+  target_link_libraries(pueorawdata PRIVATE ${SQLite3_LIBRARIES})
+  target_include_directories(pueorawdata PRIVATE ${SQLite3_INCLUDE_DIRS})
+  add_compile_definitions(SQLITE_ENABLED)
+else()
+  message(STATUS "SQLite3 not found")
+endif()
 
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -54,3 +83,8 @@ target_link_libraries(read-wfs pueorawdata)
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
+
+add_executable(pueo-init-db progs/pueo-init-db.c)
+target_link_libraries(pueo-init-db pueorawdata)
+
+

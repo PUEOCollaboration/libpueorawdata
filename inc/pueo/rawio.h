@@ -75,11 +75,14 @@ typedef struct pueo_handle
   uint64_t bytes_read;
 
   //Function pointers
-  int (*write_bytes) (int nbytes, const void *bytes, struct pueo_handle * h);
-  int (*read_bytes)  (int nbytes, void * bytes, struct pueo_handle * h);
-  int (*close) (struct pueo_handle *p);
+  int (*write_bytes) (size_t nbytes, const void *bytes, struct pueo_handle * h);
+  int (*read_bytes)  (size_t nbytes, void * bytes, struct pueo_handle * h);
+  int (*close) (struct pueo_handle *h);
 
   void *aux;
+
+  //needed for UDP, when done writing.
+  int (*done_write_packet) (struct pueo_handle *h);
 } pueo_handle_t;
 
 
@@ -100,6 +103,7 @@ typedef struct pueo_handle
 int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode);
 
 /** This initializes a handle corresponding to a file. If it ends with .gz, zlib is used automatically,
+ * If it ends with .zst, zstd is used autoagically.
  * If writing a gzfile, mode is passed to gzopen so you can use it to set compression level /strategy
 
  **/
@@ -183,10 +187,42 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
   int  pueo_dump_##STRUCT_NAME(FILE* f, const pueo_##STRUCT_NAME##_t * p);
 
 
+// database entry, for serializing packets to database (mostly for housekeeping)
+// all of the bits for this will be in rawio_db.c (including for each datatype)
+typedef struct pueo_db_handle pueo_db_handle_t;
+
+//flags when creating database
+enum e_pueo_db_flags
+{
+  PUEO_DB_MAYBE_INIT_TABLES     = 1<<1,  //Initialize tables (always with if not exist)
+  PUEO_DB_INIT_WITH_TIMESCALEDB = 1<<2, // when initializing tables with PGSQL, also create timescaledb hypertables
+  PUEO_DB_VERBOSE               = 1<<3 // write out a bunch of extra stuff
+};
+
+pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags);
+
+// Open a handle to a PGSQL database (requires libpq)
+pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo, uint64_t flags);
+
+// Write .sql files to a directory
+pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir, uint64_t flags);
+
+// open a handle to a sqlite database (requires sqlite)
+pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * sqlite, uint64_t flags);
+
+//Close a DB handle (and also frees associated memory and sets h to NULL)
+void pueo_db_handle_close(pueo_db_handle_t ** h);
+
+// This sets up a database insertion
+#define X_PUEO_INSERT_DB(IGNORE,STRUCT_NAME) \
+  int  pueo_db_insert_##STRUCT_NAME(pueo_db_handle_t * h, const pueo_##STRUCT_NAME##_t * p);
+
+
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_CAST)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_DUMP)
+PUEO_IO_DISPATCH_TABLE(X_PUEO_INSERT_DB)
 
 
 #endif
