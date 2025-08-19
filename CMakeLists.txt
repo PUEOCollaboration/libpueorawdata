@@ -83,3 +83,8 @@ target_link_libraries(read-wfs pueorawdata)
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
+
+add_executable(pueo-init-db progs/pueo-init-db.c)
+target_link_libraries(pueo-init-db pueorawdata)
+
+

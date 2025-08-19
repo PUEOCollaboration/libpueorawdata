@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -38,6 +39,8 @@ struct pueo_db_handle
   } type;
 
   char * description;
+  const char * infinity;
+  const char * minfinity;
 
   enum
   {
@@ -74,10 +77,12 @@ struct pueo_db_handle
 
   struct timespec txn_begin;
   struct timespec txn_end;
+  uint64_t flags;
 };
 
+static int init_db(pueo_db_handle_t * h);
 
-pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir)
+pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir, uint64_t flags)
 {
   // Attempt to make the directory (it might already exist though)
   errno = 0;
@@ -100,44 +105,50 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir)
 
   pueo_db_handle_t * h = calloc(1, sizeof(pueo_db_handle_t));
   h->type = DB_SQLDIR;
+  h->infinity = "infinity";
+  h->minfinity = "-infinity";
   asprintf(&h->description,"SQLDIR %s", dir);
   h->backend.sqldir.dirfd = dirfd;
   h->state = DB_READY;
+  h->flags = flags;
+  init_db(h);
   return h;
 }
 
 
 
-static int init_db(pueo_db_handle_t * h);
 
-pueo_db_handle_t * pueo_db_handle_open(const char * uri)
+pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags)
 {
   pueo_db_handle_t * h = NULL;
   if (strstr(uri,"postgresql://") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri);
+    h = pueo_db_handle_open_pgsql(uri, flags);
+  }
+  if (strstr(uri,"timescaledb://") == uri)
+  {
+    h = pueo_db_handle_open_pgsql(uri, flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
   }
   // made up uri scheme for old style pgsql conninfo
   else if (strstr(uri,"PGSQL_CONNINFO:") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"));
+    h = pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"),flags);
   }
   else if (strstr(uri,"sqldir://")==uri)
   {
-    h = pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"));
+    h = pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"),flags);
   }
   else if (strstr(uri,"sqlite://")==uri)
   {
-    h = pueo_db_handle_open_sqlite(uri + strlen("sqlite://"));
+    h = pueo_db_handle_open_sqlite(uri + strlen("sqlite://"),flags);
   }
   else return NULL;
 
-  init_db(h);
 
   return h;
 }
 
-pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo)
+pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo, uint64_t flags)
 {
 #ifndef PGSQL_ENABLED
   fprintf(stderr, "You asked to open a pgsql handle but compiled without pgsql support. What were you expecting to happen?\n"); 
@@ -155,13 +166,17 @@ pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo)
   asprintf(&h->description,"PGSQL connection with conninfo %s", conninfo);
   h->backend.psql.psql = psql;
   h->state = DB_READY;
+  h->infinity = "infinity";
+  h->minfinity = "-infinity";
+  h->flags = flags;
+  init_db(h);
   return h;
 #endif
 }
 
-static void sqlite_to_time(sqlite3_context *ctx, int nargs, sqlite3_value ** args);
+static void sqlite_to_timestamp(sqlite3_context *ctx, int nargs, sqlite3_value ** args);
 
-pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * dbfile)
+pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * dbfile, uint64_t flags)
 {
 #ifndef SQLITE_ENABLED
   fprintf(stderr, "You asked to open a sqlite handle but compiled without sqlite support. What were you expecting to happen?\n"); 
@@ -177,12 +192,12 @@ pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * dbfile)
   }
 
 
-  // register to_time polyfill
+  // register to_timestamp polyfill
 
-  r = sqlite3_create_function(db, "to_time", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, 0, sqlite_to_time, 0, 0);
+  r = sqlite3_create_function(db, "to_timestamp", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, 0, sqlite_to_timestamp, 0, 0);
   if (r)
   {
-    fprintf(stderr,"Failed to create to_time polyfill for sqlite. Probably bad things will happen\n");
+    fprintf(stderr,"Failed to create to_timestamp polyfill for sqlite. Probably bad things will happen\n");
   }
 
   pueo_db_handle_t * h = calloc(1, sizeof(pueo_db_handle_t));
@@ -190,6 +205,10 @@ pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * dbfile)
   asprintf(&h->description,"SQLITE connection to %s", dbfile);
   h->backend.sqlite.db = db;
   h->state = DB_READY;
+  h->infinity = "1e999";
+  h->minfinity = "-1e999";
+  h->flags = flags;
+  init_db(h);
   return h;
 #endif
 }
@@ -276,6 +295,7 @@ static int commit_sql_stream(pueo_db_handle_t *h)
     return -1;
   }
 
+
   clock_gettime(CLOCK_REALTIME, &h->txn_end);
 
   if (h->type == DB_SQLDIR)
@@ -347,7 +367,7 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
   //helper local functions
 
 #define DB_INSERT_TEMPLATE(X)\
-    const char * X##_insert_string  = "INSERT INTO " #X "s (time, device, sensor, "#X ") VALUES (TO_TIME(%u), '%s', '%s',"
+    const char * X##_insert_string  = "INSERT INTO " #X "s (time, device, sensor, "#X ") VALUES (TO_TIMESTAMP(%u), '%s', '%s',"
 
   DB_INSERT_TEMPLATE(temperature);
   DB_INSERT_TEMPLATE(voltage);
@@ -385,7 +405,16 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
 
     if (sensor_type == 'F')
     {
-      return fprintf(f,"%f", (double) t.val.fval);
+      double d= (double) t.val.fval;
+      if (isinf(d))
+      {
+        if (d > 0) return fprintf(f,"%s", h->infinity);
+        else return fprintf(f,"%s", h->minfinity);
+      }
+      else
+      {
+        return fprintf(f,"%f", d);
+      }
     }
 
     if (sensor_type == 'I')
@@ -456,16 +485,31 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 
 static int init_db(pueo_db_handle_t * h)
 {
+  if ( 0 == (h->flags & PUEO_DB_MAYBE_INIT_TABLES)) return 0;
 
-#define DB_MAYBE_CREATE_HSK_TEMPLATE(X,T)\
-    const char * X##_create_string_##T = "CREATE TABLE IF NOT EXISTS " #X "s (uid INTEGER PRIMARY KEY AUTOINCREMENT,  time " #T " NOT NULL , device VARCHAR(32), sensor VARCHAR(90), "#X " FLOAT);\n";
+#define DB_TIME_TYPE_PGSQL "TIMESTAMP"
+#define DB_TIME_TYPE_SQLITE "DATETIME"
+#define DB_INDEX_DEF_PGSQL "SERIAL PRIMARY KEY"
+#define DB_INDEX_DEF_SQLITE "INTEGER PRIMARY KEY AUTOINCREMENT"
+
+#define DB_MAYBE_CREATE_HSK_TEMPLATE(X,DB)\
+    const char * X##_create_string_##DB = "CREATE TABLE IF NOT EXISTS " #X "s (uid " DB_INDEX_DEF_##DB ",  time " DB_TIME_TYPE_##DB " NOT NULL , device VARCHAR(32), sensor VARCHAR(90), "#X " FLOAT);\n";
+
+#define DB_MAYBE_CREATE_HSK_TEMPLATE_TIMESCALE(X)\
+    const char * X##_create_string_TIMESCALEDB = "create_hypertables('" #X "s', by_range('time'), if_not_exists => TRUE);\n";
 
   FILE * f = begin_sql_stream(h);
 
+  if (h->type != DB_SQLITE && (h->flags  & PUEO_DB_INIT_WITH_TIMESCALEDB))
+    fputs("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;\n",f);
+
+
 #define DB_MAYBE_CREATE_HSK(X) \
-  DB_MAYBE_CREATE_HSK_TEMPLATE(X,DATETIME) \
-  DB_MAYBE_CREATE_HSK_TEMPLATE(X,TIMESTAMP) \
-  fputs(h->type == DB_SQLITE ? X##_create_string_DATETIME: X##_create_string_TIMESTAMP,f);
+  DB_MAYBE_CREATE_HSK_TEMPLATE(X,PGSQL) \
+  DB_MAYBE_CREATE_HSK_TEMPLATE(X,SQLITE) \
+  DB_MAYBE_CREATE_HSK_TEMPLATE_TIMESCALE(X) \
+  if (h->type == DB_SQLITE) fputs(X##_create_string_SQLITE,f);\
+  else { fputs(X##_create_string_PGSQL,f); if (h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB) fputs(X##_create_string_TIMESCALEDB,f);}
 
 
   DB_MAYBE_CREATE_HSK(temperature)
@@ -481,8 +525,8 @@ static int init_db(pueo_db_handle_t * h)
 }
 
 
-//polyfill for SQLITE so can use same to_time as in pgsq
-static void sqlite_to_time(sqlite3_context *ctx, int nargs, sqlite3_value ** args)
+//polyfill for SQLITE so can use same to_timestamp as in pgsql
+static void sqlite_to_timestamp(sqlite3_context *ctx, int nargs, sqlite3_value ** args)
 {
   if (nargs < 1)
   {

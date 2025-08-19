@@ -191,16 +191,24 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
 // all of the bits for this will be in rawio_db.c (including for each datatype)
 typedef struct pueo_db_handle pueo_db_handle_t;
 
-pueo_db_handle_t * pueo_db_handle_open(const char * uri);
+//flags when creating database
+enum e_pueo_db_flags
+{
+  PUEO_DB_MAYBE_INIT_TABLES     = 1<<1,  //Initialize tables (always with if not exist)
+  PUEO_DB_INIT_WITH_TIMESCALEDB = 1<<2, // when initializing tables with PGSQL, also create timescaledb hypertables
+  PUEO_DB_VERBOSE               = 1<<3 // write out a bunch of extra stuff
+};
+
+pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags);
 
 // Open a handle to a PGSQL database (requires libpq)
-pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo);
+pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo, uint64_t flags);
 
 // Write .sql files to a directory
-pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir);
+pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir, uint64_t flags);
 
 // open a handle to a sqlite database (requires sqlite)
-pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * sqlite);
+pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * sqlite, uint64_t flags);
 
 //Close a DB handle (and also frees associated memory and sets h to NULL)
 void pueo_db_handle_close(pueo_db_handle_t ** h);
