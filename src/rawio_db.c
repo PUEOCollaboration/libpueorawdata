@@ -139,6 +139,11 @@ pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags)
   {
     h = pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"),flags);
   }
+  // made up uri scheme for old style pgsql conninfo but for TIMESCALEDB
+  else if (strstr(uri,"TIMESCALEDB_CONNINFO:") == uri)
+  {
+    h = pueo_db_handle_open_pgsql(uri + strlen("TIMESCALEDB_CONNINFO:"),flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
+  }
   else if (strstr(uri,"sqldir://")==uri)
   {
     h = pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"),flags);
@@ -148,7 +153,6 @@ pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags)
     h = pueo_db_handle_open_sqlite(uri + strlen("sqlite://"),flags);
   }
   else return NULL;
-
 
   return h;
 }
@@ -368,6 +372,25 @@ static int commit_sql_stream(pueo_db_handle_t *h)
 }
 
 
+int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
+{
+
+  FILE * f = begin_sql_stream(h);
+
+  fprintf(f, "INSERT INTO sun_sensors (time");
+  for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
+  {
+    fprintf(f,", x1_ss%d, x2_ss%d, y1_ss%d, y2_ss%d, tempSS_ss%d, tempADS1220_ss%d VALUES(%hu, %hu, %hu, %hu, %f, %f);\n",
+        i,i,i,i,i,i,
+        (uint16_t) ss->ss[i].x1, (uint16_t) ss->ss[i].x2,
+        (uint16_t) ss->ss[i].y1, (uint16_t) ss->ss[i].y2,
+        PUEO_SS_TEMPERATURE_CONVERT(ss->ss[i].tempSS),
+        PUEO_SS_TEMPERATURE_CONVERT(ss->ss[i].tempADS1220)
+        );
+  }
+
+  return commit_sql_stream(h);
+}
 
 
 int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_t * t)
@@ -492,20 +515,44 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
   free(h);
 }
 
-static int init_db(pueo_db_handle_t * h)
-{
-  if ( 0 == (h->flags & PUEO_DB_MAYBE_INIT_TABLES)) return 0;
 
+/// yucky yuck yucky yuck
+
+#define DB_MAYBE_CREATE_TIMESCALE(X) const char * X##_create_TIMESCALEDB = "create_hypertables('" #X "s', by_range('time'), if_not_exists => TRUE);\n";
 #define DB_TIME_TYPE_PGSQL "TIMESTAMP"
 #define DB_TIME_TYPE_SQLITE "DATETIME"
 #define DB_INDEX_DEF_PGSQL "SERIAL PRIMARY KEY"
 #define DB_INDEX_DEF_SQLITE "INTEGER PRIMARY KEY AUTOINCREMENT"
 
-#define DB_MAYBE_CREATE_HSK_TEMPLATE(X,DB)\
-    const char * X##_create_string_##DB = "CREATE TABLE IF NOT EXISTS " #X "s (uid " DB_INDEX_DEF_##DB ",  time " DB_TIME_TYPE_##DB " NOT NULL , device VARCHAR(32), sensor VARCHAR(90), "#X " FLOAT);\n";
 
-#define DB_MAYBE_CREATE_HSK_TEMPLATE_TIMESCALE(X)\
-    const char * X##_create_string_TIMESCALEDB = "create_hypertables('" #X "s', by_range('time'), if_not_exists => TRUE);\n";
+
+static void ss_init(FILE *f, pueo_db_handle_t * h)
+{
+  //////sun sensor db   TODO: move into utility function?
+  fprintf(f,"CREATE TABLE IF NOT EXISTS sun_sensors ( uid %s, time %s NOT NULL",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  for (int i = 0 ; i < PUEO_SS_NUM_SENSORS; i++)
+  {
+    fprintf(f, ", x1_ss%d INTEGER, x2_ss%d INTEGER, y1_ss%d INTEGER, y2_ss%d INTEGER, tempSS_ss%d REAL, tempADS1220_ss%d REAL", i,i,i,i,i,i);
+  }
+  fprintf(f,");\n");
+
+  DB_MAYBE_CREATE_TIMESCALE(sun_sensor)
+
+  if (h->type != DB_SQLDIR &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) fputs(sun_sensor_create_TIMESCALEDB,f);
+}
+
+
+static int init_db(pueo_db_handle_t * h)
+{
+  if ( 0 == (h->flags & PUEO_DB_MAYBE_INIT_TABLES)) return 0;
+
+#define DB_MAYBE_CREATE_HSK_TEMPLATE(X,DB)\
+    const char * X##_create_string_##DB = "CREATE TABLE IF NOT EXISTS " #X "s (uid " DB_INDEX_DEF_##DB ",  time " DB_TIME_TYPE_##DB " NOT NULL , device VARCHAR(32), sensor VARCHAR(90), "#X " REAL);\n";\
+    const char * X##_index_string_##DB = "CREATE INDEX IF NOT EXISTS "#X"_time_idx on " #X" s ( time) ;\n";
+
 
   FILE * f = begin_sql_stream(h);
 
@@ -515,10 +562,18 @@ static int init_db(pueo_db_handle_t * h)
 
 #define DB_MAYBE_CREATE_HSK(X) \
   DB_MAYBE_CREATE_HSK_TEMPLATE(X,PGSQL) \
-  DB_MAYBE_CREATE_HSK_TEMPLATE(X,SQLITE) \
-  DB_MAYBE_CREATE_HSK_TEMPLATE_TIMESCALE(X) \
-  if (h->type == DB_SQLITE) fputs(X##_create_string_SQLITE,f);\
-  else { fputs(X##_create_string_PGSQL,f); if (h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB) fputs(X##_create_string_TIMESCALEDB,f);}
+  DB_MAYBE_CREATE_HSK_TEMPLATE(X,SQLITE)\
+  DB_MAYBE_CREATE_TIMESCALE(X) \
+  if (h->type == DB_SQLITE) \
+  {\
+    fputs(X##_create_string_SQLITE,f);\
+    fputs(X##_index_string_SQLITE, f);\
+  }\
+  else \
+  { \
+    fputs(X##_create_string_PGSQL,f); \
+    fputs((h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB) ? X##_create_TIMESCALEDB : X##_index_string_PGSQL,f) ;\
+  }
 
 
   DB_MAYBE_CREATE_HSK(temperature)
@@ -527,6 +582,8 @@ static int init_db(pueo_db_handle_t * h)
   DB_MAYBE_CREATE_HSK(power)
   DB_MAYBE_CREATE_HSK(flag)
   DB_MAYBE_CREATE_HSK(magnetic_field)
+
+  ss_init(f,h);
 
   commit_sql_stream(h);
 
