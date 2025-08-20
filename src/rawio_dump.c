@@ -205,3 +205,26 @@ int pueo_dump_slow(FILE *f, const pueo_slow_t * s)
   DUMPFINISH();
 }
 
+int pueo_dump_ss(FILE *f, const pueo_ss_t * s)
+{
+  DUMPINIT(f);
+  DUMPSTART("ss");
+  DUMPSTARTARR("ss");
+  for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
+  {
+    DUMPKEYVAL("x1", "%u", (uint32_t) s->ss[i].x1);
+    DUMPKEYVAL("x2", "%u", (uint32_t) s->ss[i].x2);
+    DUMPKEYVAL("y1", "%u", (uint32_t) s->ss[i].y1);
+    DUMPKEYVAL("y2", "%u", (uint32_t) s->ss[i].y2);
+    DUMPKEYVAL("tempADS1220_raw", "%hu",  (uint16_t) s->ss[i].tempADS1220);
+    DUMPKEYVAL("tempSS_raw", "%hu",  (uint16_t) s->ss[i].tempSS );
+    DUMPKEYVAL("tempADS1220", "%f",  PUEO_SS_TEMPERATURE_CONVERT(s->ss[i].tempADS1220));
+    DUMPKEYVAL("tempSS", "%f",  PUEO_SS_TEMPERATURE_CONVERT(s->ss[i].tempSS));
+  }
+  DUMPENDARR();
+  DUMPTIME(s,readout_time);
+  DUMPU32(s,sequence_number);
+  DUMPX32(s,flags);
+  DUMPEND();
+  DUMPFINISH();
+}

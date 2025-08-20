@@ -67,6 +67,7 @@ typedef enum e_pueo_datatype
   PUEO_SINGLE_WAVEFORM = 0xea7a, //pueo_single_waveform_t
   PUEO_ENCODED_WAVEFORM = 0xabcd, // pueo_encoded_waveform_t
   PUEO_NAV_ATT =0xa771,
+  PUEO_SS =0x501a,
   PUEO_SENSORS_TELEM =0xb1de,
   PUEO_SENSORS_DISK =0xcb1d,
   PUEO_CMD_ECHO = 0xecc0,
@@ -318,6 +319,34 @@ typedef struct pueo_slow
 } pueo_slow_t;
 
 #define PUEO_SLOW_VER 0
+
+
+#define PUEO_SS_NUM_SENSORS 8
+typedef struct pueo_ss
+{
+  struct
+  {
+    // ok, this makes access somewhat more expensive but makes serialization easier
+    unsigned __int128 x1 : 24;
+    unsigned __int128 x2 : 24;
+    unsigned __int128 y1 : 24;
+    unsigned __int128 y2 : 24;
+    unsigned __int128 tempADS1220 : 16;
+    unsigned __int128 tempSS : 16;
+  } ss[PUEO_SS_NUM_SENSORS];
+
+  pueo_time_t readout_time;
+  uint32_t sequence_number; //reset when pueo-ssd restarts
+  uint32_t flags; //maybe we'll think of something but this is really just padding...
+} pueo_ss_t;
+
+#define PUEO_SS_TEMPERATURE_CONVERT(X) ( X * 500./65535 - 273.15)
+
+//verify that the packing is correct
+_Static_assert(sizeof(pueo_ss_t) == 16 * PUEO_SS_NUM_SENSORS + 16,"The sun exploded");
+
+#define PUEO_SS_VER 0
+
 
 #ifdef __cplusplus
 }

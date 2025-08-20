@@ -68,6 +68,7 @@ SIMPLE_PUEO_IO_IMPL(nav_att, NAV_ATT)
 SIMPLE_PUEO_IO_IMPL(sensors_disk, SENSORS_DISK)
 SIMPLE_PUEO_IO_IMPL(sensors_telem, SENSORS_TELEM)
 SIMPLE_PUEO_IO_IMPL(slow, SLOW)
+SIMPLE_PUEO_IO_IMPL(ss,SS)
 
 ///////// More complicated implementations here
 
