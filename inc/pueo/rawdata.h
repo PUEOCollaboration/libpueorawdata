@@ -209,6 +209,8 @@ typedef struct pueo_time
   uint32_t utc_nsecs : 30;
 } pueo_time_t;
 
+_Static_assert(sizeof(pueo_time_t) == 8, "doh");
+
 enum e_pueo_nav_src
 {
   PUEO_NAV_ABX2 = 'A',
