@@ -6,196 +6,202 @@
 
 
 const char * dump_tabs="\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-static int dump_ntabs = 0;
+static __thread int dump_ntabs = 0;
 
-#define DUMPSTART(f, what) ret+=fprintf(f,"%.*s \"%s\" : {\n", dump_ntabs++, dump_tabs, what)
-#define DUMPSTARTARR(f, what) ret+=fprintf(f,"%.*s \"%s\" : [\n", dump_ntabs++, dump_tabs, what)
-#define DUMPKEYVAL(f,key,frmt,...) ret+=fprintf(f, "%.*s\"" key "\": " frmt ",\n", dump_ntabs, dump_tabs, __VA_ARGS__)
-#define DUMPVAL(f,x,wut,frmt) DUMPKEYVAL(f,#wut,frmt, x->wut)
-#define DUMPU32(f,x,wut) DUMPVAL(f,x,wut,"%u")
-#define DUMPU64(f,x,wut) DUMPVAL(f,x,wut,"%lu")
-#define DUMPU16(f,x,wut) DUMPVAL(f,x,wut,"%hu")
-#define DUMPI16(f,x,wut) DUMPVAL(f,x,wut,"%hd")
-#define DUMPU8(f,x,wut) DUMPVAL(f,x,wut,"%hhu")
-#define DUMPX8(f,x,wut) DUMPVAL(f,x,wut,"0x%hhx")
-#define DUMPX32(f,x,wut) DUMPVAL(f,x,wut,"0x%x")
-#define DUMPFLT(f,x,wut) DUMPVAL(f,x,wut,"%f")
-#define DUMPARRAY(f,x,wut,N,frmt) ret+=fprintf(f,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf==N-1 ? ' ' : ','); ret+=fprintf(f,"],\n")
-#define DUMPEND(f) ret+=fprintf(f,"\%.*s}\n", --dump_ntabs, dump_tabs)
-#define DUMPENDARR(f) ret+=fprintf(f,"\%.*s]\n", --dump_ntabs, dump_tabs)
 
+
+//MACROS ARE ALWAYS A GOOD IDEA
+
+#define DUMPINIT(f)  int  ret = 0; FILE * __F = f;
+#define DUMPSTART(what) ret+=fprintf(__F,"%.*s \"%s\" : {\n", dump_ntabs++, dump_tabs, what)
+#define DUMPSTARTARR(what) ret+=fprintf(__F,"%.*s \"%s\" : [\n", dump_ntabs++, dump_tabs, what)
+#define DUMPKEYVAL(key,frmt,...) ret+=fprintf(__F, "%.*s\"" key "\": " frmt ",\n", dump_ntabs, dump_tabs, __VA_ARGS__)
+#define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%lu.%09lu", (uint64_t) x->wut.utc_secs, (uint64_t) x->wut.utc_nsecs)
+#define DUMPVAL(x,wut,frmt) DUMPKEYVAL(#wut,frmt, x->wut)
+#define DUMPU32(x,wut) DUMPVAL(x,wut,"%u")
+#define DUMPU64(x,wut) DUMPVAL(x,wut,"%lu")
+#define DUMPU128(x,wut) DUMPVAL(x,wut,"%llu")
+#define DUMPU16(x,wut) DUMPVAL(x,wut,"%hu")
+#define DUMPI16(x,wut) DUMPVAL(x,wut,"%hd")
+#define DUMPU8(x,wut) DUMPVAL(x,wut,"%hhu")
+#define DUMPX8(x,wut) DUMPVAL(x,wut,"0x%hhx")
+#define DUMPX32(x,wut) DUMPVAL(x,wut,"0x%x")
+#define DUMPFLT(x,wut) DUMPVAL(x,wut,"%f")
+#define DUMPARRAY(x,wut,N,frmt) ret+=fprintf(__F,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf==N-1 ? ' ' : ','); ret+=fprintf(f,"],\n")
+#define DUMPEND() ret+=fprintf(__F,"\%.*s}\n", --dump_ntabs, dump_tabs);
+#define DUMPENDARR() ret+=fprintf(__F,"\%.*s]\n", --dump_ntabs, dump_tabs)
+#define DUMPFINISH() fflush(__F); return ret;
 
 
 static int pueo_dump_waveform(FILE *f, const pueo_waveform_t * wf)
 {
-  int ret = 0;
-  DUMPSTART(f,"waveform");
-  DUMPU8(f,wf,channel_id);
-  DUMPX8(f,wf,flags);
-  DUMPU16(f,wf,length);
-  DUMPARRAY(f,wf,data,wf->length,"%hd");
-  DUMPEND(f);
-  return ret;
+  DUMPINIT(f)
+  DUMPSTART("waveform");
+  DUMPU8(wf,channel_id);
+  DUMPX8(wf,flags);
+  DUMPU16(wf,length);
+  DUMPARRAY(wf,data,wf->length,"%hd");
+  DUMPEND();
+  DUMPFINISH();
 }
 
 int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
 {
-  int ret = 0;
-  DUMPSTART(f,"single_waveform");
-  DUMPU32(f,wf,run);
-  DUMPU32(f,wf,event);
-  DUMPU32(f,wf,event_second);
-  DUMPU32(f,wf,event_time);
-  DUMPU32(f,wf,last_pps);
-  DUMPU32(f,wf,llast_pps);
-  DUMPX32(f,wf,trigger_meta[0]);
-  DUMPX32(f,wf,trigger_meta[1]);
-  DUMPX32(f,wf,trigger_meta[2]);
-  DUMPX32(f,wf,trigger_meta[3]);
+  DUMPINIT(f)
+  DUMPSTART("single_waveform");
+  DUMPU32(wf,run);
+  DUMPU32(wf,event);
+  DUMPU32(wf,event_second);
+  DUMPU32(wf,event_time);
+  DUMPU32(wf,last_pps);
+  DUMPU32(wf,llast_pps);
+  DUMPX32(wf,trigger_meta[0]);
+  DUMPX32(wf,trigger_meta[1]);
+  DUMPX32(wf,trigger_meta[2]);
+  DUMPX32(wf,trigger_meta[3]);
   ret+=pueo_dump_waveform(f,&wf->wf);
-  DUMPEND(f);
-  return ret;
+  DUMPEND();
+  DUMPFINISH();
 }
 
 int pueo_dump_full_waveforms(FILE *f, const pueo_full_waveforms_t * wf)
 {
-  int ret = 0;
-  DUMPSTART(f,"full_waveform");
-  DUMPU32(f,wf,run);
-  DUMPU32(f,wf,event);
-  DUMPU32(f,wf,event_second);
-  DUMPU32(f,wf,event_time);
-  DUMPU32(f,wf,last_pps);
-  DUMPU32(f,wf,llast_pps);
-  DUMPX32(f,wf,trigger_meta[0]);
-  DUMPX32(f,wf,trigger_meta[1]);
-  DUMPX32(f,wf,trigger_meta[2]);
-  DUMPX32(f,wf,trigger_meta[3]);
+  DUMPINIT(f)
+  DUMPSTART("full_waveform");
+  DUMPU32(wf,run);
+  DUMPU32(wf,event);
+  DUMPU32(wf,event_second);
+  DUMPU32(wf,event_time);
+  DUMPU32(wf,last_pps);
+  DUMPU32(wf,llast_pps);
+  DUMPX32(wf,trigger_meta[0]);
+  DUMPX32(wf,trigger_meta[1]);
+  DUMPX32(wf,trigger_meta[2]);
+  DUMPX32(wf,trigger_meta[3]);
   for (int i = 0; i < PUEO_NCHAN; i++)
   {
     ret+=pueo_dump_waveform(f,&wf->wfs[i]);
   }
-  DUMPEND(f);
-  return ret;
+  DUMPEND();
+  DUMPFINISH()
 }
 
 
 
 int pueo_dump_sensors_telem(FILE *f, const pueo_sensors_telem_t *t)
 {
-  int ret = 0;
-  DUMPSTART(f,"sensors_telem");
-  DUMPU32(f,t,timeref_secs);
-  DUMPU32(f,t,sensor_id_magic);
-  DUMPU32(f,t,num_packets);
-  DUMPSTARTARR(f,"sensors");
+  DUMPINIT(f);
+  DUMPSTART("sensors_telem");
+  DUMPU32(t,timeref_secs);
+  DUMPU32(t,sensor_id_magic);
+  DUMPU32(t,num_packets);
+  DUMPSTARTARR("sensors");
   for (int i = 0; i < t->num_packets; i++)
   {
     const pueo_sensor_telem_t * s = &t->sensors[i];
-    DUMPSTART(f,"pueo_sensor_telem");
-    DUMPU16(f,s,sensor_id);
-    DUMPKEYVAL(f,"decoded_sensor_subsystem","%s",pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id));
-    DUMPKEYVAL(f,"decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
-    DUMPKEYVAL(f,"decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
-    DUMPKEYVAL(f,"decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
-    DUMPI16(f,s,relsecs);
+    DUMPSTART("pueo_sensor_telem");
+    DUMPU16(s,sensor_id);
+    DUMPKEYVAL("decoded_sensor_subsystem","%s",pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
+    DUMPI16(s,relsecs);
 
     switch(pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id))
     {
       case 'F':
-        DUMPKEYVAL(f,"value", "%f", (double) t->sensors[i].val.fval); break;
+        DUMPKEYVAL("value", "%f", (double) t->sensors[i].val.fval); break;
       case 'U':
-        DUMPKEYVAL(f,"value", "%hu", t->sensors[i].val.uval); break;
+        DUMPKEYVAL("value", "%hu", t->sensors[i].val.uval); break;
       case 'I':
       default: 
-        DUMPKEYVAL(f,"value", "%hd", t->sensors[i].val.ival); break;
+        DUMPKEYVAL("value", "%hd", t->sensors[i].val.ival); break;
     }
-    DUMPEND(f);
+    DUMPEND();
   }
-  DUMPENDARR(f);
-  DUMPEND(f);
-  return ret;
+  DUMPENDARR();
+  DUMPEND();
+  DUMPFINISH();
 }
 
 int pueo_dump_sensors_disk(FILE *f, const pueo_sensors_disk_t *t)
 {
-  int ret = 0;
-  DUMPSTART(f,"sensors_disk");
-  DUMPU32(f,t,sensor_id_magic);
-  DUMPU32(f,t,num_packets);
-  DUMPSTARTARR(f,"sensors");
+  DUMPINIT(f)
+  DUMPSTART("sensors_disk");
+  DUMPU32(t,sensor_id_magic);
+  DUMPU32(t,num_packets);
+  DUMPSTARTARR("sensors");
   for (int i = 0; i < t->num_packets; i++)
   {
     const pueo_sensor_disk_t * s = &t->sensors[i];
-    DUMPSTART(f,"pueo_sensor_disk");
-    DUMPU16(f,s,sensor_id);
-    DUMPKEYVAL(f,"decoded_sensor_subsystem","%s",pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id));
-    DUMPKEYVAL(f,"decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
-    DUMPKEYVAL(f,"decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
-    DUMPKEYVAL(f,"decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
-    DUMPU32(f,s,time_secs);
-    DUMPU16(f,s,time_ms);
+    DUMPSTART("pueo_sensor_disk");
+    DUMPU16(s,sensor_id);
+    DUMPKEYVAL("decoded_sensor_subsystem","%s",pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
+    DUMPU32(s,time_secs);
+    DUMPU16(s,time_ms);
 
     switch(pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id))
     {
       case 'F':
-        DUMPKEYVAL(f,"value", "%f",(double) t->sensors[i].val.fval); break;
+        DUMPKEYVAL("value", "%f",(double) t->sensors[i].val.fval); break;
       case 'U':
-        DUMPKEYVAL(f,"value", "%u",t->sensors[i].val.uval); break;
+        DUMPKEYVAL("value", "%u",t->sensors[i].val.uval); break;
       case 'I':
       default: 
-        DUMPKEYVAL(f,"value", "%d",t->sensors[i].val.ival); break;
+        DUMPKEYVAL("value", "%d",t->sensors[i].val.ival); break;
     }
-    DUMPEND(f);
+    DUMPEND();
   }
-  DUMPENDARR(f);
-  DUMPEND(f);
-  return ret;
+  DUMPENDARR();
+  DUMPEND();
+  DUMPFINISH();
 }
 
 int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
 {
-  int ret = 0;
-  DUMPSTART(f,n->source == PUEO_NAV_CPT7 ?"nav_att_cpt7" :
+  DUMPINIT(f);
+  DUMPSTART(n->source == PUEO_NAV_CPT7 ?"nav_att_cpt7" :
             n->source == PUEO_NAV_BOREAS ? "nav_att_boreas" :
             n->source == PUEO_NAV_ABX2 ? "nav_att_abx2" : "nav_att_unknown");
-  DUMPKEYVAL(f,"readout_time", "%lu.09%lu", (uint64_t)n->readout_time.utc_secs, (uint64_t) n->readout_time.utc_nsecs);
-  DUMPKEYVAL(f,"gps_time", "%lu.09%lu", (uint64_t)n->gps_time.utc_secs, (uint64_t) n->gps_time.utc_nsecs);
-  DUMPFLT(f,n,lat);
-  DUMPFLT(f,n,lon);
-  DUMPFLT(f,n,alt);
-  DUMPFLT(f,n,heading);
-  DUMPFLT(f,n,pitch);
-  DUMPFLT(f,n,roll);
-  DUMPARRAY(f,n,v,3,"%f");
-  DUMPARRAY(f,n,acc,3,"%f");
-  DUMPFLT(f,n,hdop);
-  DUMPFLT(f,n,vdop);
-  DUMPU8(f,n,nsats);
-  DUMPX8(f,n,flags);
-  DUMPEND(f);
-  return ret;
+  DUMPTIME(n, readout_time);
+  DUMPTIME(n, gps_time);
+  DUMPFLT(n,lat);
+  DUMPFLT(n,lon);
+  DUMPFLT(n,alt);
+  DUMPFLT(n,heading);
+  DUMPFLT(n,pitch);
+  DUMPFLT(n,roll);
+  DUMPARRAY(n,v,3,"%f");
+  DUMPARRAY(n,acc,3,"%f");
+  DUMPFLT(n,hdop);
+  DUMPFLT(n,vdop);
+  DUMPU8(n,nsats);
+  DUMPX8(n,flags);
+  DUMPEND();
+  DUMPFINISH();
 }
 
 int pueo_dump_slow(FILE *f, const pueo_slow_t * s)
 {
-  int ret = 0;
-  DUMPSTART(f,"slow");
-  DUMPU16(f,s,ncmds);
-  DUMPU16(f,s,time_since_last_cmd);
-  DUMPU8(f,s,last_cmd);
-  DUMPU32(f,s,sipd_uptime);
-  DUMPU32(f,s,cpu_time);
-  DUMPU32(f,s,cpu_uptime);
-  DUMPU32(f,s,can_ping_world);
-  DUMPU32(f,s,starlink_on);
-  DUMPU32(f,s,los_on);
-  DUMPU16(f,s,current_run);
-  DUMPU16(f,s,current_run_secs);
-  DUMPU32(f,s,current_run_events);
+  DUMPINIT(f);
+  DUMPSTART("slow");
+  DUMPU16(s,ncmds);
+  DUMPU16(s,time_since_last_cmd);
+  DUMPU8(s,last_cmd);
+  DUMPU32(s,sipd_uptime);
+  DUMPU32(s,cpu_time);
+  DUMPU32(s,cpu_uptime);
+  DUMPU32(s,can_ping_world);
+  DUMPU32(s,starlink_on);
+  DUMPU32(s,los_on);
+  DUMPU16(s,current_run);
+  DUMPU16(s,current_run_secs);
+  DUMPU32(s,current_run_events);
 
-  DUMPEND(f);
-
-  return ret;
+  DUMPEND();
+  DUMPFINISH();
 }
 
