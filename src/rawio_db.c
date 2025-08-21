@@ -1,5 +1,8 @@
 /* here we have DB Insertion scripts for each datatype we want to insert into the database
  **/
+
+#define _GNU_SOURCE
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <time.h>
