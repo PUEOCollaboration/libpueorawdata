@@ -528,7 +528,7 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 
 static void ss_init(FILE *f, pueo_db_handle_t * h)
 {
-  //////sun sensor db   TODO: move into utility function?
+  //////sun sensor db 
   fprintf(f,"CREATE TABLE IF NOT EXISTS sun_sensors ( uid %s, time %s NOT NULL",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
@@ -541,9 +541,18 @@ static void ss_init(FILE *f, pueo_db_handle_t * h)
 
   DB_MAYBE_CREATE_TIMESCALE(sun_sensor)
 
-  if (h->type != DB_SQLDIR &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) fputs(sun_sensor_create_TIMESCALEDB,f);
+  if (h->type != DB_SQLITE &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) fputs(sun_sensor_create_TIMESCALEDB,f);
 }
 
+
+static void single_wf_init(FILE * f, pueo_db_handle_t *h)
+{
+
+  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max REAL, min REAL, rms REAL);\n ",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+}
 
 static int init_db(pueo_db_handle_t * h)
 {
