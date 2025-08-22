@@ -518,7 +518,7 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 
 /// yucky yuck yucky yuck
 
-#define DB_MAYBE_CREATE_TIMESCALE(X) const char * X##_create_TIMESCALEDB = "create_hypertables('" #X "s', by_range('time'), if_not_exists => TRUE);\n";
+#define DB_MAYBE_CREATE_TIMESCALE(X) const char * X##_create_TIMESCALEDB = "create_hypertable('" #X "s', by_range('time'), if_not_exists => TRUE);\n";
 #define DB_TIME_TYPE_PGSQL "TIMESTAMP"
 #define DB_TIME_TYPE_SQLITE "DATETIME"
 #define DB_INDEX_DEF_PGSQL "SERIAL PRIMARY KEY"
