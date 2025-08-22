@@ -110,8 +110,8 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir, uint64_t f
 
   pueo_db_handle_t * h = calloc(1, sizeof(pueo_db_handle_t));
   h->type = DB_SQLDIR;
-  h->infinity = "infinity";
-  h->minfinity = "-infinity";
+  h->infinity = "'infinity'";
+  h->minfinity = "'-infinity'";
   asprintf(&h->description,"SQLDIR %s", dir);
   h->backend.sqldir.dirfd = dirfd;
   h->state = DB_READY;
@@ -175,8 +175,8 @@ pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo, uint64_t fla
   asprintf(&h->description,"PGSQL connection with conninfo %s", conninfo);
   h->backend.psql.psql = psql;
   h->state = DB_READY;
-  h->infinity = "infinity";
-  h->minfinity = "-infinity";
+  h->infinity = "'infinity'";
+  h->minfinity = "'-infinity'";
   h->flags = flags;
   init_db(h);
   return h;

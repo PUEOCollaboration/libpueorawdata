@@ -11,7 +11,7 @@ int main(int nargs, char ** args)
   pueo_handle_t h;
   pueo_handle_init(&h, nargs > 1 ? args[1] : "sensors_telem.wfs","r");
   pueo_db_handle_t * db = NULL;
-  if (nargs > 2) db = pueo_db_handle_open(args[2], PUEO_DB_MAYBE_INIT_TABLES);
+  if (nargs > 2) db = pueo_db_handle_open(args[2], 0);
   pueo_sensors_telem_t t = {0};
   while (true)
   {
