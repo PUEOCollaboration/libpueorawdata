@@ -288,6 +288,11 @@ int pueo_handle_init_udp(pueo_handle_t * h, int port, const char *hostname, cons
   }
   else
   {
+
+    // we need to be allowed to broadcas
+     int enable_broadcast = 1;
+     setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &enable_broadcast, sizeof(enable_broadcast));
+
     if (connect(sock,  (struct sockaddr*) &sa, sizeof(sa)))
     {
 
