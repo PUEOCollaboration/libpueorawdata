@@ -130,7 +130,7 @@ pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags)
   {
     h = pueo_db_handle_open_pgsql(uri, flags);
   }
-  if (strstr(uri,"timescaledb+pgsql://") == uri)
+  if (strstr(uri,"timescaledb+postgresql://") == uri)
   {
     h = pueo_db_handle_open_pgsql(uri + strlen("timescaledb+"), flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
   }
