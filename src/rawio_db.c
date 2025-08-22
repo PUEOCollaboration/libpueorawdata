@@ -28,6 +28,8 @@ typedef void PGconn;
 #include <sqlite3.h>
 #else
 typedef void sqlite3;
+typedef void sqlite3_value;
+typedef void sqlite3_context;
 #endif
 
 
@@ -177,11 +179,15 @@ pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo, uint64_t fla
 #endif
 }
 
+#ifdef SQLITE_ENABLED
 static void sqlite_to_timestamp(sqlite3_context *ctx, int nargs, sqlite3_value ** args);
+#endif
 
 pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * dbfile, uint64_t flags)
 {
 #ifndef SQLITE_ENABLED
+	(void) dbfile;
+	(void) flags;
   fprintf(stderr, "You asked to open a sqlite handle but compiled without sqlite support. What were you expecting to happen?\n"); 
   return NULL;
 #else
@@ -529,6 +535,7 @@ static int init_db(pueo_db_handle_t * h)
 
 
 //polyfill for SQLITE so can use same to_timestamp as in pgsql
+#ifdef SQLITE_ENABLED
 static void sqlite_to_timestamp(sqlite3_context *ctx, int nargs, sqlite3_value ** args)
 {
   if (nargs < 1)
@@ -553,3 +560,4 @@ static void sqlite_to_timestamp(sqlite3_context *ctx, int nargs, sqlite3_value *
   size_t len = strftime(formatted,sizeof(formatted), "%Y-%m-%d %H:%M:%S", &tm);
   sqlite3_result_text(ctx, formatted, len, SQLITE_TRANSIENT);
 }
+#endif
