@@ -130,9 +130,9 @@ pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags)
   {
     h = pueo_db_handle_open_pgsql(uri, flags);
   }
-  if (strstr(uri,"timescaledb://") == uri)
+  if (strstr(uri,"timescaledb+pgsql://") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri, flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
+    h = pueo_db_handle_open_pgsql(uri + strlen("timescaledb+"), flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
   }
   // made up uri scheme for old style pgsql conninfo
   else if (strstr(uri,"PGSQL_CONNINFO:") == uri)
