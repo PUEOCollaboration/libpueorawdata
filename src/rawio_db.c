@@ -431,9 +431,9 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
     }
   }
 
-  int telem_sensor_print_val(FILE * f, pueo_sensor_telem_t t)
+  int telem_sensor_print_val(FILE * f, pueo_sensor_telem_t t, uint16_t magic)
   {
-    char sensor_type = pueo_sensor_id_get_type_tag(t.sensor_id);
+    char sensor_type = pueo_sensor_id_get_compat_type_tag(t.sensor_id, magic);
 
     if (sensor_type == 'F')
     {
@@ -469,12 +469,12 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
   for (unsigned i = 0; i < t->num_packets; i++)
   {
      uint32_t when = t->timeref_secs + t->sensors[i].relsecs;
-     const char * sensor_name = pueo_sensor_id_get_name(t->sensors[i].sensor_id);
-     const char * sensor_subsystem = pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id);
-     char sensor_kind = pueo_sensor_id_get_kind(t->sensors[i].sensor_id);
+     const char * sensor_name = pueo_sensor_id_get_compat_name(t->sensors[i].sensor_id, t->sensor_id_magic);
+     const char * sensor_subsystem = pueo_sensor_id_get_compat_subsystem(t->sensors[i].sensor_id, t->sensor_id_magic);
+     char sensor_kind = pueo_sensor_id_get_compat_kind(t->sensors[i].sensor_id, t->sensor_id_magic);
 
      fprintf(f, get_insert_string(sensor_kind), when, sensor_subsystem, sensor_name);
-     telem_sensor_print_val(f,t->sensors[i]);
+     telem_sensor_print_val(f,t->sensors[i], t->sensor_id_magic);
      fprintf(f,");\n");
  }
 

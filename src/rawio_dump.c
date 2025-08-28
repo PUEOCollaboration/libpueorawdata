@@ -101,13 +101,13 @@ int pueo_dump_sensors_telem(FILE *f, const pueo_sensors_telem_t *t)
     const pueo_sensor_telem_t * s = &t->sensors[i];
     DUMPSTART("pueo_sensor_telem");
     DUMPU16(s,sensor_id);
-    DUMPKEYVAL("decoded_sensor_subsystem","%s",pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id));
-    DUMPKEYVAL("decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
-    DUMPKEYVAL("decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
-    DUMPKEYVAL("decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_subsystem","%s",pueo_sensor_id_get_compat_subsystem(t->sensors[i].sensor_id, t->sensor_id_magic));
+    DUMPKEYVAL("decoded_sensor_name","%s",pueo_sensor_id_get_compat_name(t->sensors[i].sensor_id, t->sensor_id_magic));
+    DUMPKEYVAL("decoded_sensor_type","%c",pueo_sensor_id_get_compat_type_tag(t->sensors[i].sensor_id, t->sensor_id_magic));
+    DUMPKEYVAL("decoded_sensor_kind","%c",pueo_sensor_id_get_compat_kind(t->sensors[i].sensor_id, t->sensor_id_magic));
     DUMPI16(s,relsecs);
 
-    switch(pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id))
+    switch(pueo_sensor_id_get_compat_type_tag(t->sensors[i].sensor_id, t->sensor_id_magic))
     {
       case 'F':
         DUMPKEYVAL("value", "%f", (double) t->sensors[i].val.fval); break;
@@ -136,14 +136,14 @@ int pueo_dump_sensors_disk(FILE *f, const pueo_sensors_disk_t *t)
     const pueo_sensor_disk_t * s = &t->sensors[i];
     DUMPSTART("pueo_sensor_disk");
     DUMPU16(s,sensor_id);
-    DUMPKEYVAL("decoded_sensor_subsystem","%s",pueo_sensor_id_get_subsystem(t->sensors[i].sensor_id));
-    DUMPKEYVAL("decoded_sensor_name","%s",pueo_sensor_id_get_name(t->sensors[i].sensor_id));
-    DUMPKEYVAL("decoded_sensor_type","%c",pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id));
-    DUMPKEYVAL("decoded_sensor_kind","%c",pueo_sensor_id_get_kind(t->sensors[i].sensor_id));
+    DUMPKEYVAL("decoded_sensor_subsystem","%s",pueo_sensor_id_get_compat_subsystem(t->sensors[i].sensor_id, t->sensor_id_magic));
+    DUMPKEYVAL("decoded_sensor_name","%s",pueo_sensor_id_get_compat_name(t->sensors[i].sensor_id, t->sensor_id_magic));
+    DUMPKEYVAL("decoded_sensor_type","%c",pueo_sensor_id_get_compat_type_tag(t->sensors[i].sensor_id, t->sensor_id_magic));
+    DUMPKEYVAL("decoded_sensor_kind","%c",pueo_sensor_id_get_compat_kind(t->sensors[i].sensor_id, t->sensor_id_magic));
     DUMPU32(s,time_secs);
     DUMPU16(s,time_ms);
 
-    switch(pueo_sensor_id_get_type_tag(t->sensors[i].sensor_id))
+    switch(pueo_sensor_id_get_compat_type_tag(t->sensors[i].sensor_id, t->sensor_id_magic))
     {
       case 'F':
         DUMPKEYVAL("value", "%f",(double) t->sensors[i].val.fval); break;
