@@ -189,7 +189,8 @@ pueo_packet_head_t pueo_packet_header_for_sensors_disk(const pueo_sensors_disk_t
 int pueo_read_packet_sensors_disk(pueo_handle_t * h, pueo_sensors_disk_t * t, int ver)
 {
   int nrd = 0;
-  nrd =  h->read_bytes(offsetof(pueo_sensors_disk_t, sensors) + (ver == 0 ? MAX_SENSORS_PER_PACKET_DISK : t->num_packets) * sizeof(pueo_sensor_disk_t), t, h);
+  nrd =  h->read_bytes(offsetof(pueo_sensors_disk_t, sensors),t,h);
+  nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_DISK : t->num_packets) * sizeof(pueo_sensor_disk_t), t, h);
   memset(t+nrd, 0, sizeof(*t)-nrd);
   h->bytes_read += nrd;
   return nrd;
@@ -220,7 +221,8 @@ pueo_packet_head_t pueo_packet_header_for_sensors_telem(const pueo_sensors_telem
 int pueo_read_packet_sensors_telem(pueo_handle_t * h, pueo_sensors_telem_t * t, int ver)
 {
   int nrd = 0;
-  nrd =  h->read_bytes(offsetof(pueo_sensors_telem_t, sensors) + (ver == 0 ? MAX_SENSORS_PER_PACKET_TELEM : t->num_packets) * sizeof(pueo_sensor_telem_t), t, h);
+  nrd =  h->read_bytes(offsetof(pueo_sensors_telem_t, sensors),t,h);
+  nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_TELEM : t->num_packets) * sizeof(pueo_sensor_telem_t), t, h);
   memset(t+nrd, 0, sizeof(*t)-nrd);
   h->bytes_read += nrd;
   return nrd;
