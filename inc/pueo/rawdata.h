@@ -191,7 +191,7 @@ typedef struct pueo_sensors_disk
   pueo_sensor_disk_t sensors[MAX_SENSORS_PER_PACKET_DISK];
 } pueo_sensors_disk_t;
 
-#define PUEO_SENSORS_DISK_VER 0
+#define PUEO_SENSORS_DISK_VER 1
 
 typedef struct pueo_sensors_telem
 {
@@ -201,7 +201,7 @@ typedef struct pueo_sensors_telem
   pueo_sensor_telem_t sensors[MAX_SENSORS_PER_PACKET_TELEM];
 } pueo_sensors_telem_t;
 
-#define PUEO_SENSORS_TELEM_VER 0
+#define PUEO_SENSORS_TELEM_VER 1
 
 
 typedef struct pueo_time

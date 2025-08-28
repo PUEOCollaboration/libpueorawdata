@@ -35,14 +35,14 @@
   }
 
 #define SIMPLE_PUEO_H_IMPL(STRUCT_NAME, TYPE_NAME) \
-  pueo_packet_head_t pueo_packet_header_for_##STRUCT_NAME(const pueo_##STRUCT_NAME##_t *p ) \
+  pueo_packet_head_t pueo_packet_header_for_##STRUCT_NAME(const pueo_##STRUCT_NAME##_t *p , int ver) \
   { \
     pueo_packet_head_t hd = {\
       .type = PUEO_##TYPE_NAME,\
       .f1 = 0xf1,\
-      .version = PUEO_##TYPE_NAME##_VER,\
-      .cksum = pueo_crc16(p,sizeof(*p)),\
-      .num_bytes = sizeof(*p) \
+      .version = ver,\
+      .cksum = pueo_crc16(p,pueo_##STRUCT_NAME##_size(ver)),\
+      .num_bytes = pueo_##STRUCT_NAME##_size(ver) \
     }; \
     return hd;\
   }
@@ -65,8 +65,6 @@
 
 
 SIMPLE_PUEO_IO_IMPL(nav_att, NAV_ATT)
-SIMPLE_PUEO_IO_IMPL(sensors_disk, SENSORS_DISK)
-SIMPLE_PUEO_IO_IMPL(sensors_telem, SENSORS_TELEM)
 SIMPLE_PUEO_IO_IMPL(slow, SLOW)
 SIMPLE_PUEO_IO_IMPL(ss,SS)
 
@@ -108,9 +106,9 @@ int pueo_write_packet_single_waveform(pueo_handle_t *h, const pueo_single_wavefo
   return nwr;
 }
 
-pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_waveform_t *p)
+pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_waveform_t *p, int ver)
 {
-  pueo_packet_head_t hd = {.type = PUEO_SINGLE_WAVEFORM, .f1 = 0xf1, .version = PUEO_SINGLE_WAVEFORM_VER };
+  pueo_packet_head_t hd = {.type = PUEO_SINGLE_WAVEFORM, .f1 = 0xf1, .version = ver};
   uint32_t len = 0;
   uint16_t crc = CRC16_START;
   len += offsetof(pueo_full_waveforms_t, wfs);
@@ -134,9 +132,9 @@ int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p
   return total_read;
 }
 
-pueo_packet_head_t pueo_packet_header_for_full_waveforms(const pueo_full_waveforms_t *p)
+pueo_packet_head_t pueo_packet_header_for_full_waveforms(const pueo_full_waveforms_t *p, int ver)
 {
-  pueo_packet_head_t hd = {.type = PUEO_FULL_WAVEFORMS, .f1 = 0xf1, .version = PUEO_FULL_WAVEFORMS_VER };
+  pueo_packet_head_t hd = {.type = PUEO_FULL_WAVEFORMS, .f1 = 0xf1, .version = ver };
   uint32_t len = 0;
   uint16_t crc = CRC16_START;
   len += offsetof(pueo_full_waveforms_t, wfs);
@@ -174,6 +172,69 @@ int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p, 
   h->bytes_written += total_read;
   return total_read;
 }
+
+pueo_packet_head_t pueo_packet_header_for_sensors_disk(const pueo_sensors_disk_t * t, int ver)
+{
+   int my_size = ver == 0 ? sizeof(pueo_sensors_disk_t) : offsetof(pueo_sensors_disk_t,sensors) + t->num_packets * sizeof(pueo_sensor_disk_t);
+    pueo_packet_head_t hd = {
+      .type = PUEO_SENSORS_DISK,
+      .f1 = 0xf1,
+      .version = ver,
+      .cksum = pueo_crc16(t,my_size),
+      .num_bytes = my_size
+    };
+    return hd;
+}
+
+int pueo_read_packet_sensors_disk(pueo_handle_t * h, pueo_sensors_disk_t * t, int ver)
+{
+  int nrd = 0;
+  nrd =  h->write_bytes(offsetof(pueo_sensors_disk_t, sensors) + (ver == 0 ? MAX_SENSORS_PER_PACKET_DISK : t->num_packets) * sizeof(pueo_sensor_disk_t), t, h);
+  memset(t+nrd, 0, sizeof(*t)-nrd);
+  h->bytes_read += nrd;
+  return nrd;
+}
+
+
+int pueo_write_packet_sensors_disk(pueo_handle_t * h, const pueo_sensors_disk_t * t)
+{
+  int nwr = 0;
+  nwr =  h->write_bytes(offsetof(pueo_sensors_disk_t, sensors) + t->num_packets * sizeof(pueo_sensor_disk_t), t, h);
+  h->bytes_written += nwr;
+  return nwr;
+}
+
+pueo_packet_head_t pueo_packet_header_for_sensors_telem(const pueo_sensors_telem_t * t, int ver)
+{
+   int my_size = ver == 0 ? sizeof(pueo_sensors_telem_t) : offsetof(pueo_sensors_telem_t,sensors) + t->num_packets * sizeof(pueo_sensor_telem_t);
+    pueo_packet_head_t hd = {
+      .type = PUEO_SENSORS_TELEM,
+      .f1 = 0xf1,
+      .version = ver,
+      .cksum = pueo_crc16(t,my_size),
+      .num_bytes = my_size
+    };
+    return hd;
+}
+
+int pueo_read_packet_sensors_telem(pueo_handle_t * h, pueo_sensors_telem_t * t, int ver)
+{
+  int nrd = 0;
+  nrd =  h->write_bytes(offsetof(pueo_sensors_telem_t, sensors) + (ver == 0 ? MAX_SENSORS_PER_PACKET_TELEM : t->num_packets) * sizeof(pueo_sensor_telem_t), t, h);
+  memset(t+nrd, 0, sizeof(*t)-nrd);
+  h->bytes_read += nrd;
+  return nrd;
+}
+
+
+int pueo_write_packet_sensors_telem(pueo_handle_t * h, const pueo_sensors_telem_t * t)
+{
+  int nwr = 0;
+  nwr =  h->write_bytes(offsetof(pueo_sensors_telem_t, sensors) + t->num_packets * sizeof(pueo_sensor_telem_t), t, h);
+  h->bytes_written += nwr;
+  return nwr;
+}
+
 
 int pueo_write_packet_encoded_waveforms(pueo_handle_t *h, const pueo_encoded_waveform_t *p)
 {

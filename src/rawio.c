@@ -501,7 +501,7 @@ int pueo_read_##STRUCT_NAME(pueo_handle_t *h, pueo_##STRUCT_NAME##_t * p)\
     h->flags &= ~PUEO_HANDLE_ALREADY_READ_HEAD; \
     int nrd = pueo_read_packet_##STRUCT_NAME(h, p, h->last_read_header.version); \
     h->bytes_read += nrd; \
-    pueo_packet_head_t check = pueo_packet_header_for_##STRUCT_NAME(p); \
+    pueo_packet_head_t check = pueo_packet_header_for_##STRUCT_NAME(p, h->last_read_header.version); \
     if (check.cksum != h->last_read_header.cksum) fprintf(stderr,"Checksum check failed (hd: %hx, reconstructed: %hx)!\n", h->last_read_header.cksum, check.cksum);\
     if (nrd != h->last_read_header.num_bytes || h->last_read_header.num_bytes != check.num_bytes) fprintf(stderr,"Length check failed (header: %u, nrd: %d, reconstructed_header: %u)!\n", h->last_read_header.num_bytes, nrd, check.num_bytes);\
     return nrd;\
@@ -518,7 +518,7 @@ PUEO_IO_DISPATCH_TABLE(X_PUEO_READ_IMPL)
 #define X_PUEO_WRITE_IMPL(PACKET_TYPE, STRUCT_NAME) \
 int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p)\
 {\
-  pueo_packet_head_t  hd = pueo_packet_header_for_##STRUCT_NAME(p); \
+  pueo_packet_head_t  hd = pueo_packet_header_for_##STRUCT_NAME(p, PACKET_TYPE##_VER); \
   int ret = h->write_bytes(sizeof(hd), &hd, h); \
   if (ret != sizeof(hd)) return -1; \
   h->bytes_written += ret; \

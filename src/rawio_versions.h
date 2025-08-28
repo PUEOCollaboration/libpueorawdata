@@ -35,7 +35,8 @@ PUEO_IO_DISPATCH_TABLE(X_CURRENT_VER)
 //  (currently there are none!)
 
 
-
+typedef pueo_sensors_telem_t pueo_sensors_telem_v0_t;
+typedef pueo_sensors_disk_t pueo_sensors_disk_v0_t;
 
 
 #endif
