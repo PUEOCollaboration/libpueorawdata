@@ -88,3 +88,5 @@ add_executable(pueo-init-db progs/pueo-init-db.c)
 target_link_libraries(pueo-init-db pueorawdata)
 
 
+add_executable(read-packets test/read-packets.c)
+target_link_libraries(read-packets pueorawdata)

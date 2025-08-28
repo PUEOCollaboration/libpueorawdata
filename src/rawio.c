@@ -391,7 +391,9 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
   // and set required_read_size
   if (!h->required_read_size)
   {
-    if ((size_t) maybe_read_header(h) < sizeof(pueo_packet_head_t))
+    int r = maybe_read_header(h);
+    if (r == EOF) return EOF;
+    else if ( r< (int) sizeof(pueo_packet_head_t))
     { //uhoh
       return -EIO;
     }
@@ -431,12 +433,8 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
     PUEO_IO_DISPATCH_TABLE(X_PUEO_SWITCH_READ_PACKET)
   }
 
-  if (nread != h->required_read_size)
-  {
-    return -EIO;
-  }
-
   h->required_read_size = 0;
+  h->flags &= ~PUEO_HANDLE_ALREADY_READ_HEAD; 
   h->bytes_read += nread;
   return nread;
 }
@@ -535,3 +533,22 @@ int pueo_write_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t * p)
 
 
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE_IMPL)
+
+
+
+// x macro for dump dispatch
+#define X_PUEO_SWITCH_DUMP(PACKET_TYPE, TYPENAME)\
+  case PACKET_TYPE: \
+    return pueo_dump_##TYPENAME(f, (pueo_##TYPENAME##_t*) p->payload);
+
+int pueo_dump_packet(FILE * f, const pueo_packet_t  *p)
+{
+  switch(p->head.type)
+  {
+    PUEO_IO_DISPATCH_TABLE(X_PUEO_SWITCH_DUMP)
+    default:
+      return -1;
+  }
+}
+
+
