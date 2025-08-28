@@ -53,7 +53,7 @@
     int versize = pueo_##STRUCT_NAME##_size(ver); \
     if (versize < 0 || versize > (int) sizeof(pueo_##STRUCT_NAME##_t)) { fprintf(stderr,"bad ver size of %d for ver %d for %s\n", versize, ver, #STRUCT_NAME); return -1; } \
     int nread = h->read_bytes( versize, p, h);\
-    memset(p+versize, 0, sizeof(pueo_##STRUCT_NAME##_t) - versize); \
+    memset((uint8_t*)p+versize, 0, sizeof(pueo_##STRUCT_NAME##_t) - versize); \
     h->bytes_read += nread; \
     return nread; \
   }
@@ -190,8 +190,8 @@ int pueo_read_packet_sensors_disk(pueo_handle_t * h, pueo_sensors_disk_t * t, in
 {
   int nrd = 0;
   nrd =  h->read_bytes(offsetof(pueo_sensors_disk_t, sensors),t,h);
-  nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_DISK : t->num_packets) * sizeof(pueo_sensor_disk_t), t, h);
-  memset(t+nrd, 0, sizeof(*t)-nrd);
+  nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_DISK : t->num_packets) * sizeof(pueo_sensor_disk_t), t->sensors, h);
+  memset((uint8_t*) t+nrd, 0, sizeof(*t)-nrd);
   h->bytes_read += nrd;
   return nrd;
 }
@@ -222,8 +222,8 @@ int pueo_read_packet_sensors_telem(pueo_handle_t * h, pueo_sensors_telem_t * t, 
 {
   int nrd = 0;
   nrd =  h->read_bytes(offsetof(pueo_sensors_telem_t, sensors),t,h);
-  nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_TELEM : t->num_packets) * sizeof(pueo_sensor_telem_t), t, h);
-  memset(t+nrd, 0, sizeof(*t)-nrd);
+  nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_TELEM : t->num_packets) * sizeof(pueo_sensor_telem_t), t->sensors, h);
+  memset((uint8_t*) t+nrd, 0, sizeof(*t)-nrd);
   h->bytes_read += nrd;
   return nrd;
 }
