@@ -426,7 +426,7 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
 //x macro for read
 #define X_PUEO_SWITCH_READ_PACKET(PACKET_TYPE, TYPENAME)\
   case PACKET_TYPE: \
-    nread += pueo_read_packet_##TYPENAME(h, (pueo_##TYPENAME##_t*) dest->payload, h->last_read_header.version); break;
+    nread += pueo_read_##TYPENAME(h, (pueo_##TYPENAME##_t*) dest->payload); break;
 
   switch (h->last_read_header.type)
   {
@@ -434,8 +434,7 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
   }
 
   h->required_read_size = 0;
-  h->flags &= ~PUEO_HANDLE_ALREADY_READ_HEAD; 
-  h->bytes_read += nread;
+  h->flags &= ~PUEO_HANDLE_ALREADY_READ_HEAD;
   return nread;
 }
 
