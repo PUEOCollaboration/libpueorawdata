@@ -188,6 +188,18 @@ static int hinit(pueo_handle_t *h)
 }
 
 
+int pueo_handle_init_filep(pueo_handle_t *h, FILE* f, bool close)
+{
+
+  hinit(h);
+  if (!f) return -1;
+  h->aux = f;
+  h->close = close ? file_close : NULL;
+  h->read_bytes = file_readbytes;
+  h->write_bytes = file_writebytes;
+  return 0;
+}
+
 int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode)
 {
 
@@ -233,7 +245,7 @@ int pueo_handle_init_fd(pueo_handle_t *h, int fd )
 
 int pueo_handle_close(pueo_handle_t *h)
 {
-  h->close(h);
+  if (h->close) h->close(h);
   return hinit(h);
 }
 

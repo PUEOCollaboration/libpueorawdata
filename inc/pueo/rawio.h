@@ -33,6 +33,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <pueo/pueo.h>
 #include <pueo/rawdata.h>
@@ -108,6 +109,10 @@ int pueo_handle_init(pueo_handle_t * h, const char * uri, const char * mode);
 
  **/
 int pueo_handle_init_file(pueo_handle_t * h, const char * file, const char * mode);
+
+/* if you already have a FILE * (e.g. through fmemopen). If close is true, the FILE * will be closed when the handle is closed. 
+ * */
+int pueo_handle_init_filep(pueo_handle_t * h, FILE * fptr, bool close);
 
 
 /* This initailizes an fd-like handle */
