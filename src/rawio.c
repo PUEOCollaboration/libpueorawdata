@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <zstd.h>
 
 
 enum pueo_handle_flags
@@ -179,6 +180,60 @@ static int gz_close(pueo_handle_t  * h)
   return gzclose(f);
 }
 
+// zstd implementation
+struct zstd_aux {
+  ZSTD_CCtx* cctx;
+  ZSTD_DCtx* dctx;
+  FILE* file;
+};
+
+static int zstd_writebytes(size_t nbytes, const void * bytes, pueo_handle_t *h)
+{
+  struct zstd_aux* aux = (struct zstd_aux*) h->aux;
+  size_t compressed_size;
+  void* compressed = malloc(ZSTD_compressBound(nbytes));
+  if (!compressed) return -1;
+  compressed_size = ZSTD_compress(aux->cctx, compressed, ZSTD_compressBound(nbytes), bytes, nbytes);
+  fprintf(stderr, "Compressed %zu bytes to %zu bytes\n", nbytes, compressed_size);
+  if (ZSTD_isError(compressed_size)) {
+    free(compressed);
+    return -1;
+  }
+  int written = fwrite(compressed, 1, compressed_size, aux->file);
+  free(compressed);
+  return written;
+}
+
+static int zstd_readbytes(size_t nbytes, void * bytes, pueo_handle_t *h)
+{
+  struct zstd_aux* aux = (struct zstd_aux*) h->aux;
+  void* compressed = malloc(nbytes);
+  if (!compressed) return -1;
+  int read = fread(compressed, 1, nbytes, aux->file);
+  fprintf(stderr, "Read %d bytes of compressed data\n", read);
+  if (read <= 0) {
+    free(compressed);
+    return read;
+  }
+  size_t decompressed_size = ZSTD_decompressDCtx(aux->dctx, bytes, nbytes, compressed, read);
+  free(compressed);
+  if (ZSTD_isError(decompressed_size)) return -1;
+  return (int)decompressed_size;
+}
+
+static int zstd_close(pueo_handle_t *h)
+{
+  struct zstd_aux* aux = (struct zstd_aux*) h->aux;
+  fprintf(stderr, "Closing zstd handle\n");
+  if (aux) {
+    if (aux->cctx) ZSTD_freeCCtx(aux->cctx);
+    if (aux->dctx) ZSTD_freeDCtx(aux->dctx);
+    if (aux->file) fclose(aux->file);
+    free(aux);
+    h->aux = NULL;
+  }
+  return 0;
+}
 
 static int hinit(pueo_handle_t *h)
 {
@@ -221,13 +276,38 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
     return 0;
   }
 
+  //check for .zstd
+ else if (suffix && !strcmp(suffix,".zst"))
+  {
+    fprintf(stderr, "Checking for .zstd suffix\n");
+    h->aux = fopen(file, mode);
+    fprintf(stderr, "Opened file %s with mode %s\n", file, mode);
+    if (!h->aux)
+    {
+      return -1;
+    }
+    fprintf(stderr, "Creating zstd contexts\n");
+    h->close = zstd_close;
+    fprintf(stderr, "Created zstd close function\n");
+    h->read_bytes = zstd_readbytes;
+    fprintf(stderr, "Created zstd read function\n");
+    h->write_bytes = zstd_writebytes;
+    fprintf(stderr, "Created zstd write function\n");
+    return 0;
+  }
+
+
   //just use good old stdio
-  h->aux = fopen(file, mode);
-  if (!h->aux) return -1;
-  h->close = file_close;
-  h->read_bytes = file_readbytes;
-  h->write_bytes = file_writebytes;
-  return 0;
+  else
+  {
+    h->aux = fopen(file, mode);
+    if (!h->aux) return -1;
+    h->close = file_close;
+    h->read_bytes = file_readbytes;
+    h->write_bytes = file_writebytes;
+    fprintf(stderr, "Opened file %s with mode %s\n", file, mode);
+    return 0;
+  }
 }
 
 int pueo_handle_init_fd(pueo_handle_t *h, int fd )
