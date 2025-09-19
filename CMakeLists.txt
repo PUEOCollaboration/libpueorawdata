@@ -19,26 +19,64 @@ find_package(ZLIB REQUIRED)
 if(EXISTS "${CMAKE_SOURCE_DIR}/third_party/zstd")
   message(STATUS "Using vendored zstd in ${CMAKE_SOURCE_DIR}/third_party/zstd")
   set(ZSTD_VENDOR_DIR "${CMAKE_SOURCE_DIR}/third_party/zstd")
-  # prefer a prebuilt lib in the vendored tree if present
-  if(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
-    set(ZSTD_LIBRARY "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
-    set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/lib")
-  elseif(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.so")
-    set(ZSTD_LIBRARY "${ZSTD_VENDOR_DIR}/lib/libzstd.so")
-    set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/lib")
-  else()
-    # No prebuilt lib found; build zstd as an ExternalProject and install into the build tree
-    include(ExternalProject)
-    ExternalProject_Add(zstd_vendor
-      SOURCE_DIR ${ZSTD_VENDOR_DIR}
-      BINARY_DIR ${CMAKE_BINARY_DIR}/third_party/zstd/build
-      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third_party/zstd/install -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_DOC=OFF
-      BUILD_BYPRODUCTS ${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a
-    )
-    set(ZSTD_INCLUDE_DIR "${CMAKE_BINARY_DIR}/third_party/zstd/install/include")
-    set(ZSTD_LIBRARY "${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a")
-    # ensure our pueorawdata target depends on the external zstd build
-    set(ZSTD_VENDOR_TARGET zstd_vendor)
+  # If the vendored tree provides a CMake build we can add it directly so that
+  # a plain 'cmake .. && make' from a fresh clone+submodule builds zstd
+  # as part of the top-level build.
+  if(EXISTS "${ZSTD_VENDOR_DIR}/CMakeLists.txt")
+    message(STATUS "Found CMake build for vendored zstd; adding as subdirectory")
+    add_subdirectory(${ZSTD_VENDOR_DIR} ${CMAKE_BINARY_DIR}/third_party/zstd/build EXCLUDE_FROM_ALL)
+    # Prefer linking to a zstd target produced by that subproject if available.
+    set(_ZSTD_CMAKE_TARGETS zstd zstd_static libzstd libzstd_static libzstd_shared)
+    foreach(t ${_ZSTD_CMAKE_TARGETS})
+      if(TARGET ${t})
+        set(ZSTD_CMAKE_TARGET ${t})
+        break()
+      endif()
+    endforeach()
+    if(ZSTD_CMAKE_TARGET)
+      message(STATUS "Using zstd CMake target: ${ZSTD_CMAKE_TARGET}")
+    endif()
+  endif()
+  # If we didn't get a CMake target, prefer a prebuilt lib in the vendored tree if present
+  if(NOT ZSTD_CMAKE_TARGET)
+    if(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
+      set(ZSTD_LIBRARY "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
+      set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/lib")
+    elseif(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.so")
+      set(ZSTD_LIBRARY "${ZSTD_VENDOR_DIR}/lib/libzstd.so")
+      set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/lib")
+    else()
+      # No prebuilt lib found.
+      # If the vendored tree doesn't contain a CMake build system, don't try to
+      # configure it in-place. Instead fetch a known zstd release into the
+      # build tree with ExternalProject so 'cmake .. && make' works on a fresh
+      # checkout.
+      include(ExternalProject)
+      # prefer using a source tree if it contains a CMakeLists; otherwise
+      # instruct ExternalProject to clone the upstream zstd repo
+      if(EXISTS "${ZSTD_VENDOR_DIR}/CMakeLists.txt")
+        ExternalProject_Add(zstd_vendor
+          SOURCE_DIR ${ZSTD_VENDOR_DIR}
+          BINARY_DIR ${CMAKE_BINARY_DIR}/third_party/zstd/build
+          CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third_party/zstd/install -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_DOC=OFF
+          BUILD_BYPRODUCTS ${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a
+        )
+      else()
+        # Clone a stable zstd release into the build directory and build it there
+        ExternalProject_Add(zstd_vendor
+          GIT_REPOSITORY https://github.com/facebook/zstd.git
+          GIT_TAG v1.5.5
+          SOURCE_DIR ${CMAKE_BINARY_DIR}/third_party/zstd/src
+          BINARY_DIR ${CMAKE_BINARY_DIR}/third_party/zstd/build
+          CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third_party/zstd/install -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_DOC=OFF
+          BUILD_BYPRODUCTS ${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a
+        )
+      endif()
+      set(ZSTD_INCLUDE_DIR "${CMAKE_BINARY_DIR}/third_party/zstd/install/include")
+      set(ZSTD_LIBRARY "${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a")
+      # ensure our pueorawdata target depends on the external zstd build
+      set(ZSTD_VENDOR_TARGET zstd_vendor)
+    endif()
   endif()
 else()
   find_path(ZSTD_INCLUDE_DIR NAMES zstd.h zlibWrapper/zstd_zlibwrapper.h)
