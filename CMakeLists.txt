@@ -14,14 +14,72 @@ set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
 find_package(ZLIB REQUIRED)
 
-find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
-find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
+find_path(ZSTD_INCLUDE_DIR NAMES zstd.h zlibWrapper/zstd_zlibwrapper.h)
+find_library(ZSTD_LIBRARY NAMES zstd zstd_static zstd_zlibwrapper)
+
+# Optionally enable building with zstd's zlibWrapper (provides zlib/gz API backed by zstd)
+option(ENABLE_ZWRAP "Detect and build with zstd zlibWrapper when available" ON)
+option(ZWRAP_SRC_DIR "Explicit path to zstd zlibWrapper source directory" "")
+
+set(HAVE_ZWRAP FALSE)
+if(ENABLE_ZWRAP AND ZSTD_INCLUDE_DIR)
+  if(EXISTS "${ZSTD_INCLUDE_DIR}/zlibWrapper/zstd_zlibwrapper.h")
+    set(ZWRAP_HEADER_DIR "${ZSTD_INCLUDE_DIR}/zlibWrapper")
+    set(HAVE_ZWRAP TRUE)
+  elseif(EXISTS "${ZSTD_INCLUDE_DIR}/zstd_zlibwrapper.h")
+    get_filename_component(ZWRAP_HEADER_DIR "${ZSTD_INCLUDE_DIR}" ABSOLUTE)
+    set(HAVE_ZWRAP TRUE)
+  endif()
+
+  if(HAVE_ZWRAP)
+    message(STATUS "zstd zlibWrapper headers found in ${ZWRAP_HEADER_DIR}")
+    # If user provided an explicit source dir, prefer it. Otherwise try to find
+    # wrapper source next to the header (common layout in zstd repo).
+    set(ZWRAP_SRC_CANDIDATES
+      "${ZWRAP_SRC_DIR}/zstd_zlibwrapper.c"
+      "${ZWRAP_HEADER_DIR}/zstd_zlibwrapper.c"
+      "${ZSTD_INCLUDE_DIR}/../zlibWrapper/zstd_zlibwrapper.c"
+      "${CMAKE_SOURCE_DIR}/src/zstd/zlibWrapper/zstd_zlibwrapper.c"
+      "${CMAKE_SOURCE_DIR}/../src/zstd/zlibWrapper/zstd_zlibwrapper.c"
+    )
+    set(ZWRAP_SRC_FILE "")
+    foreach(candidate ${ZWRAP_SRC_CANDIDATES})
+      if(EXISTS "${candidate}")
+        set(ZWRAP_SRC_FILE "${candidate}")
+        break()
+      endif()
+    endforeach()
+
+    if(ZWRAP_SRC_FILE)
+      message(STATUS "zstd zlibWrapper source found: ${ZWRAP_SRC_FILE}")
+      set(ZWRAP_SOURCE_TO_ADD ${ZWRAP_SRC_FILE})
+      # ensure wrapper compiled with zstd enabled
+      add_compile_definitions(ZWRAP_USE_ZSTD=1)
+    else()
+      message(STATUS "zstd zlibWrapper headers found but source not found; you must provide zstd_zlibwrapper.c and gz*.c or link a prebuilt wrapper library.")
+      # still define macro so code that includes header compiles; linking must be handled externally
+      add_compile_definitions(ZWRAP_USE_ZSTD=1)
+    endif()
+  endif()
+endif()
 
 find_package(PostgreSQL)
 find_package(SQLite3)
 
 
 set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c)
+
+# If we discovered a zlibWrapper source file, append it (and nearby gz* helpers if present)
+if(DEFINED ZWRAP_SOURCE_TO_ADD AND ZWRAP_SOURCE_TO_ADD)
+  list(APPEND SOURCES ${ZWRAP_SOURCE_TO_ADD})
+  get_filename_component(_zwrap_dir ${ZWRAP_SOURCE_TO_ADD} DIRECTORY)
+  # common gz helper names in the wrapper tree
+  foreach(_gzfile gzclose.c gzlib.c gzguts.c gzread.c gzwrite.c)
+    if(EXISTS "${_zwrap_dir}/${_gzfile}")
+      list(APPEND SOURCES "${_zwrap_dir}/${_gzfile}")
+    endif()
+  endforeach()
+endif()
 set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/sensor_ids_compat.h inc/pueo/pueo.h)
 set(PRIVATE_HEADERS src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
 set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
@@ -31,15 +89,34 @@ add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB)
-target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
+if(ZSTD_LIBRARY)
+  target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
+else()
+  message(STATUS "libzstd not found by find_library; if using the zlibWrapper, ensure libzstd is available and set ZSTD_LIBRARY accordingly")
+endif()
 
 target_include_directories(pueorawdata PUBLIC inc)
 target_include_directories(pueorawdata PRIVATE src)
 target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
-target_include_directories(pueorawdata PRIVATE ${ZLIB_INCLUDE_DIR})
+if(HAVE_ZWRAP)
+  target_include_directories(pueorawdata PRIVATE ${ZWRAP_HEADER_DIR})
+endif()
 
 target_include_directories(pueorawdata-static PUBLIC inc)
 target_include_directories(pueorawdata-static PRIVATE src)
+if(HAVE_ZWRAP)
+  target_include_directories(pueorawdata-static PRIVATE ${ZWRAP_HEADER_DIR})
+endif()
+
+# If wrapper compile macro was set globally earlier, prefer setting it per-target so other targets are unaffected
+if(DEFINED ZWRAP_SOURCE_TO_ADD AND ZWRAP_SOURCE_TO_ADD)
+  target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1)
+  target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1)
+elseif(HAVE_ZWRAP)
+  # headers are available; still expose the macro to ensure sources including the header see the flag
+  target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1)
+  target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1)
+endif()
 
 if (PostgreSQL_FOUND)
   message(STATUS "Found PostgreSQL")
@@ -90,3 +167,7 @@ target_link_libraries(pueo-init-db pueorawdata)
 
 add_executable(read-packets test/read-packets.c)
 target_link_libraries(read-packets pueorawdata)
+
+# Smoke test: write/read a small .zst file using the zlibWrapper path
+add_executable(read-zst test/read-zst.c)
+target_link_libraries(read-zst pueorawdata)

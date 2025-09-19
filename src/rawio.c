@@ -28,13 +28,16 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <assert.h>
-#include <zlib.h>
+// #include <zlib.h>
+#include <zstd_zlibwrapper.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
 
 enum pueo_handle_flags
@@ -221,6 +224,23 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
     return 0;
   }
 
+  // check for .zst (use zstd zlibWrapper which provides gz* API)
+  if (suffix && !strcmp(suffix, ".zst"))
+  {
+    /* Enable zstd compression in the wrapper at runtime. This makes gz* APIs
+       use zstd when available. */
+    ZWRAP_useZSTDcompression(1);
+    h->aux = gzopen(file, mode);
+    if (!h->aux)
+    {
+      return -1;
+    }
+    h->close = gz_close;
+    h->read_bytes = gz_readbytes;
+    h->write_bytes = gz_writebytes;
+    return 0;
+  }
+
   //just use good old stdio
   h->aux = fopen(file, mode);
   if (!h->aux) return -1;
@@ -271,23 +291,18 @@ int pueo_handle_init_udp(pueo_handle_t * h, int port, const char *hostname, cons
     return -1;
   }
 
-  struct addrinfo hints =
+  /* Resolve hostname (IPv4 only) */
+  struct hostent *host = gethostbyname(hostname);
+  if (!host)
   {
-    .ai_family = AF_INET,
-    .ai_socktype = SOCK_DGRAM,
-  };
-
-  struct addrinfo * result = 0;
-  if (getaddrinfo(hostname,NULL,&hints,&result))
-  {
-    fprintf(stderr,"pueo_handle_udp: problem with getaddrinfo(%s)\n", hostname);
+    fprintf(stderr,"pueo_handle_udp: problem resolving hostname(%s)\n", hostname);
     return -1;
   }
 
-
-  struct sockaddr_in sa = { .sin_family = AF_INET, .sin_port = htons(port) };
-  memcpy(&sa.sin_addr, &((struct sockaddr_in*) result->ai_addr)->sin_addr, sizeof(sa.sin_addr));
-  freeaddrinfo(result);
+  struct sockaddr_in sa;
+  sa.sin_family = AF_INET;
+  sa.sin_port = htons(port);
+  memcpy(&sa.sin_addr, host->h_addr_list[0], host->h_length);
 
   if (am_reading)
   {
