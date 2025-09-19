@@ -14,29 +14,65 @@ set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
 find_package(ZLIB REQUIRED)
 
-find_path(ZSTD_INCLUDE_DIR NAMES zstd.h zlibWrapper/zstd_zlibwrapper.h)
-find_library(ZSTD_LIBRARY NAMES zstd zstd_static zstd_zlibwrapper)
+## Prefer a vendored zstd submodule under third_party/zstd if present
+## Prefer a vendored zstd submodule under third_party/zstd if present
+if(EXISTS "${CMAKE_SOURCE_DIR}/third_party/zstd")
+  message(STATUS "Using vendored zstd in ${CMAKE_SOURCE_DIR}/third_party/zstd")
+  set(ZSTD_VENDOR_DIR "${CMAKE_SOURCE_DIR}/third_party/zstd")
+  # prefer a prebuilt lib in the vendored tree if present
+  if(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
+    set(ZSTD_LIBRARY "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
+    set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/lib")
+  elseif(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.so")
+    set(ZSTD_LIBRARY "${ZSTD_VENDOR_DIR}/lib/libzstd.so")
+    set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/lib")
+  else()
+    # No prebuilt lib found; build zstd as an ExternalProject and install into the build tree
+    include(ExternalProject)
+    ExternalProject_Add(zstd_vendor
+      SOURCE_DIR ${ZSTD_VENDOR_DIR}
+      BINARY_DIR ${CMAKE_BINARY_DIR}/third_party/zstd/build
+      CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third_party/zstd/install -DZSTD_BUILD_TESTS=OFF -DZSTD_BUILD_CONTRIB=OFF -DZSTD_BUILD_DOC=OFF
+      BUILD_BYPRODUCTS ${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a
+    )
+    set(ZSTD_INCLUDE_DIR "${CMAKE_BINARY_DIR}/third_party/zstd/install/include")
+    set(ZSTD_LIBRARY "${CMAKE_BINARY_DIR}/third_party/zstd/install/lib/libzstd.a")
+    # ensure our pueorawdata target depends on the external zstd build
+    set(ZSTD_VENDOR_TARGET zstd_vendor)
+  endif()
+else()
+  find_path(ZSTD_INCLUDE_DIR NAMES zstd.h zlibWrapper/zstd_zlibwrapper.h)
+  find_library(ZSTD_LIBRARY NAMES zstd zstd_static zstd_zlibwrapper)
+endif()
 
 # Optionally enable building with zstd's zlibWrapper (provides zlib/gz API backed by zstd)
 option(ENABLE_ZWRAP "Detect and build with zstd zlibWrapper when available" ON)
 option(ZWRAP_SRC_DIR "Explicit path to zstd zlibWrapper source directory" "")
 
 set(HAVE_ZWRAP FALSE)
-if(ENABLE_ZWRAP AND ZSTD_INCLUDE_DIR)
-  if(EXISTS "${ZSTD_INCLUDE_DIR}/zlibWrapper/zstd_zlibwrapper.h")
-    set(ZWRAP_HEADER_DIR "${ZSTD_INCLUDE_DIR}/zlibWrapper")
+if(ENABLE_ZWRAP)
+  # Prefer an explicit wrapper source dir if provided and it has the header
+  if(ZWRAP_SRC_DIR AND EXISTS "${ZWRAP_SRC_DIR}/zstd_zlibwrapper.h")
+    set(ZWRAP_HEADER_DIR "${ZWRAP_SRC_DIR}")
     set(HAVE_ZWRAP TRUE)
-  elseif(EXISTS "${ZSTD_INCLUDE_DIR}/zstd_zlibwrapper.h")
-    get_filename_component(ZWRAP_HEADER_DIR "${ZSTD_INCLUDE_DIR}" ABSOLUTE)
-    set(HAVE_ZWRAP TRUE)
+  elseif(ZSTD_INCLUDE_DIR)
+    if(EXISTS "${ZSTD_INCLUDE_DIR}/zlibWrapper/zstd_zlibwrapper.h")
+      set(ZWRAP_HEADER_DIR "${ZSTD_INCLUDE_DIR}/zlibWrapper")
+      set(HAVE_ZWRAP TRUE)
+    elseif(EXISTS "${ZSTD_INCLUDE_DIR}/zstd_zlibwrapper.h")
+      get_filename_component(ZWRAP_HEADER_DIR "${ZSTD_INCLUDE_DIR}" ABSOLUTE)
+      set(HAVE_ZWRAP TRUE)
+    endif()
   endif()
 
   if(HAVE_ZWRAP)
     message(STATUS "zstd zlibWrapper headers found in ${ZWRAP_HEADER_DIR}")
     # If user provided an explicit source dir, prefer it. Otherwise try to find
-    # wrapper source next to the header (common layout in zstd repo).
+    # wrapper source next to the header (common layout in zstd repo). Also
+    # prefer a vendored third_party/zstd layout if present.
     set(ZWRAP_SRC_CANDIDATES
       "${ZWRAP_SRC_DIR}/zstd_zlibwrapper.c"
+      "${CMAKE_SOURCE_DIR}/third_party/zstd/zlibWrapper/zstd_zlibwrapper.c"
       "${ZWRAP_HEADER_DIR}/zstd_zlibwrapper.c"
       "${ZSTD_INCLUDE_DIR}/../zlibWrapper/zstd_zlibwrapper.c"
       "${CMAKE_SOURCE_DIR}/src/zstd/zlibWrapper/zstd_zlibwrapper.c"
@@ -44,7 +80,7 @@ if(ENABLE_ZWRAP AND ZSTD_INCLUDE_DIR)
     )
     set(ZWRAP_SRC_FILE "")
     foreach(candidate ${ZWRAP_SRC_CANDIDATES})
-      if(EXISTS "${candidate}")
+      if(candidate AND EXISTS "${candidate}")
         set(ZWRAP_SRC_FILE "${candidate}")
         break()
       endif()
@@ -88,13 +124,18 @@ target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
 
 target_include_directories(pueorawdata PUBLIC inc)
 target_include_directories(pueorawdata PRIVATE src)
-target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
+if(ZSTD_INCLUDE_DIR)
+  target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
+endif()
 if(HAVE_ZWRAP)
   target_include_directories(pueorawdata PRIVATE ${ZWRAP_HEADER_DIR})
 endif()
 
 target_include_directories(pueorawdata-static PUBLIC inc)
 target_include_directories(pueorawdata-static PRIVATE src)
+if(ZSTD_INCLUDE_DIR)
+  target_include_directories(pueorawdata-static PRIVATE ${ZSTD_INCLUDE_DIR})
+endif()
 if(HAVE_ZWRAP)
   target_include_directories(pueorawdata-static PRIVATE ${ZWRAP_HEADER_DIR})
 endif()
@@ -105,8 +146,8 @@ if(DEFINED ZWRAP_SOURCE_TO_ADD AND ZWRAP_SOURCE_TO_ADD)
   target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1)
 elseif(HAVE_ZWRAP)
   # headers are available; still expose the macro to ensure sources including the header see the flag
-  target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1)
-  target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1)
+  target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1 HAVE_ZWRAP_HEADER=1)
+  target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1 HAVE_ZWRAP_HEADER=1)
 endif()
 
 if (PostgreSQL_FOUND)
