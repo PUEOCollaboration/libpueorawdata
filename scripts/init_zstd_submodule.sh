@@ -25,7 +25,3 @@ else
   git submodule add https://github.com/facebook/zstd.git third_party/zstd
   git submodule update --init --recursive third_party/zstd
 fi
-
-echo "Done. Re-run CMake to pick up the bundled zlibWrapper sources:"
-echo "  cmake -S . -B build -D CMAKE_BUILD_TYPE=RelWithDebInfo"
-echo "  cmake --build build"
