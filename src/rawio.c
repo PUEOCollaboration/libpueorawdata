@@ -205,10 +205,10 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
 
   hinit(h);
 
-  //check for .gz
+  //check for .gz or .zst suffix
 
   const char * suffix = rindex(file,'.');
-  if (suffix && !strcmp(suffix,".gz"))
+  if ((suffix && !strcmp(suffix,".gz")) || ((suffix && !strcmp(suffix,".zst"))))
   {
     h->aux = gzopen(file, mode);
     if (!h->aux)
