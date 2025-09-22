@@ -19,6 +19,7 @@ int main(int nargs, char ** args)
   pueo_write_single_waveform(&h, &wf);
   pueo_dump_single_waveform(stdout, &wf);
   printf("}\n");
+  pueo_handle_close(&h);
   return 0;
 }
 

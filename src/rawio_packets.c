@@ -79,12 +79,16 @@ static int write_waveform(pueo_handle_t*h, const pueo_waveform_t * wf)
 
 static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf)
 {
-  int hdrsize = offsetof(pueo_waveform_t,data);
+  int hdrsize = offsetof(pueo_waveform_t, data);
   int nrd = h->read_bytes(hdrsize, wf, h);
-  if (nrd != (int) hdrsize) return -1;
-  nrd += h->read_bytes(wf->length*sizeof(*wf->data), wf->data, h);
-  if (nrd != (int) (hdrsize + wf->length*sizeof(*wf->data))) return -1;
-  return nrd;
+  fprintf(stderr, "read_waveform: header read returned %d (expected %d)\n", nrd, hdrsize);
+  if (nrd != hdrsize) return -1;
+  int want = wf->length * sizeof(*wf->data);
+  fprintf(stderr, "read_waveform: expecting waveform payload of %d bytes (length=%d)\n", want, (int)wf->length);
+  nrd = h->read_bytes(want, wf->data, h);
+  fprintf(stderr, "read_waveform: payload read returned %d (expected %d)\n", nrd, want);
+  if (nrd != want) return -1;
+  return hdrsize + nrd;
 }
 
 static void update_len_cksum_waveform(uint32_t * len, uint16_t * cksum, const pueo_waveform_t *wf)
@@ -127,6 +131,7 @@ int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p
   int total_read = h->read_bytes(offs, p, h);
   if (total_read !=  (int) offs) return -1;
   int nrd = read_waveform(h, &p->wf);
+  fprintf(stderr, "pueo_read_packet_single_waveform: read_waveform returned %d\n", nrd);
   if (nrd < 0) return -1;
   total_read += nrd;
   return total_read;

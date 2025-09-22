@@ -37,6 +37,17 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/third_party/zstd")
       message(STATUS "Using zstd CMake target: ${ZSTD_CMAKE_TARGET}")
     endif()
   endif()
+  # If the vendored zstd provides a zlibWrapper folder, prefer it for headers
+  if(EXISTS "${ZSTD_VENDOR_DIR}/zlibWrapper/zstd_zlibwrapper.h")
+    message(STATUS "Found zlibWrapper headers in vendored third_party/zstd/zlibWrapper")
+    set(ZWRAP_HEADER_DIR "${ZSTD_VENDOR_DIR}/zlibWrapper")
+    set(ZSTD_INCLUDE_DIR "${ZSTD_VENDOR_DIR}/zlibWrapper")
+    set(HAVE_ZWRAP TRUE)
+    # prefer using wrapper sources from vendored tree if present
+    if(EXISTS "${ZSTD_VENDOR_DIR}/zlibWrapper/zstd_zlibwrapper.c")
+      set(ZWRAP_SOURCE_TO_ADD "${ZSTD_VENDOR_DIR}/zlibWrapper/zstd_zlibwrapper.c")
+    endif()
+  endif()
   # If we didn't get a CMake target, prefer a prebuilt lib in the vendored tree if present
   if(NOT ZSTD_CMAKE_TARGET)
     if(EXISTS "${ZSTD_VENDOR_DIR}/lib/libzstd.a")
@@ -87,7 +98,10 @@ endif()
 option(ENABLE_ZWRAP "Detect and build with zstd zlibWrapper when available" ON)
 option(ZWRAP_SRC_DIR "Explicit path to zstd zlibWrapper source directory" "")
 
-set(HAVE_ZWRAP FALSE)
+# Only initialize HAVE_ZWRAP to FALSE if it hasn't already been set by vendored detection
+if(NOT DEFINED HAVE_ZWRAP)
+  set(HAVE_ZWRAP FALSE)
+endif()
 if(ENABLE_ZWRAP)
   # Prefer an explicit wrapper source dir if provided and it has the header
   if(ZWRAP_SRC_DIR AND EXISTS "${ZWRAP_SRC_DIR}/zstd_zlibwrapper.h")
@@ -180,10 +194,12 @@ endif()
 
 # If wrapper compile macro was set globally earlier, prefer setting it per-target so other targets are unaffected
 if(DEFINED ZWRAP_SOURCE_TO_ADD AND ZWRAP_SOURCE_TO_ADD)
-  target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1)
-  target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1)
+  # wrapper source is being compiled into the project; also expose the HAVE_ZWRAP_HEADER
+  # macro so source guarded by #ifdef HAVE_ZWRAP_HEADER will include the wrapper header.
+  target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1 HAVE_ZWRAP_HEADER=1)
+  target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1 HAVE_ZWRAP_HEADER=1)
 elseif(HAVE_ZWRAP)
-  # headers are available; still expose the macro to ensure sources including the header see the flag
+  # headers are available; expose macros so sources including the header see the flag
   target_compile_definitions(pueorawdata PRIVATE ZWRAP_USE_ZSTD=1 HAVE_ZWRAP_HEADER=1)
   target_compile_definitions(pueorawdata-static PRIVATE ZWRAP_USE_ZSTD=1 HAVE_ZWRAP_HEADER=1)
 endif()

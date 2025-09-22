@@ -30,7 +30,7 @@
 #include <stddef.h>
 #include <assert.h>
 // Prefer wrapper header if available; otherwise fall back to system zlib.h
-#if defined(HAVE_ZWRAP_HEADER)
+#ifdef HAVE_ZWRAP_HEADER
 #include <zstd_zlibwrapper.h>
 #else
 #include <zlib.h>
@@ -178,7 +178,19 @@ static int gz_writebytes(size_t nbytes, const void * bytes, pueo_handle_t *h)
 static int gz_readbytes(size_t nbytes, void * bytes, pueo_handle_t *h)
 {
   gzFile f = (gzFile) h->aux;
-  return gzread(f, bytes, nbytes);
+  int r = gzread(f, bytes, nbytes);
+  if (r <= 0)
+  {
+    /* try to get more detailed gz error */
+    int gzerr = 0;
+    const char * msg = gzerror(f, &gzerr);
+    fprintf(stderr, "gz_readbytes: gzread requested %zu returned %d, gzerr=%d msg=%s\n", nbytes, r, gzerr, msg ? msg : "(null)");
+  }
+  else
+  {
+    fprintf(stderr, "gz_readbytes: requested %zu bytes, got %d bytes\n", nbytes, r);
+  }
+  return r;
 }
 
 static int gz_close(pueo_handle_t  * h)
@@ -217,7 +229,7 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
   //check for .gz or .zst suffix
 
   const char * suffix = rindex(file,'.');
-  if ((suffix && !strcmp(suffix,".gz")) || ((suffix && !strcmp(suffix,".zst"))))
+  if (suffix && !strcmp(suffix,".gz"))
   {
     h->aux = gzopen(file, mode);
     if (!h->aux)
@@ -236,17 +248,20 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
   {
     /* Enable zstd compression in the wrapper at runtime. This makes gz* APIs
        use zstd when available. */
-#if defined(HAVE_ZWRAP_HEADER)
+#ifdef HAVE_ZWRAP_HEADER
     ZWRAP_useZSTDcompression(1);
+    fprintf(stderr, "Using zstd compression for %s\n", file);
 #endif
     h->aux = gzopen(file, mode);
     if (!h->aux)
     {
       return -1;
     }
+    fprintf(stderr, "Using zstd compression for %s\n", file);
     h->close = gz_close;
     h->read_bytes = gz_readbytes;
     h->write_bytes = gz_writebytes;
+    fprintf(stderr, "Opened zstd file %s\n", file);
     return 0;
   }
 
