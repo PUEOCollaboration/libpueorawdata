@@ -19,8 +19,7 @@
  *
  * Otherwise, we have to write pueo_read_packet_X and pueo_write_packet_X
  * ourselves.  In general, these implmentations should check the version, do
- * something sensible if it's an old version, and then increment bytes_read or
- * bytes_written on the handle appropriately.
+ * something sensible if it's an old version,
  *
  * You can count on pueo_X_size(ver) to return the correct value provided that the macros
  * in versions.c are dfeined.
@@ -31,7 +30,7 @@
   int pueo_write_packet_##STRUCT_NAME(pueo_handle_t *h, const pueo_##STRUCT_NAME##_t *p ) \
   { \
     int nwr = h->write_bytes( sizeof(pueo_##STRUCT_NAME##_t), p, h); \
-    h->bytes_written += nwr; return nwr; \
+    return nwr; \
   }
 
 #define SIMPLE_PUEO_H_IMPL(STRUCT_NAME, TYPE_NAME) \
@@ -54,7 +53,6 @@
     if (versize < 0 || versize > (int) sizeof(pueo_##STRUCT_NAME##_t)) { fprintf(stderr,"bad ver size of %d for ver %d for %s\n", versize, ver, #STRUCT_NAME); return -1; } \
     int nread = h->read_bytes( versize, p, h);\
     memset((uint8_t*)p+versize, 0, sizeof(pueo_##STRUCT_NAME##_t) - versize); \
-    h->bytes_read += nread; \
     return nread; \
   }
 
@@ -102,7 +100,6 @@ int pueo_write_packet_single_waveform(pueo_handle_t *h, const pueo_single_wavefo
   int nwr = 0;
   nwr += h->write_bytes(offsetof(pueo_single_waveform_t, wf), p, h);
   nwr += write_waveform(h, &p->wf);
-  h->bytes_written += nwr;
   return nwr;
 }
 
@@ -128,7 +125,6 @@ int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p
   int nrd = read_waveform(h, &p->wf);
   if (nrd < 0) return -1;
   total_read += nrd;
-  h->bytes_written += total_read;
   return total_read;
 }
 
@@ -154,7 +150,6 @@ int pueo_write_packet_full_waveforms(pueo_handle_t *h, const pueo_full_waveforms
     nwr += write_waveform(h, &p->wfs[i]);
   }
 
-  h->bytes_written += nwr;
   return nwr;
 }
 
@@ -169,7 +164,6 @@ int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p, 
     if (nrd < 0) return -1;
     total_read += nrd;
   }
-  h->bytes_written += total_read;
   return total_read;
 }
 
@@ -191,8 +185,7 @@ int pueo_read_packet_sensors_disk(pueo_handle_t * h, pueo_sensors_disk_t * t, in
   int nrd = 0;
   nrd =  h->read_bytes(offsetof(pueo_sensors_disk_t, sensors),t,h);
   nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_DISK : t->num_packets) * sizeof(pueo_sensor_disk_t), t->sensors, h);
-  memset((uint8_t*) t+nrd, 0, sizeof(*t)-nrd);
-  h->bytes_read += nrd;
+  if (ver && t->num_packets < MAX_SENSORS_PER_PACKET_DISK) memset((uint8_t*) t+nrd, 0, sizeof(*t)-nrd);
   return nrd;
 }
 
@@ -201,7 +194,6 @@ int pueo_write_packet_sensors_disk(pueo_handle_t * h, const pueo_sensors_disk_t 
 {
   int nwr = 0;
   nwr =  h->write_bytes(offsetof(pueo_sensors_disk_t, sensors) + t->num_packets * sizeof(pueo_sensor_disk_t), t, h);
-  h->bytes_written += nwr;
   return nwr;
 }
 
@@ -224,7 +216,6 @@ int pueo_read_packet_sensors_telem(pueo_handle_t * h, pueo_sensors_telem_t * t, 
   nrd =  h->read_bytes(offsetof(pueo_sensors_telem_t, sensors),t,h);
   nrd += h->read_bytes( (ver == 0 ? MAX_SENSORS_PER_PACKET_TELEM : t->num_packets) * sizeof(pueo_sensor_telem_t), t->sensors, h);
   memset((uint8_t*) t+nrd, 0, sizeof(*t)-nrd);
-  h->bytes_read += nrd;
   return nrd;
 }
 
@@ -233,7 +224,6 @@ int pueo_write_packet_sensors_telem(pueo_handle_t * h, const pueo_sensors_telem_
 {
   int nwr = 0;
   nwr =  h->write_bytes(offsetof(pueo_sensors_telem_t, sensors) + t->num_packets * sizeof(pueo_sensor_telem_t), t, h);
-  h->bytes_written += nwr;
   return nwr;
 }
 
