@@ -413,6 +413,7 @@ static int maybe_read_header(pueo_handle_t *h)
   }
   int nread =  h->read_bytes(sizeof(pueo_packet_head_t), &h->last_read_header, h);
   if (!nread) return EOF;
+  assert (h->last_read_header.f1 == 0xf1);
   h->bytes_read +=nread;
   h->flags |= PUEO_HANDLE_ALREADY_READ_HEAD;
   return nread;
@@ -437,7 +438,7 @@ int pueo_ll_read(pueo_handle_t *h, pueo_packet_t *dest)
 //x macro for size
 #define X_PUEO_SWITCH_READ_SIZE(PACKET_TYPE, TYPENAME)\
   case PACKET_TYPE: \
-    h->required_read_size = sizeof(pueo_##TYPENAME##_t*); break;
+    h->required_read_size = sizeof(pueo_##TYPENAME##_t); break;
 
     switch(h->last_read_header.type)
     {
