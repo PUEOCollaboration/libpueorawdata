@@ -31,6 +31,7 @@ int main(int nargs, char ** args)
   pueo_dump_full_waveforms(stdout, &wf);
 
   printf("}\n");
+  pueo_handle_close(&h);
   return 0;
 }
 
