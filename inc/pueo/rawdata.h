@@ -314,11 +314,21 @@ typedef struct pueo_slow
   uint16_t current_run;
   uint16_t current_run_secs;
   uint32_t current_run_events;
-  uint16_t L1_rates[12];
-  uint8_t L2_rates[12];
+  uint16_t L1_rates[12][2];
+  uint8_t L2_rates[12][2];
+  struct
+  {
+    uint16_t index : 3; //by label, so 1-6, 0 means not present
+    uint16_t free : 13; // in units of
+
+
+  } pals[2];
+  uint8_t palsA_index : 3 ;
+  uint8_t palsA_present : 1;
+
 } pueo_slow_t;
 
-#define PUEO_SLOW_VER 0
+#define PUEO_SLOW_VER 1
 
 
 #define PUEO_SS_NUM_SENSORS 8

@@ -19,6 +19,7 @@
  *
  */
 
+#define _GNU_SOURCE
 
 
 #include "pueo/rawio.h"
@@ -204,6 +205,7 @@ int pueo_handle_init_filep(pueo_handle_t *h, FILE* f, bool close)
   h->close = close ? file_close : NULL;
   h->read_bytes = file_readbytes;
   h->write_bytes = file_writebytes;
+  asprintf(&h->description, "FILE* at 0x%p", f);
   return 0;
 }
 
@@ -212,10 +214,10 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
 
   hinit(h);
 
-  //check for .gz
+  //check for .gz or .zst suffix
 
   const char * suffix = rindex(file,'.');
-  if (suffix && !strcmp(suffix,".gz"))
+  if ((suffix && !strcmp(suffix,".gz")) || ((suffix && !strcmp(suffix,".zst"))))
   {
     h->aux = gzopen(file, mode);
     if (!h->aux)
@@ -225,6 +227,7 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
     h->close = gz_close;
     h->read_bytes = gz_readbytes;
     h->write_bytes = gz_writebytes;
+    asprintf(&h->description,"gzfile %s", file);
     return 0;
   }
 
@@ -253,10 +256,12 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
   h->close = file_close;
   h->read_bytes = file_readbytes;
   h->write_bytes = file_writebytes;
+  h->description = strdup(file);
   return 0;
 }
 
-int pueo_handle_init_fd(pueo_handle_t *h, int fd )
+
+int pueo_handle_init_fd_with_desc(pueo_handle_t *h, int fd, const char * desc)
 {
   hinit(h) ;
 
@@ -266,12 +271,30 @@ int pueo_handle_init_fd(pueo_handle_t *h, int fd )
   h->close = fd_close;
   h->read_bytes = fd_readbytes;
   h->write_bytes = fd_writebytes;
+  if (desc)
+  {
+    h->description = strdup(desc);
+  }
+  else
+  {
+    char fdbuf[64];
+    sprintf(fdbuf,"/proc/self/fds/%d", fd);
+    char * fdname =realpath(fdbuf,NULL);
+    asprintf(&h->description, "fd %d (%s)", fd, fdname);
+    free(fdname);
+  }
   return 0;
+}
+
+int pueo_handle_init_fd(pueo_handle_t *h, int fd)
+{
+  return pueo_handle_init_fd_with_desc(h,fd,NULL);
 }
 
 int pueo_handle_close(pueo_handle_t *h)
 {
   if (h->close) h->close(h);
+  free(h->description);
   return hinit(h);
 }
 
@@ -337,6 +360,7 @@ int pueo_handle_init_udp(pueo_handle_t * h, int port, const char *hostname, cons
   struct udp_aux * aux = calloc(1,sizeof(struct udp_aux));
   h->aux = (void*) aux;
   aux->socket = sock;
+  asprintf(&h->description, "udp-%s://%s:%d",mode, hostname, port);
   h->close = socket_close;
   h->write_bytes = am_writing ? socket_writebytes : NULL;
   h->read_bytes = am_reading ? socket_readbytes: NULL;

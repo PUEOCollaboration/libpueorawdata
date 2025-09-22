@@ -74,6 +74,7 @@ typedef struct pueo_handle
 
   uint64_t bytes_written;
   uint64_t bytes_read;
+  char * description;
 
   //Function pointers
   int (*write_bytes) (size_t nbytes, const void *bytes, struct pueo_handle * h);
@@ -117,6 +118,8 @@ int pueo_handle_init_filep(pueo_handle_t * h, FILE * fptr, bool close);
 
 /* This initailizes an fd-like handle */
 int pueo_handle_init_fd(pueo_handle_t * h, int fd);
+int pueo_handle_init_fd_with_desc(pueo_handle_t * h, int fd, const char * description);
+
 
 int pueo_handle_init_udp(pueo_handle_t *h, int port, const char *hostname, const char * mode);
 

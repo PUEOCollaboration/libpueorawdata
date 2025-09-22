@@ -37,6 +37,23 @@ PUEO_IO_DISPATCH_TABLE(X_CURRENT_VER)
 
 typedef pueo_sensors_telem_t pueo_sensors_telem_v0_t;
 typedef pueo_sensors_disk_t pueo_sensors_disk_v0_t;
+typedef struct pueo_slow_v0
+{
+  uint16_t ncmds;
+  uint16_t time_since_last_cmd;
+  uint32_t last_cmd : 8;
+  uint32_t sipd_uptime : 24;
+  uint32_t cpu_time;
+  uint32_t cpu_uptime : 24;
+  uint32_t can_ping_world : 1;
+  uint32_t starlink_on : 1;
+  uint32_t los_on : 1;
+  uint16_t current_run;
+  uint16_t current_run_secs;
+  uint32_t current_run_events;
+  uint16_t L1_rates[12];
+  uint8_t L2_rates[12];
+} pueo_slow_v0_t;
 
 
 #endif
