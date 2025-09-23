@@ -184,11 +184,6 @@ static int gz_readbytes(size_t nbytes, void * bytes, pueo_handle_t *h)
     /* try to get more detailed gz error */
     int gzerr = 0;
     const char * msg = gzerror(f, &gzerr);
-    fprintf(stderr, "gz_readbytes: gzread requested %zu returned %d, gzerr=%d msg=%s\n", nbytes, r, gzerr, msg ? msg : "(null)");
-  }
-  else
-  {
-    fprintf(stderr, "gz_readbytes: requested %zu bytes, got %d bytes\n", nbytes, r);
   }
   return r;
 }
@@ -250,18 +245,15 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
        use zstd when available. */
 #ifdef HAVE_ZWRAP_HEADER
     ZWRAP_useZSTDcompression(1);
-    fprintf(stderr, "Using zstd compression for %s\n", file);
 #endif
     h->aux = gzopen(file, mode);
     if (!h->aux)
     {
       return -1;
     }
-    fprintf(stderr, "Using zstd compression for %s\n", file);
     h->close = gz_close;
     h->read_bytes = gz_readbytes;
     h->write_bytes = gz_writebytes;
-    fprintf(stderr, "Opened zstd file %s\n", file);
     return 0;
   }
 
