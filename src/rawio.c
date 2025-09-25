@@ -530,6 +530,77 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest)
   return nread;
 }
 
+// Write function that compresses a pueo waveform given a compression flag for .zstor .zlib, with it default to .zst.
+int pueo_encode_waveform(const pueo_single_waveform_t * in, pueo_encoded_waveform_t * out, int compressionFlag)
+{
+  if (!in || !out) return -1;
+  if (in->wf.length > PUEO_MAX_BUFFER_LENGTH) return -1;
+
+  // Copy over the header information
+  out->run = in->run;
+  out->event = in->event;
+  out->channel_id = in->wf.channel_id;
+  out->flags = in->wf.flags;
+  out->nsamples = in->wf.length;
+  out->encoded_flags = compressionFlag;
+
+  // Compress the waveform data based on the specified compression flag
+  int compressedSize = 0;
+  if (compressionFlag == 1) // zlib compression
+  {
+    compressedSize = compress2(out->encoded, (uLongf*)&out->encoded_nbytes, (const Bytef*)in->wf.data, in->wf.length * sizeof(uint16_t), Z_BEST_COMPRESSION);
+    if (compressedSize != Z_OK) return -1; // Compression failed
+    out->encoded_nbytes = compressedSize;
+  }
+  else if (compressionFlag == 2) // zstd compression
+  {
+    size_t zstdCompressedSize = ZSTD_compress(out->encoded, sizeof(out->encoded), in->wf.data, in->wf.length * sizeof(uint16_t), ZSTD_maxCLevel());
+    if (ZSTD_isError(zstdCompressedSize)) return -1; // Compression failed
+    out->encoded_nbytes = zstdCompressedSize;
+  }
+  else // No compression
+  {
+    memcpy(out->encoded, in->wf.data, in->wf.length * sizeof(uint16_t));
+    out->encoded_nbytes = in->wf.length * sizeof(uint16_t);
+  }
+
+  return 0;
+}
+
+// Write function the decodes a compression waveform created by pueo_encode_waveform() and uses the metadata of the waveform to choose the correct decompression
+int pueo_decode_waveform(const pueo_encoded_waveform_t * in, pueo_single_waveform_t * out)
+{
+  if (!in || !out) return -1;
+  if (in->nsamples > PUEO_MAX_BUFFER_LENGTH) return -1;
+
+  // Copy over the header information
+  out->run = in->run;
+  out->event = in->event;
+  out->wf.channel_id = in->channel_id;
+  out->wf.flags = in->flags;
+  out->wf.length = in->nsamples;
+
+  // Decompress the waveform data based on the encoded flags
+  if (in->encoded_flags == 1) // zlib decompression
+  {
+    uLongf destLen = out->wf.length * sizeof(uint16_t);
+    int res = uncompress((Bytef*)out->wf.data, &destLen, (const Bytef*)in->encoded, in->encoded_nbytes);
+    if (res != Z_OK || destLen != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
+  }
+  else if (in->encoded_flags == 2) // zstd decompression
+  {
+    size_t decompressedSize = ZSTD_decompress(out->wf.data, out->wf.length * sizeof(uint16_t), in->encoded, in->encoded_nbytes);
+    if (ZSTD_isError(decompressedSize) || decompressedSize != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
+  }
+  else // No compression
+  {
+    memcpy(out->wf.data, in->encoded, in->encoded_nbytes);
+    if (in->encoded_nbytes != out->wf.length * sizeof(uint16_t)) return -1; // Size mismatch
+  }
+
+  return 0;
+}
+
 
 /** define the packet_as_methods */
 
