@@ -162,6 +162,10 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
 
 int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
 
+// Functions for encoded and decoding waveforms with specified compression algorithsm.
+int pueo_encode_waveform(const pueo_single_waveform_t * in, pueo_encoded_waveform_t * out, int compressionFlag);
+int pueo_decode_waveform(const pueo_encoded_waveform_t * in, pueo_single_waveform_t * out);
+
 /** IO dispatch table, for use with X macros. See https://en.wikipedia.org/wiki/X_Macro if you don't know what this is.
  *
  * Basically we want the association between the struct and the type code to be robust.
