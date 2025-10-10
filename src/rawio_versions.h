@@ -56,6 +56,32 @@ typedef struct pueo_slow_v0
 } pueo_slow_v0_t;
 
 
+typedef struct pueo_full_waveforms_v0
+{
+  uint32_t run;
+  uint32_t event;
+  uint32_t event_second;
+  uint32_t event_time;
+  uint32_t last_pps;
+  uint32_t llast_pps;
+  uint32_t trigger_meta[4];
+  pueo_waveform_t wfs[PUEO_NCHAN];
+} pueo_full_waveforms_v0_t;
+
+
+typedef struct pueo_single_waveform_v0
+{
+  uint32_t run;
+  uint32_t event;
+  uint32_t event_second;
+  uint32_t event_time;
+  uint32_t last_pps;
+  uint32_t llast_pps;
+  uint32_t trigger_meta[4];
+  pueo_waveform_t wf;
+} pueo_single_waveform_v0_t;
+
+
 #endif
 
 

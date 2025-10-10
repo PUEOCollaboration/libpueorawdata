@@ -587,4 +587,19 @@ int pueo_dump_packet(FILE * f, const pueo_packet_t  *p)
   }
 }
 
+// x macro for DB dispatch
+#define X_PUEO_SWITCH_DB(PACKET_TYPE, TYPENAME)\
+  case PACKET_TYPE: \
+    return pueo_db_insert_##TYPENAME(h, (pueo_##TYPENAME##_t*) p->payload);
+
+int pueo_db_insert_packet(pueo_db_handle_t *h, const pueo_packet_t  *p)
+{
+  switch(p->head.type)
+  {
+    PUEO_IO_DISPATCH_TABLE(X_PUEO_SWITCH_DB)
+    default:
+      return -1;
+  }
+}
+
 

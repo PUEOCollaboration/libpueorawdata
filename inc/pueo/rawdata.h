@@ -92,6 +92,16 @@ typedef struct pueo_packet_head
 } pueo_packet_head_t;
 
 
+//more efficiently pack time into 64 bits
+typedef struct pueo_time
+{
+  uint64_t utc_secs : 34;
+  uint32_t utc_nsecs : 30;
+} pueo_time_t;
+
+_Static_assert(sizeof(pueo_time_t) == 8, "doh");
+
+
 
 /** An individual waveform, This does not include run/event information and should only be used as part of another struct. Not serializable.*/
 typedef struct pueo_waveform
@@ -99,7 +109,7 @@ typedef struct pueo_waveform
   uint8_t channel_id; // wow, we are close to this limit aren't we?
   uint8_t flags;
   uint16_t length; // buffer length
-  uint16_t data[PUEO_MAX_BUFFER_LENGTH];
+  int16_t data[PUEO_MAX_BUFFER_LENGTH];
 } pueo_waveform_t;
 
 
@@ -114,9 +124,10 @@ typedef struct pueo_full_waveforms
   uint32_t llast_pps;
   uint32_t trigger_meta[4];
   pueo_waveform_t wfs[PUEO_NCHAN];
+  pueo_time_t readout_time;
 } pueo_full_waveforms_t;
 
-#define PUEO_FULL_WAVEFORMS_VER 0
+#define PUEO_FULL_WAVEFORMS_VER 1
 
 typedef struct pueo_single_waveform
 {
@@ -128,9 +139,10 @@ typedef struct pueo_single_waveform
   uint32_t llast_pps;
   uint32_t trigger_meta[4];
   pueo_waveform_t wf;
+  pueo_time_t readout_time;
 } pueo_single_waveform_t;
 
-#define PUEO_SINGLE_WAVEFORM_VER 0
+#define PUEO_SINGLE_WAVEFORM_VER 1
 
 
 /* see pueo/encode.h to convert, once implemented*/
@@ -144,6 +156,7 @@ typedef struct pueo_encoded_waveform
   uint16_t encoded_flags;
   uint16_t encoded_nbytes;
   uint8_t encoded[2 * PUEO_MAX_BUFFER_LENGTH];
+  pueo_time_t readout_time;
 } pueo_encoded_waveform_t;
 
 #define PUEO_ENCODED_WAVEFORM_VER 0
@@ -203,14 +216,6 @@ typedef struct pueo_sensors_telem
 
 #define PUEO_SENSORS_TELEM_VER 1
 
-
-typedef struct pueo_time
-{
-  uint64_t utc_secs : 34;
-  uint32_t utc_nsecs : 30;
-} pueo_time_t;
-
-_Static_assert(sizeof(pueo_time_t) == 8, "doh");
 
 enum e_pueo_nav_src
 {

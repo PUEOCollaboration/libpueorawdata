@@ -196,6 +196,10 @@ int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
 #define X_PUEO_DUMP(IGNORE,STRUCT_NAME) \
   int  pueo_dump_##STRUCT_NAME(FILE* f, const pueo_##STRUCT_NAME##_t * p);
 
+// This sets up a database insertion
+#define X_PUEO_INSERT_DB(IGNORE,STRUCT_NAME) \
+  int  pueo_db_insert_##STRUCT_NAME(pueo_db_handle_t * h, const pueo_##STRUCT_NAME##_t * p);
+
 
 // database entry, for serializing packets to database (mostly for housekeeping)
 // all of the bits for this will be in rawio_db.c (including for each datatype)
@@ -223,10 +227,7 @@ pueo_db_handle_t * pueo_db_handle_open_sqlite(const char * sqlite, uint64_t flag
 //Close a DB handle (and also frees associated memory and sets h to NULL)
 void pueo_db_handle_close(pueo_db_handle_t ** h);
 
-// This sets up a database insertion
-#define X_PUEO_INSERT_DB(IGNORE,STRUCT_NAME) \
-  int  pueo_db_insert_##STRUCT_NAME(pueo_db_handle_t * h, const pueo_##STRUCT_NAME##_t * p);
-
+int pueo_db_insert_packet(pueo_db_handle_t * db,  const pueo_packet_t * p);
 
 PUEO_IO_DISPATCH_TABLE(X_PUEO_WRITE)
 PUEO_IO_DISPATCH_TABLE(X_PUEO_READ)
