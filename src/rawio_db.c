@@ -5,6 +5,7 @@
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <limits.h>
 #include <time.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -372,6 +373,24 @@ static int commit_sql_stream(pueo_db_handle_t *h)
 }
 
 
+
+//Stub means we haven't implemented yet but we need to
+#define STUB_INSERT_DB(X) \
+int pueo_db_insert_##X(pueo_db_handle_t * h, const pueo_##X##_t * x) { (void) h; (void) x; _Pragma("GCC warning \"stub implementation\""); fprintf(stderr,"WARNING: pueo_db_insert_" #X "() has stub implementation\n"); return -1; }
+
+//Unsupported means we don't intend to support inserting this type into a DB
+#define UNSUPPORTED_INSERT_DB(X)\
+int pueo_db_insert_##X(pueo_db_handle_t * h, const pueo_##X##_t * x) { (void) h; (void) x; fprintf(stderr,"WARNING: pueo_db_insert_" #X "() should not be called\n"); return -1; }
+
+
+
+// these should never need to be entered into a DB
+UNSUPPORTED_INSERT_DB(full_waveforms)
+UNSUPPORTED_INSERT_DB(sensors_disk)
+
+
+STUB_INSERT_DB(slow)
+
 int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
 {
 
@@ -380,14 +399,71 @@ int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
   fprintf(f, "INSERT INTO sun_sensors (time");
   for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
   {
-    fprintf(f,", x1_ss%d, x2_ss%d, y1_ss%d, y2_ss%d, tempSS_ss%d, tempADS1220_ss%d VALUES(%hu, %hu, %hu, %hu, %f, %f);\n",
-        i,i,i,i,i,i,
+    fprintf(f,", x1_ss%d, x2_ss%d, y1_ss%d, y2_ss%d, tempSS_ss%d, tempADS1220_ss%d",
+        i,i,i,i,i,i);
+  }
+
+  fprintf(f, "VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) ss->readout_time.utc_secs,  (uint32_t) ss->readout_time.utc_nsecs);
+
+  for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
+  {
+        fprintf(f, ", %hu, %hu, %hu, %hu, %f, %f",
         (uint16_t) ss->ss[i].x1, (uint16_t) ss->ss[i].x2,
         (uint16_t) ss->ss[i].y1, (uint16_t) ss->ss[i].y2,
         PUEO_SS_TEMPERATURE_CONVERT(ss->ss[i].tempSS),
         PUEO_SS_TEMPERATURE_CONVERT(ss->ss[i].tempADS1220)
         );
   }
+
+  fprintf(f,")\n");
+
+  return commit_sql_stream(h);
+}
+
+int pueo_db_insert_single_waveform(pueo_db_handle_t *h, const pueo_single_waveform_t *wf)
+{
+  FILE * f = begin_sql_stream(h);
+
+  int max = -INT_MAX;
+  int min = INT_MAX;
+  double sum2= 0;
+  double sum = 0;
+  int N = wf->wf.length;
+  for (int i = 0; i < N; i++)
+  {
+    int v = wf->wf.data[i];
+    if (v > max) max = v;
+    if (v < min) min = v;
+    sum += v;
+    sum2 += v*v;
+  }
+
+  double mean = sum / N;
+  double rms = sqrt(mean*mean - sum2/N);
+
+
+  fprintf(f, "INSERT INTO single_waveforms(time, run, event, channel, max, min, rms)"
+             "VALUES (%u.%09u, %d, %d, %d, %d, %d, %f);",
+              wf->event_second,  wf->readout_time.utc_nsecs,
+              wf->run, wf->event, wf->channel, max, min, rms
+             );
+
+  return commit_sql_stream(h);
+}
+
+
+int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
+{
+
+  FILE * f = begin_sql_stream(h);
+  fprintf(f,"INSERT INTO nav_att (readout_time, gps_time, lat, lon, alt, heading,"
+            " heading_sigma, pitch, pitch_sigma, roll, roll_sigma, hdop, vdop, source, nsats, flags"
+           " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
+           " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
+           (uint64_t) att->readout_time.utc_secs, (uint32_t) att->readout_time.utc_nsecs, (uint64_t) att->gps_time.utc_secs,
+           (uint32_t) att->gps_time.utc_nsecs, att->lat, att->lon, att->alt, att->heading,
+           att->heading_sigma, att->pitch, att->pitch_sigma, att->roll, att->roll_sigma, att->hdop,
+           att->vdop, att->source, att->nsats, att->flags);
 
   return commit_sql_stream(h);
 }
@@ -482,6 +558,7 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
 }
 
 
+
 void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 {
   if (!hptr || !*hptr) return;
@@ -518,7 +595,12 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 
 /// yucky yuck yucky yuck
 
-#define DB_MAYBE_CREATE_TIMESCALE(X) const char * X##_create_TIMESCALEDB = "SELECT create_hypertable('" #X "s', by_range('time'), if_not_exists => TRUE);\n";
+#define DB_MAKE_INDEX(X,T) \
+const char * X##_index_string = "CREATE INDEX IF NOT EXISTS "#X"_time_idx on " #X" s ( " #T "); \n";\
+const char * X##_create_TIMESCALEDB = "SELECT create_hypertable('" #X "s', by_range('"#X"'), if_not_exists => TRUE);\n"; \
+if (h->type != DB_SQLITE &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) { fputs(X##_create_TIMESCALEDB,f); }\
+else { fputs(X##_index_string, f); }
+
 #define DB_TIME_TYPE_PGSQL "TIMESTAMPTZ"
 #define DB_TIME_TYPE_SQLITE "DATETIME"
 #define DB_INDEX_DEF_PGSQL "SERIAL"
@@ -539,19 +621,32 @@ static void ss_init(FILE *f, pueo_db_handle_t * h)
   }
   fprintf(f,");\n");
 
-  DB_MAYBE_CREATE_TIMESCALE(sun_sensor)
+  DB_MAKE_INDEX(sun_sensor, time)
 
-  if (h->type != DB_SQLITE &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) fputs(sun_sensor_create_TIMESCALEDB,f);
+}
+
+static void nav_att_init(FILE *f, pueo_db_handle_t *h)
+{
+  fprintf(f, "CREATE TABLE IF NOT EXISTS nav_att (uid %s, readout_time %s NOT NULL, gps_time %s not NULL,"
+             "lat REAL, lon REAL, alt REAL, heading REAL, heading_sigma REAL, pitch REAL, pitch_sigma REAL, roll REAL, roll_sigma REAL,"
+             "hdop REAL, vdop REAL, source CHAR(1), nsats INTEGER, flags INTEGER);",
+            h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+            h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
+            h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  DB_MAKE_INDEX(nav_att, readout_time)
+
 }
 
 
 static void single_wf_init(FILE * f, pueo_db_handle_t *h)
 {
 
-  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max REAL, min REAL, rms REAL);\n ",
+  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max INTEGER, min INTEGER, rms REAL);\n ",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
+  DB_MAKE_INDEX(single_waveform, time)
 }
 
 static int init_db(pueo_db_handle_t * h)
@@ -560,7 +655,6 @@ static int init_db(pueo_db_handle_t * h)
 
 #define DB_MAYBE_CREATE_HSK_TEMPLATE(X,DB)\
     const char * X##_create_string_##DB = "CREATE TABLE IF NOT EXISTS " #X "s (uid " DB_INDEX_DEF_##DB ",  time " DB_TIME_TYPE_##DB " NOT NULL , device TEXT, sensor TEXT, "#X " REAL);\n";\
-    const char * X##_index_string_##DB = "CREATE INDEX IF NOT EXISTS "#X"_time_idx on " #X" s ( time) ;\n";
 
 
   FILE * f = begin_sql_stream(h);
@@ -572,17 +666,9 @@ static int init_db(pueo_db_handle_t * h)
 #define DB_MAYBE_CREATE_HSK(X) \
   DB_MAYBE_CREATE_HSK_TEMPLATE(X,PGSQL) \
   DB_MAYBE_CREATE_HSK_TEMPLATE(X,SQLITE)\
-  DB_MAYBE_CREATE_TIMESCALE(X) \
-  if (h->type == DB_SQLITE) \
-  {\
-    fputs(X##_create_string_SQLITE,f);\
-    fputs(X##_index_string_SQLITE, f);\
-  }\
-  else \
-  { \
-    fputs(X##_create_string_PGSQL,f); \
-    fputs((h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB) ? X##_create_TIMESCALEDB : X##_index_string_PGSQL,f) ;\
-  }
+  if (h->type == DB_SQLITE) { fputs(X##_create_string_SQLITE,f); }\
+  else { fputs(X##_create_string_PGSQL,f); }\
+  DB_MAKE_INDEX(X,time)
 
 
   DB_MAYBE_CREATE_HSK(temperature)
@@ -593,6 +679,8 @@ static int init_db(pueo_db_handle_t * h)
   DB_MAYBE_CREATE_HSK(magnetic_field)
 
   ss_init(f,h);
+  nav_att_init(f,h);
+  single_wf_init(f,h);
 
   commit_sql_stream(h);
 
