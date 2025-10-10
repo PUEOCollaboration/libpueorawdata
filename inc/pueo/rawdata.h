@@ -123,8 +123,8 @@ typedef struct pueo_full_waveforms
   uint32_t last_pps;
   uint32_t llast_pps;
   uint32_t trigger_meta[4];
-  pueo_waveform_t wfs[PUEO_NCHAN];
   pueo_time_t readout_time;
+  pueo_waveform_t wfs[PUEO_NCHAN];
 } pueo_full_waveforms_t;
 
 #define PUEO_FULL_WAVEFORMS_VER 1
@@ -138,8 +138,8 @@ typedef struct pueo_single_waveform
   uint32_t last_pps;
   uint32_t llast_pps;
   uint32_t trigger_meta[4];
-  pueo_waveform_t wf;
   pueo_time_t readout_time;
+  pueo_waveform_t wf;
 } pueo_single_waveform_t;
 
 #define PUEO_SINGLE_WAVEFORM_VER 1

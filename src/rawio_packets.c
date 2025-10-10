@@ -108,7 +108,7 @@ pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_wave
   pueo_packet_head_t hd = {.type = PUEO_SINGLE_WAVEFORM, .f1 = 0xf1, .version = ver};
   uint32_t len = 0;
   uint16_t crc = CRC16_START;
-  len += offsetof(pueo_full_waveforms_t, wfs);
+  len +=  offsetof(pueo_single_waveforms_t, ver == 0 ? readout_time : wfs);
   crc = pueo_crc16_continue(crc,p, len);
   update_len_cksum_waveform(&len,&crc,&p->wf);
   hd.num_bytes = len;
@@ -119,9 +119,10 @@ pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_wave
 
 int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p, int ver)
 {
-  (void) ver;
-  int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h);
-  if (total_read != offsetof(pueo_single_waveform_t, wf)) return -1;
+  size_t offs = offsetof(pueo_single_waveforms_t, ver == 0 ? readout_time : wfs);
+  if (ver == 0) p->readout_time = {0};
+  int total_read = h->read_bytes(offs, p, h);
+  if (total_read != offs) return -1;
   int nrd = read_waveform(h, &p->wf);
   if (nrd < 0) return -1;
   total_read += nrd;
@@ -133,7 +134,7 @@ pueo_packet_head_t pueo_packet_header_for_full_waveforms(const pueo_full_wavefor
   pueo_packet_head_t hd = {.type = PUEO_FULL_WAVEFORMS, .f1 = 0xf1, .version = ver };
   uint32_t len = 0;
   uint16_t crc = CRC16_START;
-  len += offsetof(pueo_full_waveforms_t, wfs);
+  len += offsetof(pueo_full_waveforms_t, ver == 0 ? readout_time : wfs);
   crc = pueo_crc16_continue(crc,p, len);
   for (int i = 0; i < PUEO_NCHAN; i++) update_len_cksum_waveform(&len,&crc,&p->wfs[i]);
   hd.num_bytes = len;
@@ -155,9 +156,10 @@ int pueo_write_packet_full_waveforms(pueo_handle_t *h, const pueo_full_waveforms
 
 int pueo_read_packet_full_waveforms(pueo_handle_t *h, pueo_full_waveforms_t *p, int ver)
 {
-  (void) ver;
-  int total_read = h->read_bytes(offsetof(pueo_single_waveform_t, wf), p, h);
-  if (total_read != offsetof(pueo_single_waveform_t, wf)) return -1;
+  size_t offs = offsetof(pueo_full_waveforms_t, ver == 0 ? readout_time : wf);
+  int total_read = h->read_bytes(offs, p, h);
+  if (ver == 0) p->readout_time = {0};
+  if (total_read != offs) return -1;
   for (int i = 0; i < PUEO_NCHAN; i++)
   {
     int nrd = read_waveform(h, &p->wfs[i]);

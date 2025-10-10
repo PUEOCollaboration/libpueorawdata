@@ -31,8 +31,7 @@ typedef pueo_##STRUCT##_t CAT(CAT(pueo_##STRUCT##_v,VER),_t);
 PUEO_IO_DISPATCH_TABLE(X_CURRENT_VER)
 
 
-// Here, we explicitly define any old versions (i.e. by copying the previous definition along with its version
-//  (currently there are none!)
+// Here, we explicitly define any old versions (i.e. by copying the previous definition along with its version */
 
 
 typedef pueo_sensors_telem_t pueo_sensors_telem_v0_t;
