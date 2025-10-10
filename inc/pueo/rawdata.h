@@ -255,6 +255,7 @@ typedef struct pueo_nav_att
   float heading;
   float pitch;
   float roll;
+  float heading_sigma, pitch_sigma, roll_sigma;
 
   float v[3];
   float acc[3];

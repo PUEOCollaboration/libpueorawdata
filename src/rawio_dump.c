@@ -174,6 +174,9 @@ int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
   DUMPFLT(n,heading);
   DUMPFLT(n,pitch);
   DUMPFLT(n,roll);
+  DUMPFLT(n,heading_sigma);
+  DUMPFLT(n,pitch_sigma);
+  DUMPFLT(n,roll_sigma);
   DUMPARRAY(n,v,3,"%f");
   DUMPARRAY(n,acc,3,"%f");
   DUMPFLT(n,hdop);
