@@ -227,6 +227,20 @@ int pueo_write_packet_sensors_telem(pueo_handle_t * h, const pueo_sensors_telem_
   return nwr;
 }
 
+int pueo_write_packet_cmd_echo(pueo_handle_t *h, const pueo_cmd_echo_t * e)
+{
+  return h->write_bytes(offsetof(pueo_cmd_echo_t,data) + e->len_m1 +1,e,h );
+}
+
+int pueo_read_packet_cmd_echo(pueo_handle_t *h, pueo_cmd_echo_t * e, int ver)
+{
+  (void) ver;
+  int nrd = h->read_bytes(offsetof(pueo_cmd_echo_t,data),e,h );
+  nrd +=- h->read_bytes(e->len_m1+1, e->data, h);
+  memset(e->data+e->len_m1+1, 0, sizeof(e->data) - e->len_m1 - 1);
+  return nrd;
+}
+
 
 int pueo_write_packet_encoded_waveforms(pueo_handle_t *h, const pueo_encoded_waveform_t *p)
 {

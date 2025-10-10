@@ -231,3 +231,17 @@ int pueo_dump_ss(FILE *f, const pueo_ss_t * s)
   DUMPEND();
   DUMPFINISH();
 }
+
+int pueo_dump_cmd_echo(FILE *f, const pueo_cmd_echo_t * e)
+{
+  DUMPINIT(f);
+  DUMPSTART("cmd_echo");
+  DUMPU32(e,when);
+  unsigned len = e->len_m1;
+  len+=1;
+  DUMPKEYVAL("len","%u",len);
+  DUMPU32(e,count);
+  DUMPARRAY(e,data,len,"0x%02x");
+  DUMPEND();
+  DUMPFINISH();
+}
