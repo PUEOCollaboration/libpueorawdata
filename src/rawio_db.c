@@ -445,7 +445,7 @@ int pueo_db_insert_single_waveform(pueo_db_handle_t *h, const pueo_single_wavefo
   fprintf(f, "INSERT INTO single_waveforms(time, run, event, channel, max, min, rms)"
              "VALUES (%u.%09u, %d, %d, %d, %d, %d, %f);",
               wf->event_second,  wf->readout_time.utc_nsecs,
-              wf->run, wf->event, wf->channel, max, min, rms
+              wf->run, wf->event, wf->wf.channel_id, max, min, rms
              );
 
   return commit_sql_stream(h);
