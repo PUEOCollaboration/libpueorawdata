@@ -456,7 +456,7 @@ int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
 {
 
   FILE * f = begin_sql_stream(h);
-  fprintf(f,"INSERT INTO nav_att (readout_time, gps_time, lat, lon, alt, heading,"
+  fprintf(f,"INSERT INTO nav_atts (readout_time, gps_time, lat, lon, alt, heading,"
             " heading_sigma, pitch, pitch_sigma, roll, roll_sigma, hdop, vdop, source, nsats, flags"
            " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
            " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
@@ -619,7 +619,7 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 /// yucky yuck yucky yuck
 
 #define DB_MAKE_INDEX(X,T) \
-const char * X##_index_string = "CREATE INDEX IF NOT EXISTS "#X"_time_idx on " #X" s ( " #T "); \n";\
+const char * X##_index_string = "CREATE INDEX IF NOT EXISTS "#X"_time_idx on " #X "s ( " #T ");\n\n";\
 const char * X##_create_TIMESCALEDB = "SELECT create_hypertable('" #X "s', by_range('"#X"'), if_not_exists => TRUE);\n"; \
 if (h->type != DB_SQLITE &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) { fputs(X##_create_TIMESCALEDB,f); }\
 else { fputs(X##_index_string, f); }
@@ -633,7 +633,7 @@ else { fputs(X##_index_string, f); }
 
 static void ss_init(FILE *f, pueo_db_handle_t * h)
 {
-  //////sun sensor db 
+  //////sun sensor db
   fprintf(f,"CREATE TABLE IF NOT EXISTS sun_sensors ( uid %s, time %s NOT NULL",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
@@ -650,9 +650,9 @@ static void ss_init(FILE *f, pueo_db_handle_t * h)
 
 static void nav_att_init(FILE *f, pueo_db_handle_t *h)
 {
-  fprintf(f, "CREATE TABLE IF NOT EXISTS nav_att (uid %s, readout_time %s NOT NULL, gps_time %s not NULL,"
+  fprintf(f, "CREATE TABLE IF NOT EXISTS nav_atts (uid %s, readout_time %s NOT NULL, gps_time %s not NULL,"
              "lat REAL, lon REAL, alt REAL, heading REAL, heading_sigma REAL, pitch REAL, pitch_sigma REAL, roll REAL, roll_sigma REAL,"
-             "hdop REAL, vdop REAL, source CHAR(1), nsats INTEGER, flags INTEGER);",
+             "hdop REAL, vdop REAL, source CHAR(1), nsats INTEGER, flags INTEGER);\n",
             h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
             h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
             h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
@@ -665,7 +665,7 @@ static void nav_att_init(FILE *f, pueo_db_handle_t *h)
 static void single_wf_init(FILE * f, pueo_db_handle_t *h)
 {
 
-  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max INTEGER, min INTEGER, rms REAL);\n ",
+  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max INTEGER, min INTEGER, rms REAL);\n",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
@@ -674,7 +674,7 @@ static void single_wf_init(FILE * f, pueo_db_handle_t *h)
 
 static void cmd_echo_init(FILE *f, pueo_db_handle_t *h)
 {
-  fprintf(f, "CREATE TABLE IF NOT EXISTS cmd_echos (uid %s, time %s NOT NULL, len INTEGER, count INTEGER, data %s",
+  fprintf(f, "CREATE TABLE IF NOT EXISTS cmd_echos (uid %s, time %s NOT NULL, len INTEGER, count INTEGER, data %s);\n",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? "TEXT" : "BYTEA" );
