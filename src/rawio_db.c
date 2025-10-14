@@ -557,6 +557,29 @@ int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_
   return commit_sql_stream(h);
 }
 
+int pueo_db_insert_cmd_echo(pueo_db_handle_t * h, const pueo_cmd_echo_t * e)
+{
+  FILE * f = begin_sql_stream(h);
+  fprintf(f,"INSERT INTO cmd_echos(time,len,count, data) VALUES (TO_TIMESTAMP(%u),%u,%u,",
+      e->when, e->len_m1 + 1, e->count);
+
+  // for pgsql, used escape string to insert into bytea. For sqlite, just a normal string.
+  if (h->type != DB_SQLITE)
+  {
+    fprintf(f,"E'\\x");
+
+  }
+  for (unsigned i = 0; i <= e->len_m1; i++)
+  {
+    fprintf(f,"%02x", e->data[i]);
+  }
+
+  fprintf(f,"');");
+
+  return commit_sql_stream(h);
+}
+
+
 
 
 void pueo_db_handle_close(pueo_db_handle_t ** hptr)
@@ -649,6 +672,17 @@ static void single_wf_init(FILE * f, pueo_db_handle_t *h)
   DB_MAKE_INDEX(single_waveform, time)
 }
 
+static void cmd_echo_init(FILE *f, pueo_db_handle_t *h)
+{
+  fprintf(f, "CREATE TABLE IF NOT EXISTS cmd_echos (uid %s, time %s NOT NULL, len INTEGER, count INTEGER, data %s",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
+      h->type == DB_SQLITE  ? "TEXT" : "BYTEA" );
+
+  DB_MAKE_INDEX(cmd_echo, time);
+}
+
+
 static int init_db(pueo_db_handle_t * h)
 {
   if ( 0 == (h->flags & PUEO_DB_MAYBE_INIT_TABLES)) return 0;
@@ -681,6 +715,7 @@ static int init_db(pueo_db_handle_t * h)
   ss_init(f,h);
   nav_att_init(f,h);
   single_wf_init(f,h);
+  cmd_echo_init(f,h);
 
   commit_sql_stream(h);
 

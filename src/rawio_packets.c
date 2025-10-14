@@ -234,6 +234,18 @@ int pueo_write_packet_cmd_echo(pueo_handle_t *h, const pueo_cmd_echo_t * e)
   return h->write_bytes(offsetof(pueo_cmd_echo_t,data) + e->len_m1 +1,e,h );
 }
 
+
+pueo_packet_head_t pueo_packet_header_for_cmd_echo(const pueo_cmd_echo_t *e, int ver)
+{
+  pueo_packet_head_t hd = { .type = PUEO_CMD_ECHO, .f1 = 0xf1, .version = ver };
+  uint32_t len = offsetof(pueo_cmd_echo_t, data) + e->len_m1 + 1;
+  uint16_t crc = CRC16_START;
+  crc = pueo_crc16_continue(crc, e, len);
+  hd.num_bytes = len;
+  hd.cksum = crc;
+  return hd;
+}
+
 int pueo_read_packet_cmd_echo(pueo_handle_t *h, pueo_cmd_echo_t * e, int ver)
 {
   (void) ver;
