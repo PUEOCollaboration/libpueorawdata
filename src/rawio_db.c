@@ -333,9 +333,10 @@ static int commit_sql_stream(pueo_db_handle_t *h)
     PGresult * r = PQexec(h->backend.psql.psql, h->backend.psql.buf);
     h->backend.psql.bufN  = 0;
     int ret = 0;
-    if (PQresultStatus(r) != PGRES_COMMAND_OK)
+    int status = PQresultStatus(r);
+    if (status != PGRES_COMMAND_OK && status != PGRES_TUPLES_OK)
     {
-      fprintf(stderr,"Problem with psql query: %s\n", PQresultErrorMessage(r));
+      fprintf(stderr,"Problem (%s) with psql query: %s\n", PQresStatus(status), PQresultErrorMessage(r));
       fprintf(stderr,"Query was: %s\n", h->backend.psql.buf);
       ret = -1;
     }
