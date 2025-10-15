@@ -126,36 +126,33 @@ pueo_db_handle_t * pueo_db_handle_open_sqlfiles_dir(const char * dir, uint64_t f
 
 pueo_db_handle_t * pueo_db_handle_open(const char * uri, uint64_t flags)
 {
-  pueo_db_handle_t * h = NULL;
   if (strstr(uri,"postgresql://") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri, flags);
+    return pueo_db_handle_open_pgsql(uri, flags);
   }
-  if (strstr(uri,"timescaledb+postgresql://") == uri)
+  else if (strstr(uri,"timescaledb+postgresql://") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri + strlen("timescaledb+"), flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
+    return pueo_db_handle_open_pgsql(uri + strlen("timescaledb+"), flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
   }
   // made up uri scheme for old style pgsql conninfo
   else if (strstr(uri,"PGSQL_CONNINFO:") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"),flags);
+    return pueo_db_handle_open_pgsql(uri + strlen("PGSQL_CONNINFO:"),flags);
   }
   // made up uri scheme for old style pgsql conninfo but for TIMESCALEDB
   else if (strstr(uri,"TIMESCALEDB_CONNINFO:") == uri)
   {
-    h = pueo_db_handle_open_pgsql(uri + strlen("TIMESCALEDB_CONNINFO:"),flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
+    return  pueo_db_handle_open_pgsql(uri + strlen("TIMESCALEDB_CONNINFO:"),flags | PUEO_DB_INIT_WITH_TIMESCALEDB);
   }
   else if (strstr(uri,"sqldir://")==uri)
   {
-    h = pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"),flags);
+    return pueo_db_handle_open_sqlfiles_dir(uri + strlen("sqldir://"),flags);
   }
   else if (strstr(uri,"sqlite://")==uri)
   {
-    h = pueo_db_handle_open_sqlite(uri + strlen("sqlite://"),flags);
+    return pueo_db_handle_open_sqlite(uri + strlen("sqlite://"),flags);
   }
   else return NULL;
-
-  return h;
 }
 
 pueo_db_handle_t * pueo_db_handle_open_pgsql(const char * conninfo, uint64_t flags)
