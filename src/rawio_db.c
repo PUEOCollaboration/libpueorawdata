@@ -620,7 +620,7 @@ void pueo_db_handle_close(pueo_db_handle_t ** hptr)
 
 #define DB_MAKE_INDEX(X,T) \
 const char * X##_index_string = "CREATE INDEX IF NOT EXISTS "#X"_time_idx on " #X "s ( " #T ");\n\n";\
-const char * X##_create_TIMESCALEDB = "SELECT create_hypertable('" #X "s', by_range('"#X"'), if_not_exists => TRUE);\n"; \
+const char * X##_create_TIMESCALEDB = "SELECT create_hypertable('" #X "s', by_range('"#T"'), if_not_exists => TRUE);\n"; \
 if (h->type != DB_SQLITE &&  ( h->flags & PUEO_DB_INIT_WITH_TIMESCALEDB)) { fputs(X##_create_TIMESCALEDB,f); }\
 else { fputs(X##_index_string, f); }
 
