@@ -59,6 +59,7 @@ extern "C"
 
 /*This is the 2-byte magic for each type of serializable data*/
 
+
 typedef enum e_pueo_datatype
 {
   PUEO_PACKET_INVALID = 0,
@@ -73,6 +74,7 @@ typedef enum e_pueo_datatype
   PUEO_CMD_ECHO = 0xecc0,
   PUEO_LOGS = 0x7a11,
   PUEO_SLOW = 0x510e,
+  PUEO_TIMEMARK = 0xc10c
 } pueo_datatype_t;
 
 /**
@@ -302,7 +304,6 @@ typedef struct pueo_cmd_echo
 
 
 
-
 #define PUEO_CMD_ECHO_VER 0
 
 
@@ -362,6 +363,19 @@ typedef struct pueo_ss
 _Static_assert(sizeof(pueo_ss_t) == 16 * PUEO_SS_NUM_SENSORS + 16,"The sun exploded");
 
 #define PUEO_SS_VER 0
+
+typedef struct pueo_timemark
+{
+  pueo_time_t rising;
+  pueo_time_t falling;
+  uint16_t rise_count;
+  uint8_t channel;
+  uint8_t flags;
+} pueo_timemark_t;
+
+
+#define PUEO_TIMEMARK_VER 0
+
 
 
 #ifdef __cplusplus

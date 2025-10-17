@@ -177,7 +177,9 @@ int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
   X(PUEO_SENSORS_DISK, sensors_disk)\
   X(PUEO_SLOW, slow)\
   X(PUEO_CMD_ECHO, cmd_echo)\
-  X(PUEO_SS, ss)
+  X(PUEO_SS, ss)\
+  X(PUEO_TIMEMARK, timemark)
+
 
 //  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)
 

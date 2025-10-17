@@ -466,6 +466,19 @@ int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
   return commit_sql_stream(h);
 }
 
+int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
+{
+  FILE * f = begin_sql_stream(h);
+  fprintf(f,"INSERT INTO timemarks(risetime, risetime_ns, falltime, falltime_ns, rise_count,"
+             " flags, channel) VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %hu, %hhu, %hhu)",
+             t->rising.utc_secs, t->rising.utc_nsecs,
+             t->falling.utc_secs, t->falling.utc_nsecs,
+             t->rise_count, t->flags, t->channel);
+
+
+  return commit_sql_stream(h);
+
+}
 
 int pueo_db_insert_sensors_telem(pueo_db_handle_t * h, const pueo_sensors_telem_t * t)
 {
@@ -626,6 +639,18 @@ else { fputs(X##_index_string, f); }
 #define DB_TIME_TYPE_SQLITE "DATETIME"
 #define DB_INDEX_DEF_PGSQL "SERIAL"
 #define DB_INDEX_DEF_SQLITE "INTEGER PRIMARY KEY AUTOINCREMENT"
+
+static void timemark_init(FILE *f, pueo_db_handle_t *h)
+{
+  fprintf(f,"CREATE TABLE IF NOT EXISTS timemarks (uid %s, risetime %s NOT NULL, "
+            "risetime_ns INTEGER,  falltime %s NOT NULL, falltime_ns INTEGER, "
+            "rise_count INTEGER, flags INTEGER, channel INTEGER)",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  DB_MAKE_INDEX(timemark, risetime);
+}
 
 
 

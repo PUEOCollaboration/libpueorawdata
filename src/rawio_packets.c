@@ -65,6 +65,7 @@
 SIMPLE_PUEO_IO_IMPL(nav_att, NAV_ATT)
 SIMPLE_PUEO_IO_IMPL(slow, SLOW)
 SIMPLE_PUEO_IO_IMPL(ss,SS)
+SIMPLE_PUEO_IO_IMPL(timemark,TIMEMARK)
 
 ///////// More complicated implementations here
 

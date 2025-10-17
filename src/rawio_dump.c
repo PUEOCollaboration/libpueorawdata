@@ -16,7 +16,7 @@ static __thread int dump_ntabs = 0;
 #define DUMPSTART(what) ret+=fprintf(__F,"%.*s \"%s\" : {\n", dump_ntabs++, dump_tabs, what)
 #define DUMPSTARTARR(what) ret+=fprintf(__F,"%.*s \"%s\" : [\n", dump_ntabs++, dump_tabs, what)
 #define DUMPKEYVAL(key,frmt,...) ret+=fprintf(__F, "%.*s\"" key "\": " frmt ",\n", dump_ntabs, dump_tabs, __VA_ARGS__)
-#define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%lu.%09lu", (uint64_t) x->wut.utc_secs, (uint32_t) x->wut.utc_nsecs)
+#define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%lu.%09u", (uint64_t) x->wut.utc_secs, (uint32_t) x->wut.utc_nsecs)
 #define DUMPVAL(x,wut,frmt) DUMPKEYVAL(#wut,frmt, x->wut)
 #define DUMPU32(x,wut) DUMPVAL(x,wut,"%u")
 #define DUMPU64(x,wut) DUMPVAL(x,wut,"%lu")
@@ -27,7 +27,7 @@ static __thread int dump_ntabs = 0;
 #define DUMPX8(x,wut) DUMPVAL(x,wut,"0x%hhx")
 #define DUMPX32(x,wut) DUMPVAL(x,wut,"0x%x")
 #define DUMPFLT(x,wut) DUMPVAL(x,wut,"%f")
-#define DUMPARRAY(x,wut,N,frmt) ret+=fprintf(__F,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf==N-1 ? ' ' : ','); ret+=fprintf(f,"],\n")
+#define DUMPARRAY(x,wut,N,frmt) ret+=fprintf(__F,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < (int) N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf== (int) (N-1) ? ' ' : ','); ret+=fprintf(f,"],\n")
 #define DUMPEND() ret+=fprintf(__F,"\%.*s}\n", --dump_ntabs, dump_tabs);
 #define DUMPENDARR() ret+=fprintf(__F,"\%.*s]\n", --dump_ntabs, dump_tabs)
 #define DUMPFINISH() fflush(__F); return ret;
@@ -242,6 +242,19 @@ int pueo_dump_cmd_echo(FILE *f, const pueo_cmd_echo_t * e)
   DUMPKEYVAL("len","%u",len);
   DUMPU32(e,count);
   DUMPARRAY(e,data,len,"0x%02x");
+  DUMPEND();
+  DUMPFINISH();
+}
+
+int pueo_dump_timemark(FILE *f, const pueo_timemark_t * t)
+{
+  DUMPINIT(f);
+  DUMPSTART("timemark");
+  DUMPTIME(t,rising);
+  DUMPTIME(t,falling);
+  DUMPU16(t, rise_count);
+  DUMPU8(t,channel);
+  DUMPX8(t,flags);
   DUMPEND();
   DUMPFINISH();
 }
