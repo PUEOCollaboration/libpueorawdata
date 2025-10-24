@@ -378,6 +378,20 @@ typedef struct pueo_timemark
 
 
 
+typedef struct pueo_logs
+{
+  uint32_t utc_retrieved : 31;
+  uint32_t is_until  :1;
+  uint16_t rel_time_since_or_until;
+  uint8_t daemon_len;
+  uint8_t grep_len;
+  uint16_t msg_len;
+  char buf[2048];
+} pueo_logs_t;
+
+#define PUEO_LOGS_VER 0
+
+
 #ifdef __cplusplus
 }
 #endif

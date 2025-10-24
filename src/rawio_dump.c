@@ -27,6 +27,8 @@ static __thread int dump_ntabs = 0;
 #define DUMPX8(x,wut) DUMPVAL(x,wut,"0x%hhx")
 #define DUMPX32(x,wut) DUMPVAL(x,wut,"0x%x")
 #define DUMPFLT(x,wut) DUMPVAL(x,wut,"%f")
+#define DUMPSTR(x,wut) DUMPVAL(x,wut,"\"%s\"")
+#define DUMPBOOL(x,wut) DUMPKEYVAL(#wut, "%s", x->wut ? "true" : "false");
 #define DUMPARRAY(x,wut,N,frmt) ret+=fprintf(__F,"\%.*s\""#wut"\": [", dump_ntabs, dump_tabs); for (int asdf = 0; asdf < (int) N; asdf++) ret+=fprintf(f," "frmt"%c",x->wut[asdf], asdf== (int) (N-1) ? ' ' : ','); ret+=fprintf(f,"],\n")
 #define DUMPEND() ret+=fprintf(__F,"\%.*s}\n", --dump_ntabs, dump_tabs);
 #define DUMPENDARR() ret+=fprintf(__F,"\%.*s]\n", --dump_ntabs, dump_tabs)
@@ -255,6 +257,20 @@ int pueo_dump_timemark(FILE *f, const pueo_timemark_t * t)
   DUMPU16(t, rise_count);
   DUMPU8(t,channel);
   DUMPX8(t,flags);
+  DUMPEND();
+  DUMPFINISH();
+}
+
+int pueo_dump_logs(FILE *f, const pueo_logs_t * l)
+{
+  DUMPINIT(f);
+  DUMPSTART("logs");
+  DUMPU32(l, utc_retrieved);
+  DUMPBOOL(l, is_until);
+  DUMPU16(l, rel_time_since_or_until);
+  DUMPKEYVAL("daemon","%.*s", l->daemon_len, l->buf);
+  DUMPKEYVAL("grep","%.*s", l->grep_len, l->buf + l->daemon_len);
+  DUMPKEYVAL("logs","%.*s", l->msg_len, l->buf + l->daemon_len + l->grep_len);
   DUMPEND();
   DUMPFINISH();
 }

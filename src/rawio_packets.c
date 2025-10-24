@@ -256,6 +256,32 @@ int pueo_read_packet_cmd_echo(pueo_handle_t *h, pueo_cmd_echo_t * e, int ver)
   return nrd;
 }
 
+int pueo_write_packet_logs(pueo_handle_t * h, const pueo_logs_t * l)
+{
+  return h->write_bytes(offsetof(pueo_logs_t, buf)  + l->daemon_len + l->grep_len +l->msg_len,l, h);
+}
+
+pueo_packet_head_t pueo_packet_header_for_logs(const pueo_logs_t *l, int ver)
+{
+  pueo_packet_head_t hd = { .type = PUEO_LOGS, .f1 = 0xf1, .version = ver };
+  uint32_t len = offsetof(pueo_logs_t, buf) + l->daemon_len + l->grep_len + l->msg_len;
+  uint16_t crc = CRC16_START;
+  crc = pueo_crc16_continue(crc, l, len);
+  hd.num_bytes = len;
+  hd.cksum = crc;
+  return hd;
+}
+
+int pueo_read_packet_logs(pueo_handle_t *h, pueo_logs_t * l, int ver)
+{
+  (void) ver;
+  int nrd = h->read_bytes(offsetof(pueo_logs_t,buf), l, h);
+  nrd += h->read_bytes(l->msg_len + l->grep_len + l->daemon_len, l->buf, h);
+  int len = l->msg_len + l->grep_len + l->daemon_len;
+  memset (l->buf + len, 0, sizeof(l->buf) - len);
+  return nrd;
+}
+
 
 int pueo_write_packet_encoded_waveforms(pueo_handle_t *h, const pueo_encoded_waveform_t *p)
 {
