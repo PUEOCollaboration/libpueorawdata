@@ -1,16 +1,26 @@
+
+/** This is a fake prioritizer that serves an example for how to do this */
+
+
+// we need to include <pueo/prio_interface.h> and link against libpueorawdata
 #include <pueo/prio_interface.h>
 #include <stdio.h>
 
 
+// This declares all the functions.
+// This is redundant in some sense, but will detect errors if you have the prototypes wrong
+
 PUEO_PRIO_FUNCTIONS(PUEO_PRIO_DECLARE)
 
 
+// pueo_prio_init should be called on load
 int pueo_prio_init(void)
 {
   printf("Called pueo_prio_init\n");
   return 0;
 }
 
+//pueo_prio_configure may be called at any time and set one or more options
 int pueo_prio_configure(unsigned N, const pueo_prio_cfg_opt_t * opts)
 {
   for (unsigned i = 0; i < N; i++)
@@ -20,6 +30,7 @@ int pueo_prio_configure(unsigned N, const pueo_prio_cfg_opt_t * opts)
   return 0;
 }
 
+// pueo_prio_compute takes N waveforms and fills the result. Right now this is a blocking API (it's called and it will finish when it finishes).
 int pueo_prio_compute(unsigned N, const pueo_full_waveforms_t *wfs, pueo_prio_result_t * result)
 {
   for (unsigned i = 0; i < N; i++)
