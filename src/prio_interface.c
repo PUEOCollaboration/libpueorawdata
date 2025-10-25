@@ -1,10 +1,11 @@
 #include <pueo/prio_interface.h>
 #include <dlfcn.h>
+#include <stdio.h>
 
 
 #define PUEO_PRIO_LOAD(ret,name,args)\
   impl->name = dlsym(so,#name);\
-  if (!impl->name) return retval++;
+  if (!impl->name)  { fprintf(stderr, "Could not find symbol %s in %s\n", #name, sopath); return retval++; }
 
 
 int  pueo_prio_create(const char * sopath, pueo_prio_impl_t * impl)
