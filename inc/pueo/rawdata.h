@@ -419,6 +419,30 @@ typedef struct pueo_logs
 #define PUEO_LOGS_VER 0
 
 
+#define PUEO_PRIO_TRIG_TYPE_SW 0
+#define PUEO_PRIO_TRIG_TYPE_PPS 1
+#define PUEO_PRIO_TRIG_TYPE_LF 2
+#define PUEO_PRIO_TRIG_TYPE_MI 2
+#define PUEO_PRIO_BLAST_TYPE_NONE 0
+#define PUEO_PRIO_BLAST_TYPE_TOP_RING 1
+#define PUEO_PRIO_BLAST_TYPE_BOTTOM_RING 2
+#define PUEO_PRIO_BLAST_TYPE_FULL_PAYLOAD 3
+#define PUEO_PRIO_SIGNAL_LEVEL_THERMAL 0
+#define PUEO_PRIO_SIGNAL_LEVEL_SIGNAL 1
+#define PUEO_PRIO_SIGNAL_LEVEL_BEST_SIGNAL 2
+#define PUEO_PRIO_SIGNAL_LEVEL_BESTEST_SIGNAL 3
+
+typedef struct pueo_priority
+{
+  uint8_t trig_type : 2;
+  uint8_t blast_type : 2;
+  uint8_t cal_flag : 1;
+  uint8_t anthro_flag : 1;
+  uint8_t signal_level : 2;
+} pueo_priority_t;
+
+
+
 #ifdef __cplusplus
 }
 #endif

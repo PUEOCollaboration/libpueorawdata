@@ -21,13 +21,16 @@ find_package(PostgreSQL)
 find_package(SQLite3)
 
 
-set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c)
-set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/sensor_ids_compat.h inc/pueo/pueo.h)
+set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c src/prio_interface.c)
+set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/sensor_ids_compat.h inc/pueo/pueo.h inc/pueo/prio_interface.h)
 set(PRIVATE_HEADERS src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
 set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
 add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
+
+add_library(fakeprio SHARED test/fakeprio.c)
+target_link_libraries(fakeprio pueorawdata)
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB)
@@ -80,6 +83,9 @@ target_link_libraries(write-wfs pueorawdata)
 
 add_executable(read-wfs test/read-wfs.c)
 target_link_libraries(read-wfs pueorawdata)
+
+add_executable(test-prio test/test-prio.c)
+target_link_libraries(test-prio pueorawdata)
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
