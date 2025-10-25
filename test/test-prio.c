@@ -19,7 +19,11 @@ int main(int nargs, char ** args)
   const char * wf_file = args[2];
 
   pueo_prio_impl_t prio;
-  pueo_prio_create(sofile, &prio);
+  if (pueo_prio_create(sofile, &prio))
+  {
+    fprintf(stderr,"Coudln't load prio from %s\n", sofile);
+    return 1;
+  }
 
   pueo_handle_t h;
   pueo_handle_init(&h, wf_file, "r");
