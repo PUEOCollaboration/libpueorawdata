@@ -103,7 +103,9 @@ typedef struct pueo_time
   uint32_t utc_nsecs : 30;
 } pueo_time_t;
 
+#ifndef __cplusplus
 _Static_assert(sizeof(pueo_time_t) == 8, "doh");
+#endif
 
 
 
@@ -387,7 +389,9 @@ typedef struct pueo_ss
 #define PUEO_SS_TEMPERATURE_CONVERT(X) ( X * 500./65535 - 273.15)
 
 //verify that the packing is correct
+#ifndef __cplusplus
 _Static_assert(sizeof(pueo_ss_t) == 16 * PUEO_SS_NUM_SENSORS + 16,"The sun exploded");
+#endif
 
 #define PUEO_SS_VER 0
 
