@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(pueorawdata VERSION 0.1
                     DESCRIPTION "Read/write PUEO Raw data"
-                    LANGUAGES C)
+                    LANGUAGES C  CXX)
 
 # Require C17 with gcc extensions
 # also float32 support
@@ -31,6 +31,10 @@ add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 
 add_library(fakeprio SHARED test/fakeprio.c)
 target_link_libraries(fakeprio pueorawdata)
+
+add_library(fakeprio++ SHARED test/fakeprio.cc)
+target_link_libraries(fakeprio++ pueorawdata)
+
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB)
@@ -86,6 +90,7 @@ target_link_libraries(read-wfs pueorawdata)
 
 add_executable(test-prio test/test-prio.c)
 target_link_libraries(test-prio pueorawdata)
+
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
