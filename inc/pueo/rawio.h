@@ -173,6 +173,8 @@ int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
   X(PUEO_FULL_WAVEFORMS, full_waveforms)\
   X(PUEO_SINGLE_WAVEFORM, single_waveform)\
   X(PUEO_NAV_ATT, nav_att)\
+  X(PUEO_NAV_SAT, nav_sat)\
+  X(PUEO_NAV_POS, nav_pos)\
   X(PUEO_SENSORS_TELEM, sensors_telem)\
   X(PUEO_SENSORS_DISK, sensors_disk)\
   X(PUEO_SLOW, slow)\

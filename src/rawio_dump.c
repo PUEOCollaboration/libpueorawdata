@@ -191,6 +191,29 @@ int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
   DUMPFINISH();
 }
 
+int pueo_dump_nav_pos(FILE *f, const pueo_nav_pos_t *n)
+{
+  DUMPINIT(f);
+  DUMPSTART(n->source == PUEO_NAV_CPT7 ?"nav_pos_cpt7" :
+            n->source == PUEO_NAV_BOREAS ? "nav_pos_boreas" :
+            n->source == PUEO_NAV_ABX2 ? "nav_pos_abx2" : 
+            n->source == PUEO_NAV_TURF ? "nav_pos_turf" : 
+            "nav_pos_unknown");
+  DUMPTIME(n, readout_time);
+  DUMPTIME(n, gps_time);
+  DUMPFLT(n,lat);
+  DUMPFLT(n,lon);
+  DUMPFLT(n,alt);
+  DUMPARRAY(n,v,3,"%f");
+  DUMPARRAY(n,acc,3,"%f");
+  DUMPFLT(n,hdop);
+  DUMPFLT(n,vdop);
+  DUMPU8(n,nsats);
+  DUMPX8(n,flags);
+  DUMPEND();
+  DUMPFINISH();
+}
+
 int pueo_dump_slow(FILE *f, const pueo_slow_t * s)
 {
   DUMPINIT(f);
@@ -278,3 +301,36 @@ int pueo_dump_logs(FILE *f, const pueo_logs_t * l)
   DUMPEND();
   DUMPFINISH();
 }
+
+
+int pueo_dump_nav_sat(FILE *f, const pueo_nav_sat_t * n)
+{
+  DUMPINIT(f);
+  DUMPSTART(n->source == PUEO_NAV_CPT7 ?"nav_sat_cpt7" :
+            n->source == PUEO_NAV_BOREAS ? "nav_sat_boreas" :
+            n->source == PUEO_NAV_ABX2 ? "nav_sat_abx2" : 
+            n->source == PUEO_NAV_TURF ? "nav_sat_turf" : 
+            "nav_sat_unknown");
+  DUMPTIME(n, readout_time);
+  DUMPTIME(n, gps_time);
+  DUMPU8(n, nsats);
+
+  DUMPSTARTARR("sats");
+  for (int i = 0 ; i < n->nsats; i++)
+  {
+    DUMPSTARTARROBJ();
+    DUMPKEYVAL("type", "%hhu", n->sats[i].type);
+    DUMPKEYVAL("qualityInd", "%hhu", n->sats[i].qualityInd);
+    DUMPKEYVAL("svid", "%hhu", n->sats[i].svid);
+    DUMPKEYVAL("el", "%f", (double) n->sats[i].el);
+    DUMPKEYVAL("az", "%f", (double) n->sats[i].az);
+    DUMPKEYVAL("cno", "%f", (double) n->sats[i].cno);
+    DUMPKEYVAL("prRes", "%f", (double) n->sats[i].prRes);
+    DUMPENDARROBJ();
+  }
+  DUMPENDARR();
+  DUMPEND();
+  DUMPFINISH();
+}
+
+

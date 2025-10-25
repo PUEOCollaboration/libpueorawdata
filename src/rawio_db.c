@@ -388,6 +388,7 @@ UNSUPPORTED_INSERT_DB(sensors_disk)
 
 
 STUB_INSERT_DB(slow)
+STUB_INSERT_DB(nav_sat)
 
 int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
 {
@@ -465,6 +466,22 @@ int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
 
   return commit_sql_stream(h);
 }
+
+int pueo_db_insert_nav_pos(pueo_db_handle_t *h, const pueo_nav_pos_t * att)
+{
+
+  FILE * f = begin_sql_stream(h);
+  fprintf(f,"INSERT INTO nav_poss (readout_time, gps_time, lat, lon, alt,"
+            "hdop, vdop, source, nsats, flags"
+           " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
+           " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
+           (uint64_t) att->readout_time.utc_secs, (uint32_t) att->readout_time.utc_nsecs, (uint64_t) att->gps_time.utc_secs,
+           (uint32_t) att->gps_time.utc_nsecs, att->lat, att->lon, att->alt, att->hdop,
+           att->vdop, att->source, att->nsats, att->flags);
+
+  return commit_sql_stream(h);
+}
+
 
 int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
 {
@@ -694,6 +711,20 @@ static void nav_att_init(FILE *f, pueo_db_handle_t *h)
   DB_MAKE_INDEX(nav_att, readout_time)
 
 }
+
+static void nav_pos_init(FILE *f, pueo_db_handle_t *h)
+{
+  fprintf(f, "CREATE TABLE IF NOT EXISTS nav_poss (uid %s, readout_time %s NOT NULL, gps_time %s not NULL,"
+             "lat REAL, lon REAL, alt REAL,"
+             "hdop REAL, vdop REAL, source CHAR(1), nsats INTEGER, flags INTEGER);\n",
+            h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+            h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
+            h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  DB_MAKE_INDEX(nav_pos, readout_time)
+
+}
+
 
 
 static void single_wf_init(FILE * f, pueo_db_handle_t *h)

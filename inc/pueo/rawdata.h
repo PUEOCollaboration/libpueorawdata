@@ -68,6 +68,8 @@ typedef enum e_pueo_datatype
   PUEO_SINGLE_WAVEFORM = 0xea7a, //pueo_single_waveform_t
   PUEO_ENCODED_WAVEFORM = 0xabcd, // pueo_encoded_waveform_t
   PUEO_NAV_ATT =0xa771,
+  PUEO_NAV_SAT =0x5a75,
+  PUEO_NAV_POS =0x1a75,
   PUEO_SS =0x501a,
   PUEO_SENSORS_TELEM =0xb1de,
   PUEO_SENSORS_DISK =0xcb1d,
@@ -293,6 +295,31 @@ typedef struct pueo_nav_sat
   } sats[255]; //many won't be populated
 } pueo_nav_sat_t;
 
+#define  PUEO_NAV_SAT_VER 0
+
+typedef struct pueo_nav_pos
+{
+
+  pueo_time_t readout_time;
+  pueo_time_t gps_time;
+
+  float lat;
+  float lon;
+  float alt;
+
+  float v[3];
+  float acc[3];
+
+  float vdop;
+  float hdop;
+
+  char source;
+  uint8_t nsats;
+  uint8_t flags;
+
+} pueo_nav_pos_t;
+
+#define  PUEO_NAV_POS_VER 0
 
 typedef struct pueo_cmd_echo
 {
