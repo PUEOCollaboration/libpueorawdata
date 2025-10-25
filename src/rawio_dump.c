@@ -15,6 +15,8 @@ static __thread int dump_ntabs = 0;
 #define DUMPINIT(f)  int  ret = 0; FILE * __F = f;
 #define DUMPSTART(what) ret+=fprintf(__F,"%.*s \"%s\" : {\n", dump_ntabs++, dump_tabs, what)
 #define DUMPSTARTARR(what) ret+=fprintf(__F,"%.*s \"%s\" : [\n", dump_ntabs++, dump_tabs, what)
+#define DUMPSTARTARROBJ() ret+=fprintf(__F,"%.*s {\n", dump_ntabs++, dump_tabs)
+#define DUMPENDARROBJ() ret+=fprintf(__F,"%.*s },\n", dump_ntabs++, dump_tabs)
 #define DUMPKEYVAL(key,frmt,...) ret+=fprintf(__F, "%.*s\"" key "\": " frmt ",\n", dump_ntabs, dump_tabs, __VA_ARGS__)
 #define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%lu.%09u", (uint64_t) x->wut.utc_secs, (uint32_t) x->wut.utc_nsecs)
 #define DUMPVAL(x,wut,frmt) DUMPKEYVAL(#wut,frmt, x->wut)
@@ -217,6 +219,7 @@ int pueo_dump_ss(FILE *f, const pueo_ss_t * s)
   DUMPSTARTARR("ss");
   for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
   {
+    DUMPSTARTARROBJ();
     DUMPKEYVAL("x1", "%u", (uint32_t) s->ss[i].x1);
     DUMPKEYVAL("x2", "%u", (uint32_t) s->ss[i].x2);
     DUMPKEYVAL("y1", "%u", (uint32_t) s->ss[i].y1);
@@ -225,6 +228,7 @@ int pueo_dump_ss(FILE *f, const pueo_ss_t * s)
     DUMPKEYVAL("tempSS_raw", "%hu",  (uint16_t) s->ss[i].tempSS );
     DUMPKEYVAL("tempADS1220", "%f",  PUEO_SS_TEMPERATURE_CONVERT(s->ss[i].tempADS1220));
     DUMPKEYVAL("tempSS", "%f",  PUEO_SS_TEMPERATURE_CONVERT(s->ss[i].tempSS));
+    DUMPENDARROBJ();
   }
   DUMPENDARR();
   DUMPTIME(s,readout_time);
