@@ -37,7 +37,7 @@ target_link_libraries(fakeprio++ pueorawdata)
 
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
-target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB )
+target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB -lm -dl)
 target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
 
 target_include_directories(pueorawdata PUBLIC inc)
