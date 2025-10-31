@@ -44,11 +44,19 @@
 #include <stdint.h>
 #include <pueo/pueo.h>
 #include <pueo/sensor_ids.h>
+#ifndef __STDC_WANT_IEC_60559_TYPES_EXT__
 #define __STDC_WANT_IEC_60559_TYPES_EXT__
+#endif
 #include <float.h>
 
 #ifndef FLT16_MAX
-#error Please use a compiler that supports FLOAT16 (e.g. gcc > 12)
+#warning Using a compiler with FLOAT16 support, attempting to use some structs will result in errors
+typedef struct fake_Float16_will_probably_cause_errors
+{
+  uint16_t sign : 1;
+  uint16_t exponent : 5;
+  uint16_t fraction : 10;
+} _Float16;
 #endif
 
 #ifdef __cplusplus

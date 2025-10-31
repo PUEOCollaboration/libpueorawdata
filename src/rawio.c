@@ -20,7 +20,7 @@
  */
 
 #define _GNU_SOURCE
-
+#include "float16_guard.h"
 
 #include "pueo/rawio.h"
 #include "rawio_packets.h"

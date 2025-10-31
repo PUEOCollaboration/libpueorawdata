@@ -2,6 +2,7 @@
  **/
 
 #define _GNU_SOURCE
+#include "float16_guard.h"
 
 #include <fcntl.h>
 #include <stdio.h>

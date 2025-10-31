@@ -1,5 +1,6 @@
 /* here we have the dumpers for each data type*/
 
+#include "float16_guard.h"
 #include <stdio.h>
 #include "pueo/rawio.h"
 #include "pueo/sensor_ids.h"

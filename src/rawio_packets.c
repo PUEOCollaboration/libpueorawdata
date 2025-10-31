@@ -1,3 +1,4 @@
+#include "float16_guard.h"
 #include "pueo/rawio.h"
 #include "rawio_versions.h"
 #include <stddef.h>
