@@ -56,7 +56,10 @@ typedef struct fake_Float16_will_probably_cause_errors
   uint16_t sign : 1;
   uint16_t exponent : 5;
   uint16_t fraction : 10;
-} _Float16;
+} FakeFloat16;
+#define float16 FakeFloat16
+#else
+#define float16 _Float16
 #endif
 
 #ifdef __cplusplus
@@ -187,7 +190,7 @@ typedef struct pueo_sensor_telem
   int16_t relsecs : 6;
   union
   {
-    _Float16 fval;
+    float16 fval;
     int16_t ival;
     uint16_t uval;
   } val;
@@ -298,10 +301,10 @@ typedef struct pueo_nav_sat
     uint8_t type : 4;
     uint8_t qualityInd : 4;
     uint8_t svid;
-    _Float16 el;
-    _Float16 az;
-    _Float16 cno;
-    _Float16 prRes;
+    float16 el;
+    float16 az;
+    float16 cno;
+    float16 prRes;
   } sats[255]; //many won't be populated
 } pueo_nav_sat_t;
 
