@@ -43,9 +43,11 @@ int pueo_prio_compute(unsigned N, const pueo_full_waveforms_t *wfs, pueo_prio_re
     result[i].theta = -i;
     result[i].imp = 0.1;
     result[i].map_peak = 0.2;
-    result[i].peak_hilbert = 1.2;
-    result[i].pk2pk = 0.2;
-    for (unsigned j = 0; j < 32; j++) result[i].rms[j] = j;
+    result[i].peak_coherent = 1.2;
+    for (unsigned j = 0; j < 192; j++){
+	    result[i].rms[j] = j;
+	    result[i].pk2pk[j] = j+1;
+	}
   }
 
   return 0;
