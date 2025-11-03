@@ -60,17 +60,17 @@ typedef struct pueo_prio_cfg_opt
 
 typedef struct pueo_prio_result
 {
-  float blast_params[4]; /// ?!???
-  float phi;
-  float theta;
-  float imp;
-  float map_peak;
-  float peak_hilbert;
-  float pk2pk;
-  float rms[32];
+  float blast_params[3]; /// 0: number of antennas that beat rms threshold, 1: top pkpk/ bot pkpk ratio, 2: opp pkpk * opp pkpk / front pkpk ratio 
+  float phi; /// runs from -55 deg to +430 deg
+  float theta; /// runs from 20 deg above horizontal to -40 deg below horizontal
+  float imp; //scRiseTime
+  float map_peak; //skymap peak
+  float peak_coherent; //Coherent Sum PKPK
+  float pk2pk[192];
+  float rms[192];
 } pueo_prio_result_t;
 
-#define PUEO_PRIO_MAX_BATCH 10
+#define PUEO_PRIO_MAX_BATCH 125
 
 
 #define PUEO_PRIO_FUNCTIONS(FN)\
