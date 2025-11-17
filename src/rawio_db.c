@@ -755,7 +755,7 @@ static void logs_init (FILE * f, pueo_db_handle_t *h)
   fprintf(f, "CREATE TABLE IF NOT EXISTS logs (uid %s, time %s NOT NULL, is_until BOOLEAN, since_or_until INTEGER, daemon VARCHAR, grep VARCHAR, logs VARCHAR);\n",
   h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
   h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
-  DB_MAKE_INDEX(logs, time);
+  DB_MAKE_INDEX(log, time);
 }
 
 static int init_db(pueo_db_handle_t * h)
