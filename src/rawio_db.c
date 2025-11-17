@@ -468,17 +468,17 @@ int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
   return commit_sql_stream(h);
 }
 
-int pueo_db_insert_nav_pos(pueo_db_handle_t *h, const pueo_nav_pos_t * att)
+int pueo_db_insert_nav_pos(pueo_db_handle_t *h, const pueo_nav_pos_t * pos)
 {
 
   FILE * f = begin_sql_stream(h);
   fprintf(f,"INSERT INTO nav_poss (readout_time, gps_time, lat, lon, alt,"
-            "hdop, vdop, source, nsats, flags"
+            "hdop, vdop, source, nsats, flags, x, y, z, vx, vy, vz,"
            " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
            " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
-           (uint64_t) att->readout_time.utc_secs, (uint32_t) att->readout_time.utc_nsecs, (uint64_t) att->gps_time.utc_secs,
-           (uint32_t) att->gps_time.utc_nsecs, att->lat, att->lon, att->alt, att->hdop,
-           att->vdop, att->source, att->nsats, att->flags);
+           (uint64_t) pos->readout_time.utc_secs, (uint32_t) pos->readout_time.utc_nsecs, (uint64_t) pos->gps_time.utc_secs,
+           (uint32_t) pos->gps_time.utc_nsecs, pos->lat, pos->lon, pos->alt, pos->hdop,
+           pos->vdop, pos->source, pos->nsats, pos->flags, pos->x[0], pos->x[1], pos->x[2], pos->v[0], pos->v[1], pos->v[2]);
 
   return commit_sql_stream(h);
 }
@@ -487,8 +487,9 @@ int pueo_db_insert_nav_pos(pueo_db_handle_t *h, const pueo_nav_pos_t * att)
 int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
 {
   FILE * f = begin_sql_stream(h);
-  fprintf(f,"INSERT INTO timemarks(risetime, risetime_ns, falltime, falltime_ns, rise_count,"
-             " flags, channel) VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %hu, %hhu, %hhu)",
+  fprintf(f,"INSERT INTO timemarks(readout_time, readout_time_ns, risetime, risetime_ns, falltime, falltime_ns, rise_count,"
+             " flags, channel) VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %hu, %hhu, %hhu)",
+             t->readout_time.utc_secs, t->readout_time.utc_nsecs,
              t->rising.utc_secs, t->rising.utc_nsecs,
              t->falling.utc_secs, t->falling.utc_nsecs,
              t->rise_count, t->flags, t->channel);

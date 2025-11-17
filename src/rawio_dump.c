@@ -182,6 +182,7 @@ int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
   DUMPFLT(n,heading_sigma);
   DUMPFLT(n,pitch_sigma);
   DUMPFLT(n,roll_sigma);
+  DUMPARRAY(n,x,3,"%f");
   DUMPARRAY(n,v,3,"%f");
   DUMPARRAY(n,acc,3,"%f");
   DUMPFLT(n,hdop);
@@ -205,8 +206,8 @@ int pueo_dump_nav_pos(FILE *f, const pueo_nav_pos_t *n)
   DUMPFLT(n,lat);
   DUMPFLT(n,lon);
   DUMPFLT(n,alt);
+  DUMPARRAY(n,x,3,"%f");
   DUMPARRAY(n,v,3,"%f");
-  DUMPARRAY(n,acc,3,"%f");
   DUMPFLT(n,hdop);
   DUMPFLT(n,vdop);
   DUMPU8(n,nsats);
@@ -280,6 +281,7 @@ int pueo_dump_timemark(FILE *f, const pueo_timemark_t * t)
 {
   DUMPINIT(f);
   DUMPSTART("timemark");
+  DUMPTIME(t,readout_time);
   DUMPTIME(t,rising);
   DUMPTIME(t,falling);
   DUMPU16(t, rise_count);
