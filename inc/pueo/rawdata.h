@@ -294,7 +294,8 @@ typedef struct pueo_nav_sat
 {
   pueo_time_t readout_time;
   pueo_time_t gps_time;
-  uint8_t nsats;
+  uint8_t nsats_used;
+  uint8_t nsats_visible;
   char source;
 
   struct sat

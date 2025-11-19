@@ -316,10 +316,11 @@ int pueo_dump_nav_sat(FILE *f, const pueo_nav_sat_t * n)
             "nav_sat_unknown");
   DUMPTIME(n, readout_time);
   DUMPTIME(n, gps_time);
-  DUMPU8(n, nsats);
+  DUMPU8(n, nsats_used);
+  DUMPU8(n, nsats_visible);
 
   DUMPSTARTARR("sats");
-  for (int i = 0 ; i < n->nsats; i++)
+  for (int i = 0 ; i < n->nsats_visible; i++)
   {
     DUMPSTARTARROBJ();
     DUMPKEYVAL("type", "%hhu", n->sats[i].type);
