@@ -300,7 +300,8 @@ typedef struct pueo_nav_sat
 
   struct sat
   {
-    uint8_t type : 4;
+    uint8_t used : 1;
+    uint8_t type : 3;
     uint8_t qualityInd : 4;
     uint8_t svid;
     float16 el;
