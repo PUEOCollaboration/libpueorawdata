@@ -274,6 +274,7 @@ typedef struct pueo_nav_att
   float roll;
   float heading_sigma, pitch_sigma, roll_sigma;
 
+  float x[3];
   float v[3];
   float acc[3];
 
@@ -293,7 +294,8 @@ typedef struct pueo_nav_sat
 {
   pueo_time_t readout_time;
   pueo_time_t gps_time;
-  uint8_t nsats;
+  uint8_t nsats_used;
+  uint8_t nsats_visible;
   char source;
 
   struct sat
@@ -320,8 +322,8 @@ typedef struct pueo_nav_pos
   float lon;
   float alt;
 
+  float x[3];
   float v[3];
-  float acc[3];
 
   float vdop;
   float hdop;
@@ -408,6 +410,7 @@ _Static_assert(sizeof(pueo_ss_t) == 16 * PUEO_SS_NUM_SENSORS + 16,"The sun explo
 
 typedef struct pueo_timemark
 {
+  pueo_time_t readout_time;
   pueo_time_t rising;
   pueo_time_t falling;
   uint16_t rise_count;
