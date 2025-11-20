@@ -323,6 +323,7 @@ int pueo_dump_nav_sat(FILE *f, const pueo_nav_sat_t * n)
   for (int i = 0 ; i < n->nsats_visible; i++)
   {
     DUMPSTARTARROBJ();
+    DUMPKEYVAL("used", "%hhu", n->sats[i].used);
     DUMPKEYVAL("type", "%hhu", n->sats[i].type);
     DUMPKEYVAL("qualityInd", "%hhu", n->sats[i].qualityInd);
     DUMPKEYVAL("svid", "%hhu", n->sats[i].svid);
