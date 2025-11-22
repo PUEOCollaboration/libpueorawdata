@@ -41,20 +41,22 @@ extern "C"
 #define PUEO_EXTERN
 #endif
 
-#include <pueo/rawdata.h>
+#include </home/pueo/libpueorawdata/inc/pueo/rawdata.h>
 #include <stdint.h>
 
 
 
 typedef struct pueo_prio_cfg_opt
 {
-  const char * key;
-  union
-  {
-    int64_t ival;
-    uint64_t uval;
-    double fval;
-  } val;
+  double noiseThreshold;
+  double tdrsSignalThreshold;
+  double extraSignalThreshold;
+  double rmsThreshold;
+  double topBlastThreshold;
+  double bottomBlastThreshold;
+  double fullBlastThreshold;
+  double frontBackThreshold;
+  double aboveHorizontal;
 
 } pueo_prio_cfg_opt_t;
 
@@ -68,15 +70,22 @@ typedef struct pueo_prio_result
   float peak_coherent; //Coherent Sum PKPK
   float pk2pk[192];
   float rms[192];
+  pueo_priority_t priority;
 } pueo_prio_result_t;
+
+typedef struct pueo_prior_Event
+{
+  int trigL2;
+  pueo_full_waveforms_t allwfms; //all waveforms as handed by CPU
+} pueo_prior_Event_t;
 
 #define PUEO_PRIO_MAX_BATCH 125
 
 
 #define PUEO_PRIO_FUNCTIONS(FN)\
-  FN(int, pueo_prio_init, (void))\
-  FN(int, pueo_prio_configure, (unsigned N, const pueo_prio_cfg_opt_t * opts))\
-  FN(int, pueo_prio_compute, (unsigned N, const pueo_full_waveforms_t * wfs,  pueo_prio_result_t * result))
+  FN(void, pueo_prio_init, (void))\
+  FN(pueo_prio_cfg_opt_t, pueo_prio_configure, (void))\
+  FN(pueo_prio_result_t*, pueo_prio_compute, (pueo_prior_Event_t * events, int N, pueo_prio_cfg_opt_t config))
 
 #define PUEO_PRIO_DECLARE(ret, name, args)\
 PUEO_EXTERN ret name args;

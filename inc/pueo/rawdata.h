@@ -42,8 +42,8 @@
  */
 
 #include <stdint.h>
-#include <pueo/pueo.h>
-#include <pueo/sensor_ids.h>
+#include </home/pueo/libpueorawdata/inc/pueo/pueo.h>
+#include </home/pueo/libpueorawdata/inc/pueo/sensor_ids.h>
 #ifndef __STDC_WANT_IEC_60559_TYPES_EXT__
 #define __STDC_WANT_IEC_60559_TYPES_EXT__
 #endif
@@ -441,10 +441,12 @@ typedef struct pueo_logs
 #define PUEO_PRIO_TRIG_TYPE_LF 1
 #define PUEO_PRIO_TRIG_TYPE_MI 2
 #define PUEO_PRIO_TRIG_TYPE_LFANDMI 3
+
 #define PUEO_PRIO_CAL_TYPE_NONE 0
 #define PUEO_PRIO_CAL_TYPE_HICAL 1
 #define PUEO_PRIO_CAL_TYPE_GROUNDCAL 2
 #define PUEO_PRIO_CAL_TYPE_RESERVED 3
+
 #define PUEO_PRIO_SIGNAL_LEVEL_THERMAL 0
 #define PUEO_PRIO_SIGNAL_LEVEL_SIGNAL 1
 #define PUEO_PRIO_SIGNAL_LEVEL_BEST_SIGNAL 2
@@ -453,10 +455,10 @@ typedef struct pueo_logs
 typedef struct pueo_priority
 {
   uint16_t trig_type : 2;
-  uint16_t topring_blast_flag : 1;
-  uint16_t botring_blast_flag : 1;
-  uint16_t fullpayload_blast_flag : 1;
-  uint16_t frontback_blast_flag : 1;
+  uint16_t topring_blast_flag : 1; //set by prioritizer
+  uint16_t botring_blast_flag : 1; //set by prioritizer
+  uint16_t fullpayload_blast_flag : 1; //set by prioritizer
+  uint16_t frontback_blast_flag : 1; //set by prioritizer
   uint16_t anthro_base1_flag : 1;
   uint16_t anthro_base2_flag : 1;
   uint16_t anthro_base3_flag : 1;
@@ -464,7 +466,7 @@ typedef struct pueo_priority
   uint16_t anthro_base5_flag : 1;
   uint16_t anthro_base6_flag : 1;
   uint16_t cal_type : 2;
-  uint16_t signal_level : 2;
+  uint16_t signal_level : 2; //set by prioritizer
 } pueo_priority_t;
 
 

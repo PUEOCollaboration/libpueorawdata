@@ -29,11 +29,11 @@ set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
 add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 
-add_library(fakeprio SHARED test/fakeprio.c)
-target_link_libraries(fakeprio pueorawdata)
+#add_library(fakeprio SHARED test/fakeprio.c)
+#target_link_libraries(fakeprio pueorawdata)
 
-add_library(fakeprio++ SHARED test/fakeprio.cc)
-target_link_libraries(fakeprio++ pueorawdata)
+#add_library(fakeprio++ SHARED test/fakeprio.cc)
+#target_link_libraries(fakeprio++ pueorawdata)
 
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
