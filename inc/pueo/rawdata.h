@@ -42,8 +42,8 @@
  */
 
 #include <stdint.h>
-#include </home/pueo/libpueorawdata/inc/pueo/pueo.h>
-#include </home/pueo/libpueorawdata/inc/pueo/sensor_ids.h>
+#include <pueo/pueo.h>
+#include <pueo/sensor_ids.h>
 #ifndef __STDC_WANT_IEC_60559_TYPES_EXT__
 #define __STDC_WANT_IEC_60559_TYPES_EXT__
 #endif
