@@ -41,7 +41,7 @@ extern "C"
 #define PUEO_EXTERN
 #endif
 
-#include </home/pueo/libpueorawdata/inc/pueo/rawdata.h>
+#include <pueo/rawdata.h>
 #include <stdint.h>
 
 
