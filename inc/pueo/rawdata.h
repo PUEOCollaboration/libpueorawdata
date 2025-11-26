@@ -48,23 +48,23 @@
 #define __STDC_WANT_IEC_60559_TYPES_EXT__
 #endif
 #include <float.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 #ifndef FLT16_MAX
 #warning Using a compiler with FLOAT16 support, attempting to use some structs will result in errors
 typedef struct fake_Float16_will_probably_cause_errors
 {
-  uint16_t sign : 1;
-  uint16_t exponent : 5;
-  uint16_t fraction : 10;
+  uint16_t sign :1;
+  uint16_t exponent :5;
+  uint16_t fraction :10;
 } FakeFloat16;
 #define float16 FakeFloat16
 #else
 #define float16 _Float16
-#endif
-
-#ifdef __cplusplus
-extern "C"
-{
 #endif
 
 
