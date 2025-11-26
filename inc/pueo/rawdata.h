@@ -410,7 +410,7 @@ typedef struct pueo_slow
 
 } pueo_slow_t;
 
-#define PUEO_SLOW_VER 2
+#define PUEO_SLOW_VER 1
 
 
 #define PUEO_SS_NUM_SENSORS 8
