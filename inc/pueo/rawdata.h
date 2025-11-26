@@ -384,20 +384,33 @@ typedef struct pueo_slow
   uint16_t current_run_secs;
   uint32_t current_run_events;
   uint16_t L1_rates[12][2];
-  uint8_t L2_rates[12][2];
+
   struct
   {
     uint16_t index : 3; //by label, so 1-6, 0 means not present
-    uint16_t free : 13; // in units of
-
-
+    uint16_t free : 13; // in units of 2.5 GB
   } pals[2];
-  uint8_t palsA_index : 3 ;
-  uint8_t palsA_present : 1;
+
+  struct
+  {
+    uint64_t ssd0_free : 12;  //4095 means not there
+    uint64_t ssd1_free : 12;  //4095 means not there
+    uint64_t ssd2_free : 12;  //4095 means not there
+    uint64_t ssd3_free : 12;  //4095 means not there
+    uint64_t ssd4_free : 12;  //4095 means not there
+  } ssd;
+
+  struct
+  {
+    uint32_t heading_abx : 9; // 512 means not present
+    uint32_t heading_boreas : 9; // 512 means not present
+    uint32_t heading_cpt7 : 9; // 512 means not present
+    uint32_t turf_fix_type : 2;
+  } nav;
 
 } pueo_slow_t;
 
-#define PUEO_SLOW_VER 1
+#define PUEO_SLOW_VER 2
 
 
 #define PUEO_SS_NUM_SENSORS 8
