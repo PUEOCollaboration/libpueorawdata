@@ -182,13 +182,12 @@ int pueo_dump_nav_att(FILE *f, const pueo_nav_att_t *n)
   DUMPFLT(n,heading_sigma);
   DUMPFLT(n,pitch_sigma);
   DUMPFLT(n,roll_sigma);
-  DUMPARRAY(n,x,3,"%f");
-  DUMPARRAY(n,v,3,"%f");
-  DUMPARRAY(n,acc,3,"%f");
   DUMPFLT(n,hdop);
   DUMPFLT(n,vdop);
   DUMPU8(n,nsats);
   DUMPX8(n,flags);
+  DUMPI16(n,temperature);
+  DUMPARRAY(n,antenna_currents,3,"%hd");
   DUMPEND();
   DUMPFINISH();
 }

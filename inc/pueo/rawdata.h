@@ -275,10 +275,6 @@ typedef struct pueo_nav_att
   float roll;
   float heading_sigma, pitch_sigma, roll_sigma;
 
-  float x[3];
-  float v[3];
-  float acc[3];
-
   float vdop;
   float hdop;
 
@@ -286,6 +282,8 @@ typedef struct pueo_nav_att
   uint8_t nsats;
   uint8_t flags;
 
+  uint16_t antenna_currents[3];
+  int16_t temperature;
 } pueo_nav_att_t;
 
 #define  PUEO_NAV_ATT_VER 0

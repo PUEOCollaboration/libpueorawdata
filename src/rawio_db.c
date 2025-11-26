@@ -457,13 +457,13 @@ int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
 
   FILE * f = begin_sql_stream(h);
   fprintf(f,"INSERT INTO nav_atts (readout_time, gps_time, lat, lon, alt, heading,"
-            " heading_sigma, pitch, pitch_sigma, roll, roll_sigma, hdop, vdop, source, nsats, flags"
+            " heading_sigma, pitch, pitch_sigma, roll, roll_sigma, hdop, vdop, source, nsats, flags, temperature, antenna_current_0, antenna_current_1, antenna_current_2"
            " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
            " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
            (uint64_t) att->readout_time.utc_secs, (uint32_t) att->readout_time.utc_nsecs, (uint64_t) att->gps_time.utc_secs,
            (uint32_t) att->gps_time.utc_nsecs, att->lat, att->lon, att->alt, att->heading,
            att->heading_sigma, att->pitch, att->pitch_sigma, att->roll, att->roll_sigma, att->hdop,
-           att->vdop, att->source, att->nsats, att->flags);
+           att->vdop, att->source, att->nsats, att->flags, att->temperature, att->antenna_currents[0], att->antenna_currents[1], att->antenna_currents[1]);
 
   return commit_sql_stream(h);
 }
