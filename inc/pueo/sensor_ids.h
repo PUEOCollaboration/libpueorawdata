@@ -364,7 +364,7 @@ SENSOR(DAQ,      I_SURF2_VR,                'F','I')     \
 SENSOR(DAQ,      I_SURF3_VR,                'F','I')     \
 SENSOR(DAQ,      I_SURF4_VR,                'F','I')     \
 SENSOR(DAQ,      I_SURF5_VR,                'F','I')     \
-SENSOR(DAQ,      I_SURF6_VR,                'F','I')     
+SENSOR(DAQ,      I_SURF6_VR,                'F','I')
 
 
 #define PUEO_SENSOR_ENUM_DEF(SUBSYS,NAME,TYPETAG,KIND) PUEO_SENSOR_##SUBSYS##_##NAME,
