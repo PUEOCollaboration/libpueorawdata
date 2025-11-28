@@ -251,8 +251,8 @@ int pueo_dump_ss(FILE *f, const pueo_ss_t * s)
     DUMPKEYVAL("y2", "%u", (uint32_t) s->ss[i].y2);
     DUMPKEYVAL("tempADS1220_raw", "%hu",  (uint16_t) s->ss[i].tempADS1220);
     DUMPKEYVAL("tempSS_raw", "%hu",  (uint16_t) s->ss[i].tempSS );
-    DUMPKEYVAL("tempADS1220", "%f",  PUEO_SS_TEMPERATURE_CONVERT(s->ss[i].tempADS1220));
-    DUMPKEYVAL("tempSS", "%f",  PUEO_SS_TEMPERATURE_CONVERT(s->ss[i].tempSS));
+    DUMPKEYVAL("tempADS1220", "%f",  PUEO_SS_TEMPERATURE_CONVERT_ADS1220(s->ss[i].tempADS1220));
+    DUMPKEYVAL("tempSS", "%f",  PUEO_SS_TEMPERATURE_CONVERT_SS(s->ss[i].tempSS));
     DUMPENDARROBJ();
   }
   DUMPENDARR();
