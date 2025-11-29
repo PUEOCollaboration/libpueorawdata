@@ -1,0 +1,3 @@
+{
+  gInterpreter->AddIncludePath("inc/");
+}
