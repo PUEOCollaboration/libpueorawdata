@@ -81,7 +81,6 @@ typedef enum e_pueo_datatype
   PUEO_NAV_ATT =0xa771,
   PUEO_NAV_SAT =0x5a75,
   PUEO_NAV_POS =0x1a75,
-  PUEO_NAV_HSK =0x7355,
   PUEO_SS =0x501a,
   PUEO_SENSORS_TELEM =0xb1de,
   PUEO_SENSORS_DISK =0xcb1d,
@@ -335,26 +334,6 @@ typedef struct pueo_nav_pos
 } pueo_nav_pos_t;
 
 #define  PUEO_NAV_POS_VER 0
-
-typedef struct pueo_nav_hsk
-{
-  pueo_time_t readout_time;
-  char source;
-  union
-  {
-    struct
-    {
-      uint8_t ant_present : 3;
-
-    } decoded;
-    uint8_t byte;
-  } flags;
-  float16 temperature;
-  float16 pressure;
-  float16 antenna_currents[3];
-} pueo_nav_hsk_t;
-
-#define  PUEO_NAV_HSK_VER 0
 
 typedef struct pueo_cmd_echo
 {
