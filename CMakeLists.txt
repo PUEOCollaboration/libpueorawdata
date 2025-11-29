@@ -11,6 +11,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(default_build_type "RelWithDebInfo")
 set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
+set(ZSTDFLAGS -DZWRAP_USE_ZSTD=1)
 
 find_package(ZLIB REQUIRED)
 
@@ -18,23 +19,27 @@ find_package(ZLIB REQUIRED)
 # integrate zlibWrapper (zlib-compatible wrapper) into the build. This
 # include is intentionally small and optional so the original top-level
 # file content remains unchanged except for this pointer.
-include(cmake/zstd-submodule.cmake OPTIONAL)
-
+# include(cmake/zstd-submodule.cmake OPTIONAL)
 
 find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
+find_path(ZWRAP_INCLUDE_DIR NAMES zstd_zlibwrapper.h)
 find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
+
+message(status "HHHHH")
+message(status ${ZWRAP_INCLUDE_DIR})
 
 find_package(PostgreSQL)
 find_package(SQLite3)
 
+set(GZ_SOURCES third_party/zstd/zlibWrapper/gzclose.c third_party/zstd/zlibWrapper/gzlib.c third_party/zstd/zlibWrapper/gzread.c third_party/zstd/zlibWrapper/gzwrite.c third_party/zstd/zlibWrapper/zstd_zlibwrapper.c)
 
 set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c src/prio_interface.c)
 set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/sensor_ids_compat.h inc/pueo/pueo.h inc/pueo/prio_interface.h)
 set(PRIVATE_HEADERS src/float16_guard.h src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
 set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
-add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
-add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
+add_library(pueorawdata SHARED ${SOURCES} ${GZ_SOURCES} ${HEADERS})
+# add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 
 #add_library(fakeprio SHARED test/fakeprio.c)
 #target_link_libraries(fakeprio pueorawdata)
@@ -46,14 +51,18 @@ add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB -lm -ldl)
 target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
+target_compile_options(pueorawdata PRIVATE ${WARNFLAGS} ${ZSTDFLAGS})
 
 target_include_directories(pueorawdata PUBLIC inc)
 target_include_directories(pueorawdata PRIVATE src)
 target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
 target_include_directories(pueorawdata PRIVATE ${ZLIB_INCLUDE_DIR})
+target_include_directories(pueorawdata PRIVATE third_party/zstd/zlibWrapper)
 
-target_include_directories(pueorawdata-static PUBLIC inc)
-target_include_directories(pueorawdata-static PRIVATE src)
+# target_include_directories(pueorawdata-static PUBLIC inc)
+# target_include_directories(pueorawdata-static PRIVATE src)
+# target_include_directories(pueorawdata-static PRIVATE third_party/zstd/zlibWrapper)
+# target_compile_options(pueorawdata-static PRIVATE ${WARNFLAGS} ${ZSTDFLAGS})
 
 if (PostgreSQL_FOUND)
   message(STATUS "Found PostgreSQL")

@@ -244,6 +244,7 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
     /* Enable zstd compression in the wrapper at runtime. This makes gz* APIs
        use zstd when available. */
 #ifdef HAVE_ZWRAP_HEADER
+    fprintf(stdout, "HHH using ZLIB HHH\n");
     ZWRAP_useZSTDcompression(1);
 #endif
     h->aux = gzopen(file, mode);
