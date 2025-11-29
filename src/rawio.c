@@ -21,8 +21,6 @@
 
 #define _GNU_SOURCE
 
-#define HAVE_ZWRAP_HEADER 1
-
 #include "pueo/rawio.h"
 #include "rawio_packets.h"
 #include <stdbool.h>
@@ -31,7 +29,7 @@
 #include <stddef.h>
 #include <assert.h>
 // Prefer wrapper header if available; otherwise fall back to system zlib.h
-#ifdef HAVE_ZWRAP_HEADER
+#ifdef ZWRAP_USE_ZSTD
 #include <zstd_zlibwrapper.h>
 #else
 #include <zlib.h>
@@ -44,7 +42,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
 
 enum pueo_handle_flags
 {
@@ -244,8 +241,7 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
   {
     /* Enable zstd compression in the wrapper at runtime. This makes gz* APIs
        use zstd when available. */
-#ifdef HAVE_ZWRAP_HEADER
-    fprintf(stdout, "HHH using ZLIB HHH\n");
+#ifdef ZWRAP_USE_ZSTD
     ZWRAP_useZSTDcompression(1);
 #endif
     h->aux = gzopen(file, mode);
