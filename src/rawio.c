@@ -29,7 +29,7 @@
 #include <stddef.h>
 #include <assert.h>
 // Prefer wrapper header if available; otherwise fall back to system zlib.h
-#ifdef ZWRAP_USE_ZSTD
+#ifdef ZWRAP_USE_ZLIBWRAP
 #include <zstd_zlibwrapper.h>
 #else
 #include <zlib.h>
@@ -241,7 +241,7 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
   {
     /* Enable zstd compression in the wrapper at runtime. This makes gz* APIs
        use zstd when available. */
-#ifdef ZWRAP_USE_ZSTD
+#ifdef ZWRAP_USE_ZLIBWRAP
     ZWRAP_useZSTDcompression(1);
 #endif
     h->aux = gzopen(file, mode);

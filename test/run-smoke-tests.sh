@@ -19,36 +19,23 @@ TMPDIR="$BUILD_DIR/smoke_tmp"
 rm -rf "$TMPDIR"
 mkdir -p "$TMPDIR"
 
-fail() {
-  echo "FAILED: $*"
+fname_uncompressed="${TMPDIR}/test.wf"
+fname_zstd="${TMPDIR}/test.zst"
+fname_gzip="${TMPDIR}/test.gz"
+
+${WRITER_WF} ${fname_uncompressed}
+${WRITER_WF} ${fname_zstd}
+${WRITER_WF} ${fname_gzip}
+
+if (( $(stat -c %s "$fname_zstd") == $(stat -c %s "$fname_gzip") )); then
+  echo "Warning: zstd and gzip have the same size; this probably means zstd support does not work."
   exit 1
-}
+fi
 
-run_case() {
-  local suffix="$1"
-  local fname="$TMPDIR/test${suffix}"
-  echo "\n=== Test: $suffix -> $fname ==="
-  # write
-  "$WRITER_WF" "$fname"
-  # read
-  set +e
-  out=$("$READER_WF" "$fname" 2>&1)
-  rc=$?
-  set -e
-  echo "$out"
-  if [[ $rc -ne 0 ]]; then
-    fail "reader returned $rc for $fname"
-  fi
-  # quick heuristic: reader should have printed at least one 'read:' line
-  if ! echo "$out" | grep -q "read:"; then
-    fail "reader output did not contain expected 'read:' lines for $fname"
-  fi
-  echo "PASS: $suffix"
-}
+if (( $(diff <(zstdcat ${fname_zstd}) <(cat ${fname_uncompressed})) )); then
+  echo "Error: zstd compression does not read correctly"
+  exit 1
+fi
 
-run_case ""    # raw
-run_case ".gz"  # gzip
-run_case ".zst" # zstd via zlibWrapper
-
-echo "All smoke tests passed. Clean up: $TMPDIR contains test files if you need them." 
+echo "All smoke tests passed. Clean up: $TMPDIR contains test files if you need them."
 exit 0

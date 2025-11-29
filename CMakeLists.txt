@@ -14,7 +14,7 @@ set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
 option(USE_ZSTD "Use zstd for compression." OFF)
 if(USE_ZSTD)
-  set(ZSTDFLAGS -DZWRAP_USE_ZSTD=1)
+  set(ZSTDFLAGS -DZWRAP_USE_ZLIBWRAP=1)
   set(GZ_SOURCES
       third_party/zstd/zlibWrapper/gzclose.c
       third_party/zstd/zlibWrapper/gzlib.c
@@ -46,7 +46,6 @@ add_library(pueorawdata-static STATIC ${SOURCES} ${GZ_SOURCES} ${HEADERS})
 
 #add_library(fakeprio++ SHARED test/fakeprio.cc)
 #target_link_libraries(fakeprio++ pueorawdata)
-
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB -lm -ldl)
@@ -105,7 +104,6 @@ target_link_libraries(read-wfs pueorawdata)
 
 add_executable(test-prio test/test-prio.c)
 target_link_libraries(test-prio pueorawdata)
-
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
