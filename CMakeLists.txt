@@ -12,18 +12,20 @@ set(CMAKE_C_EXTENSIONS ON)
 set(default_build_type "RelWithDebInfo")
 set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
-set(ZSTDFLAGS -DZWRAP_USE_ZSTD=1)
-set(GZ_SOURCES
-    third_party/zstd/zlibWrapper/gzclose.c
-    third_party/zstd/zlibWrapper/gzlib.c
-    third_party/zstd/zlibWrapper/gzread.c
-    third_party/zstd/zlibWrapper/gzwrite.c
-    third_party/zstd/zlibWrapper/zstd_zlibwrapper.c)
+option(USE_ZSTD "Use zstd for compression." OFF)
+if(USE_ZSTD)
+  set(ZSTDFLAGS -DZWRAP_USE_ZSTD=1)
+  set(GZ_SOURCES
+      third_party/zstd/zlibWrapper/gzclose.c
+      third_party/zstd/zlibWrapper/gzlib.c
+      third_party/zstd/zlibWrapper/gzread.c
+      third_party/zstd/zlibWrapper/gzwrite.c
+      third_party/zstd/zlibWrapper/zstd_zlibwrapper.c)
+endif(USE_ZSTD)
 
 find_package(ZLIB REQUIRED)
 
 find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
-find_path(ZWRAP_INCLUDE_DIR NAMES zstd_zlibwrapper.h)
 find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
 
 find_package(PostgreSQL)
