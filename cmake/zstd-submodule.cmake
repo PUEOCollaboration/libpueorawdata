@@ -87,6 +87,7 @@ endfunction()
 
 # Ensure reasonable system fallback if helper wasn't able to locate zstd
 if(NOT DEFINED ZSTD_INCLUDE_DIR OR NOT DEFINED ZSTD_LIBRARY)
+  message(STATUS "HHHH TEST HHHH")
   find_path(ZSTD_INCLUDE_DIR NAMES zstd.h zlibWrapper/zstd_zlibwrapper.h)
   find_library(ZSTD_LIBRARY NAMES zstd zstd_static zstd_zlibwrapper)
 endif()
