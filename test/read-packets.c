@@ -21,14 +21,16 @@ int main(int nargs, char ** args)
     }
   }
   pueo_packet_t * packet = 0;
+  printf("{\n");
   while (true)
   {
     int read = pueo_ll_read_realloc(&h, &packet);
-    printf("read: %d\n", read);
+//    fprintf(stderr,"read: %d\n", read);
     if (read <= 0) break;
     pueo_dump_packet(stdout,packet);
     if (db) pueo_db_insert_packet(db, packet);
   }
+  printf("}\n");
   return 0;
 }
 
