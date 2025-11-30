@@ -484,6 +484,36 @@ typedef struct pueo_priority
 
 
 
+typedef struct pueo_daq_hsk
+{
+  struct
+  {
+    struct
+    {
+      uint64_t threshold : 18;
+      uint64_t pseudothreshold : 18;
+      uint64_t scaler : 12;
+      uint64_t pseudoscaler : 12;
+      uint64_t in_mask : 1;
+      uint64_t scaler_bank : 1;
+    } beams[PUEO_NBEAMS];
+
+    pueo_time_t readout_time_start;
+    uint16_t ms_elapsed;
+    uint8_t surf_link;
+    uint8_t surf_slot;
+  } surfs[PUEO_NSURF];
+
+
+
+
+
+} pueo_daq_hsk_t;
+
+
+
+
+
 #ifdef __cplusplus
 }
 #endif
