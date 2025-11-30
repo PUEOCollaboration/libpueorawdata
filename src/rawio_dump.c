@@ -17,7 +17,7 @@ static __thread int dump_ntabs = 0;
 #define DUMPSTART(what) ret+=fprintf(__F,"%.*s \"%s\" : {\n", dump_ntabs++, dump_tabs, what)
 #define DUMPSTARTARR(what) ret+=fprintf(__F,"%.*s \"%s\" : [\n", dump_ntabs++, dump_tabs, what)
 #define DUMPSTARTARROBJ() ret+=fprintf(__F,"%.*s {\n", dump_ntabs++, dump_tabs)
-#define DUMPENDARROBJ() ret+=fprintf(__F,"%.*s },\n", dump_ntabs++, dump_tabs)
+#define DUMPENDARROBJ() ret+=fprintf(__F,"%.*s },\n", dump_ntabs--, dump_tabs)
 #define DUMPKEYVAL(key,frmt,...) ret+=fprintf(__F, "%.*s\"" key "\": " frmt ",\n", dump_ntabs, dump_tabs, __VA_ARGS__)
 #define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%lu.%09u", (uint64_t) x->wut.utc_secs, (uint32_t) x->wut.utc_nsecs)
 #define DUMPVAL(x,wut,frmt) DUMPKEYVAL(#wut,frmt, x->wut)
