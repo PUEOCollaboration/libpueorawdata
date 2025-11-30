@@ -57,6 +57,9 @@ int main(void)
             failed++;
             continue;
         }
+        else {
+            printf("encoded length: %i bytes\n", enc.encoded_nbytes);
+        }
         r = pueo_decode_waveform(&enc, &out);
         if (r != 0) {
             printf("decode(%s) failed (r=%d)\n", names[i], r);
