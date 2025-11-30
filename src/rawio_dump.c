@@ -244,6 +244,7 @@ int pueo_dump_ss(FILE *f, const pueo_ss_t * s)
   for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
   {
     DUMPSTARTARROBJ();
+    DUMPKEYVAL("idx", "%d", i); 
     DUMPKEYVAL("x1", "%u", (uint32_t) s->ss[i].x1);
     DUMPKEYVAL("x2", "%u", (uint32_t) s->ss[i].x2);
     DUMPKEYVAL("y1", "%u", (uint32_t) s->ss[i].y1);
