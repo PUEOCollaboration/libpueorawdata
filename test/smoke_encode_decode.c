@@ -39,7 +39,7 @@ int main(void)
     pueo_single_waveform_t out;
     pueo_encoded_waveform_t enc;
 
-    fill_waveform(&in, 100);
+    fill_waveform(&in, 512);
 
     int flags[] = {0,1,2};
     const char *names[] = {"none","zlib","zstd"};
