@@ -17,7 +17,7 @@ static void fill_waveform(pueo_single_waveform_t *wf, int nsamples)
     wf->event = 456;
     wf->wf.channel_id = 5;
     for (int i = 0; i < nsamples; ++i) {
-        wf->wf.data[i] = (uint16_t)(i & 0xffff);
+      wf->wf.data[i] = (uint16_t)(i & 0xffff);
     }
 }
 
@@ -39,7 +39,7 @@ int main(void)
     pueo_single_waveform_t out;
     pueo_encoded_waveform_t enc;
 
-    fill_waveform(&in, 256);
+    fill_waveform(&in, 100);
 
     int flags[] = {0,1,2};
     const char *names[] = {"none","zlib","zstd"};
@@ -49,6 +49,7 @@ int main(void)
     for (int i = 0; i < 3; ++i) {
         memset(&enc, 0, sizeof(enc));
         memset(&out, 0, sizeof(out));
+
         int flag = flags[i];
         int r = pueo_encode_waveform(&in, &enc, flag);
         if (r != 0) {

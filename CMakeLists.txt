@@ -113,3 +113,6 @@ target_link_libraries(pueo-init-db pueorawdata)
 
 add_executable(read-packets test/read-packets.c)
 target_link_libraries(read-packets pueorawdata)
+
+add_executable(smoke-encode-decode test/smoke_encode_decode.c)
+target_link_libraries(smoke-encode-decode pueorawdata)

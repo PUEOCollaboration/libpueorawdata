@@ -543,20 +543,28 @@ int pueo_encode_waveform(const pueo_single_waveform_t * in, pueo_encoded_wavefor
   out->flags = in->wf.flags;
   out->nsamples = in->wf.length;
   out->encoded_flags = compressionFlag;
+  out->encoded_nbytes = sizeof(out->encoded);
 
   // Compress the waveform data based on the specified compression flag
-  int compressedSize = 0;
   if (compressionFlag == 1) // zlib compression
   {
-    compressedSize = compress2(out->encoded, (uLongf*)&out->encoded_nbytes, (const Bytef*)in->wf.data, in->wf.length * sizeof(uint16_t), Z_BEST_COMPRESSION);
-    if (compressedSize != Z_OK) return -1; // Compression failed
-    out->encoded_nbytes = compressedSize;
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(0);
+#endif
+    uLongf encoded_len = out->encoded_nbytes;
+    int res = compress2((Bytef*)(out->encoded), &encoded_len, (const Bytef*)in->wf.data, in->wf.length * sizeof(uint16_t), Z_BEST_COMPRESSION);
+    out->encoded_nbytes = encoded_len;
+    if (res != Z_OK) return -1; // Compression failed
   }
   else if (compressionFlag == 2) // zstd compression
   {
-    size_t zstdCompressedSize = ZSTD_compress(out->encoded, sizeof(out->encoded), in->wf.data, in->wf.length * sizeof(uint16_t), ZSTD_maxCLevel());
-    if (ZSTD_isError(zstdCompressedSize)) return -1; // Compression failed
-    out->encoded_nbytes = zstdCompressedSize;
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(1);
+#endif
+    uLongf encoded_len = out->encoded_nbytes;
+    int res = compress2((Bytef*)(out->encoded), &encoded_len, (const Bytef*)in->wf.data, in->wf.length * sizeof(uint16_t), Z_BEST_COMPRESSION);
+    out->encoded_nbytes = encoded_len;
+    if (res != Z_OK) return -1; // Compression failed
   }
   else // No compression
   {
@@ -583,14 +591,21 @@ int pueo_decode_waveform(const pueo_encoded_waveform_t * in, pueo_single_wavefor
   // Decompress the waveform data based on the encoded flags
   if (in->encoded_flags == 1) // zlib decompression
   {
-    uLongf destLen = out->wf.length * sizeof(uint16_t);
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(0);
+#endif
+    uLongf destLen = sizeof(out->wf.data);
     int res = uncompress((Bytef*)out->wf.data, &destLen, (const Bytef*)in->encoded, in->encoded_nbytes);
     if (res != Z_OK || destLen != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
   }
   else if (in->encoded_flags == 2) // zstd decompression
   {
-    size_t decompressedSize = ZSTD_decompress(out->wf.data, out->wf.length * sizeof(uint16_t), in->encoded, in->encoded_nbytes);
-    if (ZSTD_isError(decompressedSize) || decompressedSize != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(1);
+#endif
+    uLongf destLen = sizeof(out->wf.data);
+    int res = uncompress((Bytef*)out->wf.data, &destLen, (const Bytef*)in->encoded, in->encoded_nbytes);
+    if (res != Z_OK || destLen != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
   }
   else // No compression
   {
