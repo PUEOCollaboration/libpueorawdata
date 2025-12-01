@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <valgrind/callgrind.h>
+
 #define BATCH_SIZE 
 
 int main(int nargs, char ** args)
@@ -26,36 +28,55 @@ int main(int nargs, char ** args)
 
   printf("Prioritizer Configured\n");
 
-  const char * wf_file = "test.wfs";
+  const char * wf_file = "../rachel4.wfs";///mnt/storagea/wfs/run0138/002000.wfs.dat.zstd";
   pueo_handle_t h;
   pueo_handle_init(&h, wf_file, "r");
 
-  pueo_full_waveforms_t all_wfs;
+  static pueo_full_waveforms_t all_wfs[PUEO_PRIO_MAX_BATCH] = {0};
   //pueo_prio_result_t * results[PUEO_PRIO_MAX_BATCH];
   static pueo_prior_Event_t events[PUEO_PRIO_MAX_BATCH];
 
-  int n_in_batch = 124;
-
+  int n_in_batch = 100;
+  int n = 0;
   while (true)
   {
-    int read = pueo_read_full_waveforms(&h, &all_wfs);
+    int read = pueo_read_full_waveforms(&h, &all_wfs[n]);
+    //printf("read: %d\n", read);
     if (read <= 0) break;
+    //pueo_dump_full_waveforms(stdout,&all_wfs[0]);
+    memcpy(&events[n].allwfms, &all_wfs[n], sizeof(all_wfs[n]));
+    //printf("%d\n",all_wfs[0].wfs[12].data[100]);
+    events[n].trigL2 = 0;
+    n++;
   }
 
-  for (int n=0; n<n_in_batch; n++){
-      memcpy(&events[n].allwfms, &all_wfs, sizeof(all_wfs));
-      //printf("%d\n",all_wfs.wfs[12].data[100]);
-      events[n].trigL2 = n%24;
-    }
+  /*for (int n=0; n<n_in_batch; n++){
+      int read = pueo_read_full_waveforms(&h, &all_wfs[0]);
+      printf("read: %d\n", read);
+      pueo_dump_full_waveforms(stdout, &all_wfs[0]);
+      memcpy(&events[n].allwfms, &all_wfs[n], sizeof(all_wfs[n]));
+      printf("%d\n",all_wfs[n].wfs[12].data[100]);
+      events[n].trigL2 = 0;
+    }*/
   
-  //printf("%d\n",events[20].trigL2);
+  //printf("%d\n",events[0].trigL2);
   
-  for (int co=0; co<2000; co++){
+  for (int run=0; run<1; run++){
     pueo_prio_result_t* results = prio.pueo_prio_compute(events, n_in_batch, c);
-    printf(" result { .phi = %f, .theta = %f, .imp = %f, .map_peak = %f }\n", results[co%24].phi, results[co%24].theta, results[co%24].imp, results[co%24].map_peak);
-    
+    if (run == 0) {
+      for (int ch=0; ch<192; ch++){
+        //printf(" result { ch = %d, .rms = %f, pkpk = %f}\n",ch, results[0].rms[ch],results[0].pk2pk[ch]);
+      }
+    }
   }
-
+  
+  for (int n=0; n<n_in_batch; n++){
+    //printf(" result { .phi = %f, .theta = %f, .imp = %f, .map_peak = %f, .rms = %f, .pkpk = %f }\n", results[n].phi, results[n].theta, results[n].imp, results[n].map_peak, results[n].rms[191], results[n].pk2pk[191]);
+  }  
+  
+  for (int ch=0; ch<192; ch++){
+    //printf(" result { ch = %d, .rms = %f, pkpk = %f}\n",ch, results[0].rms[ch],results[0].pk2pk[ch]);
+  }
   /*if (nargs < 3)
   {
     fprintf(stderr,"test-prio prio.so  wffile.dat");
