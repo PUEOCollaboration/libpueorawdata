@@ -79,12 +79,13 @@ static int write_waveform(pueo_handle_t*h, const pueo_waveform_t * wf)
 
 static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf)
 {
-  int hdrsize = offsetof(pueo_waveform_t,data);
+  int hdrsize = offsetof(pueo_waveform_t, data);
   int nrd = h->read_bytes(hdrsize, wf, h);
-  if (nrd != (int) hdrsize) return -1;
-  nrd += h->read_bytes(wf->length*sizeof(*wf->data), wf->data, h);
-  if (nrd != (int) (hdrsize + wf->length*sizeof(*wf->data))) return -1;
-  return nrd;
+  if (nrd != hdrsize) return -1;
+  int want = wf->length * sizeof(*wf->data);
+  nrd = h->read_bytes(want, wf->data, h);
+  if (nrd != want) return -1;
+  return hdrsize + nrd;
 }
 
 static void update_len_cksum_waveform(uint32_t * len, uint16_t * cksum, const pueo_waveform_t *wf)

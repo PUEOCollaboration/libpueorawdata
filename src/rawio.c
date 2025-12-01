@@ -20,7 +20,6 @@
  */
 
 #define _GNU_SOURCE
-#include "float16_guard.h"
 
 #include "pueo/rawio.h"
 #include "rawio_packets.h"
@@ -29,14 +28,20 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <assert.h>
+// Prefer wrapper header if available; otherwise fall back to system zlib.h
+#ifdef ZWRAP_USE_ZLIBWRAP
+#include <zstd_zlibwrapper.h>
+#else
 #include <zlib.h>
+#endif
 #include <string.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
+#include <netinet/in.h>
+#include <unistd.h>
 
 enum pueo_handle_flags
 {
@@ -171,7 +176,14 @@ static int gz_writebytes(size_t nbytes, const void * bytes, pueo_handle_t *h)
 static int gz_readbytes(size_t nbytes, void * bytes, pueo_handle_t *h)
 {
   gzFile f = (gzFile) h->aux;
-  return gzread(f, bytes, nbytes);
+  int r = gzread(f, bytes, nbytes);
+  if (r <= 0)
+  {
+    /* try to get more detailed gz error */
+    int gzerr = 0;
+    const char * msg = gzerror(f, &gzerr);
+  }
+  return r;
 }
 
 static int gz_close(pueo_handle_t  * h)
@@ -210,7 +222,7 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
   //check for .gz or .zst suffix
 
   const char * suffix = rindex(file,'.');
-  if ((suffix && !strcmp(suffix,".gz")) || ((suffix && !strcmp(suffix,".zst"))))
+  if (suffix && !strcmp(suffix,".gz"))
   {
     h->aux = gzopen(file, mode);
     if (!h->aux)
@@ -221,6 +233,25 @@ int pueo_handle_init_file(pueo_handle_t *h, const char * file, const char * mode
     h->read_bytes = gz_readbytes;
     h->write_bytes = gz_writebytes;
     asprintf(&h->description,"gzfile %s", file);
+    return 0;
+  }
+
+  // check for .zst (use zstd zlibWrapper which provides gz* API)
+  if (suffix && !strcmp(suffix, ".zst"))
+  {
+    /* Enable zstd compression in the wrapper at runtime. This makes gz* APIs
+       use zstd when available. */
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(1);
+#endif
+    h->aux = gzopen(file, mode);
+    if (!h->aux)
+    {
+      return -1;
+    }
+    h->close = gz_close;
+    h->read_bytes = gz_readbytes;
+    h->write_bytes = gz_writebytes;
     return 0;
   }
 
@@ -294,23 +325,18 @@ int pueo_handle_init_udp(pueo_handle_t * h, int port, const char *hostname, cons
     return -1;
   }
 
-  struct addrinfo hints =
+  /* Resolve hostname (IPv4 only) */
+  struct hostent *host = gethostbyname(hostname);
+  if (!host)
   {
-    .ai_family = AF_INET,
-    .ai_socktype = SOCK_DGRAM,
-  };
-
-  struct addrinfo * result = 0;
-  if (getaddrinfo(hostname,NULL,&hints,&result))
-  {
-    fprintf(stderr,"pueo_handle_udp: problem with getaddrinfo(%s)\n", hostname);
+    fprintf(stderr,"pueo_handle_udp: problem resolving hostname(%s)\n", hostname);
     return -1;
   }
 
-
-  struct sockaddr_in sa = { .sin_family = AF_INET, .sin_port = htons(port) };
-  memcpy(&sa.sin_addr, &((struct sockaddr_in*) result->ai_addr)->sin_addr, sizeof(sa.sin_addr));
-  freeaddrinfo(result);
+  struct sockaddr_in sa;
+  sa.sin_family = AF_INET;
+  sa.sin_port = htons(port);
+  memcpy(&sa.sin_addr, host->h_addr_list[0], host->h_length);
 
   if (am_reading)
   {
@@ -502,6 +528,92 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest)
   }
 
   return nread;
+}
+
+// Write function that compresses a pueo waveform given a compression flag for .zstor .zlib, with it default to .zst.
+int pueo_encode_waveform(const pueo_single_waveform_t * in, pueo_encoded_waveform_t * out, int compressionFlag)
+{
+  if (!in || !out) return -1;
+  if (in->wf.length > PUEO_MAX_BUFFER_LENGTH) return -1;
+
+  // Copy over the header information
+  out->run = in->run;
+  out->event = in->event;
+  out->channel_id = in->wf.channel_id;
+  out->flags = in->wf.flags;
+  out->nsamples = in->wf.length;
+  out->encoded_flags = compressionFlag;
+  out->encoded_nbytes = sizeof(out->encoded);
+
+  // Compress the waveform data based on the specified compression flag
+  if (compressionFlag == 1) // zlib compression
+  {
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(0);
+#endif
+    uLongf encoded_len = out->encoded_nbytes;
+    int res = compress2((Bytef*)(out->encoded), &encoded_len, (const Bytef*)in->wf.data, in->wf.length * sizeof(uint16_t), Z_BEST_COMPRESSION);
+    out->encoded_nbytes = encoded_len;
+    if (res != Z_OK) return -1; // Compression failed
+  }
+  else if (compressionFlag == 2) // zstd compression
+  {
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(1);
+#endif
+    uLongf encoded_len = out->encoded_nbytes;
+    int res = compress2((Bytef*)(out->encoded), &encoded_len, (const Bytef*)in->wf.data, in->wf.length * sizeof(uint16_t), Z_BEST_COMPRESSION);
+    out->encoded_nbytes = encoded_len;
+    if (res != Z_OK) return -1; // Compression failed
+  }
+  else // No compression
+  {
+    memcpy(out->encoded, in->wf.data, in->wf.length * sizeof(uint16_t));
+    out->encoded_nbytes = in->wf.length * sizeof(uint16_t);
+  }
+
+  return 0;
+}
+
+// Write function the decodes a compression waveform created by pueo_encode_waveform() and uses the metadata of the waveform to choose the correct decompression
+int pueo_decode_waveform(const pueo_encoded_waveform_t * in, pueo_single_waveform_t * out)
+{
+  if (!in || !out) return -1;
+  if (in->nsamples > PUEO_MAX_BUFFER_LENGTH) return -1;
+
+  // Copy over the header information
+  out->run = in->run;
+  out->event = in->event;
+  out->wf.channel_id = in->channel_id;
+  out->wf.flags = in->flags;
+  out->wf.length = in->nsamples;
+
+  // Decompress the waveform data based on the encoded flags
+  if (in->encoded_flags == 1) // zlib decompression
+  {
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(0);
+#endif
+    uLongf destLen = sizeof(out->wf.data);
+    int res = uncompress((Bytef*)out->wf.data, &destLen, (const Bytef*)in->encoded, in->encoded_nbytes);
+    if (res != Z_OK || destLen != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
+  }
+  else if (in->encoded_flags == 2) // zstd decompression
+  {
+#ifdef ZWRAP_USE_ZLIBWRAP
+    ZWRAP_useZSTDcompression(1);
+#endif
+    uLongf destLen = sizeof(out->wf.data);
+    int res = uncompress((Bytef*)out->wf.data, &destLen, (const Bytef*)in->encoded, in->encoded_nbytes);
+    if (res != Z_OK || destLen != out->wf.length * sizeof(uint16_t)) return -1; // Decompression failed or size mismatch
+  }
+  else // No compression
+  {
+    memcpy(out->wf.data, in->encoded, in->encoded_nbytes);
+    if (in->encoded_nbytes != out->wf.length * sizeof(uint16_t)) return -1; // Size mismatch
+  }
+
+  return 0;
 }
 
 
