@@ -350,25 +350,50 @@ typedef struct pueo_cmd_echo
 
 typedef struct pueo_slow
 {
-  uint16_t ncmds;
-  uint16_t time_since_last_cmd;
-  uint32_t last_cmd : 8;
-  uint32_t sipd_uptime : 24;
-  uint32_t cpu_time;
-  uint32_t cpu_uptime : 24;
-  uint32_t can_ping_world : 1;
-  uint32_t starlink_on : 1;
-  uint32_t los_on : 1;
-  uint16_t current_run;
-  uint16_t current_run_secs;
-  uint32_t current_run_events;
-  uint16_t L1_rates[12][2];
+  // 0
+  uint16_t ncmds;  //number of commands received by THIS instance of sipd
+  uint16_t time_since_last_cmd;  // saturating time since last command
+  //4
+  uint32_t last_cmd : 8;  // what was th elast command?
+  uint32_t sipd_uptime : 24;  //uptime of sipd
+  //8
+  uint32_t cpu_time;  // the time the CPU believes it is
+  //12
+  uint32_t cpu_uptime : 24;  // the uptime of the CPU
+  uint32_t can_ping_world : 1;  // Are we able to ping the world?
+  uint32_t starlink_on : 1;     // Is Starlink on?
+  uint32_t los_on : 1;          // is LOS on?
+  uint32_t gpu_present : 1;     // Is the GPU present
+  uint32_t nic_present : 1;    // Is the NIC present
+  uint32_t turf_seen : 1;      // Do we see the TURF?
+  uint32_t hsk_seen : 1;
+  uint32_t ss_seen : 1;
+  //16
+  uint16_t current_run;        // What is the current run?
+  uint16_t current_run_secs;   // How long has the run been going for
+  //20
+  uint32_t current_run_events : 24; // How many event shave been written
+  uint32_t acqd_running : 1;
+  uint32_t prioritizerd_running : 1;
+
+  //24
+  uint32_t current_run_rf_events : 24; // How many were RF events?
+
+  //28
+  uint32_t hsk_uptime : 24;
+
+  //32
+  uint16_t L2_rates[12][2];
+
+  //80
+
 
   struct
   {
     uint16_t index : 3; //by label, so 1-6, 0 means not present
     uint16_t free : 13; // in units of 2.5 GB
   } pals[2];
+  //84
 
   struct
   {
@@ -378,6 +403,7 @@ typedef struct pueo_slow
     uint64_t ssd3_free : 12;  //4095 means not there
     uint64_t ssd4_free : 12;  //4095 means not there
   } ssd;
+  //92
 
   struct
   {
@@ -386,6 +412,7 @@ typedef struct pueo_slow
     uint32_t heading_cpt7 : 9; // 512 means not present
     uint32_t turf_fix_type : 2;
   } nav;
+  //96
 
 } pueo_slow_t;
 
