@@ -391,7 +391,7 @@ typedef struct pueo_slow
   struct
   {
     uint16_t index : 3; //by label, so 1-6, 0 means not present
-    uint16_t free : 13; // in units of 2.5 GB
+    uint16_t free : 13; // in units of 2.5 GiB
   } pals[2];
   //84
 
