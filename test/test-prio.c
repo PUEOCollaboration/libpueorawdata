@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <valgrind/callgrind.h>
 
 #define BATCH_SIZE 
 
