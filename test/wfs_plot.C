@@ -4,7 +4,7 @@ R__LOAD_LIBRARY(build/libpueorawdata.so);
 #include "pueo/rawdata.h"
 #include "pueo/rawio.h"
 
-void wfs_plot(const char * f, int index = 0)
+void wfs_plot(const char * f, int index = 0, bool plot = true)
 {
 
   gStyle->SetLineScalePS(1);
@@ -17,7 +17,9 @@ void wfs_plot(const char * f, int index = 0)
     pueo_read_full_waveforms(&h, &wfs);
   }
 
+  printf("Subsecond: %f\n",  double(wfs.event_time - wfs.last_pps) / double(wfs.last_pps - wfs.llast_pps));
   int idx = 0;
+  if (!plot) return;
 
   int iplot = 0;
   for (int isurf = 0; isurf < 28; isurf++)
@@ -50,7 +52,7 @@ void wfs_plot(const char * f, int index = 0)
      }
      if (isurf % 7< 6 )
      {
-        c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
+//        c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
         iplot++;
      }
 
