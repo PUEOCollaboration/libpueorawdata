@@ -338,4 +338,28 @@ int pueo_dump_nav_sat(FILE *f, const pueo_nav_sat_t * n)
   DUMPFINISH();
 }
 
+//TODO add more things
+int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
+{
+  DUMPINIT(f);
+  DUMPSTART("daq_hsk");
+
+  DUMPTIME(hsk, scaler_readout_time);
+  DUMPTIME(hsk, l2_readout_time);
+  DUMPU32(hsk, soft_rate);
+  DUMPU32(hsk, pps_rate);
+
+  DUMPARRAY(hsk,Hscalers,12,"%u");
+  DUMPARRAY(hsk,Vscalers,12,"%u");
+
+  uint32_t total_L2 = 0;
+  for (int i = 0; i < 12; i++) { total_L2 += hsk->Hscalers[i] + hsk->Vscalers[i]; }
+  DUMPKEYVAL("total_L2_rate", "%u", total_L2);
+
+  DUMPEND();
+  DUMPFINISH()
+
+}
+
+
 

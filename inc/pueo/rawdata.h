@@ -81,6 +81,7 @@ typedef enum e_pueo_datatype
   PUEO_NAV_ATT =0xa771,
   PUEO_NAV_SAT =0x5a75,
   PUEO_NAV_POS =0x1a75,
+  PUEO_DAQ_HSK =0xdacc,
   PUEO_SS =0x501a,
   PUEO_SENSORS_TELEM =0xb1de,
   PUEO_SENSORS_DISK =0xcb1d,
@@ -525,19 +526,29 @@ typedef struct pueo_daq_hsk
       uint64_t scaler_bank : 1;
     } beams[PUEO_NBEAMS];
 
+    uint32_t agc_scale[PUEO_NCHAN_PER_SURF];
+    uint16_t agc_offset[PUEO_NCHAN_PER_SURF];
+
     pueo_time_t readout_time_start;
     uint16_t ms_elapsed;
     uint8_t surf_link;
     uint8_t surf_slot;
   } surfs[PUEO_NSURF];
 
+  pueo_time_t l2_readout_time;
+  uint32_t Hscalers[12];
+  uint32_t Vscalers[12];
 
-
-
+  pueo_time_t scaler_readout_time;;
+  uint32_t turfio_L1_rate[4][7];
+  uint32_t soft_rate;
+  uint32_t pps_rate;
+  uint32_t ext_rate;
 
 } pueo_daq_hsk_t;
 
 
+#define PUEO_DAQ_HSK_VER 0
 
 
 

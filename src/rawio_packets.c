@@ -68,6 +68,7 @@ SIMPLE_PUEO_IO_IMPL(slow, SLOW)
 SIMPLE_PUEO_IO_IMPL(ss,SS)
 SIMPLE_PUEO_IO_IMPL(timemark,TIMEMARK)
 SIMPLE_PUEO_IO_IMPL(nav_pos,NAV_POS)
+SIMPLE_PUEO_IO_IMPL(daq_hsk,DAQ_HSK)
 
 ///////// More complicated implementations here
 

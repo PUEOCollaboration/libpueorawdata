@@ -684,6 +684,41 @@ static void timemark_init(FILE *f, pueo_db_handle_t *h)
 }
 
 
+//TODO fill in the rest of this
+static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
+{
+  fprintf(f,"CREATE TABLE IF NOT EXISTS daq_hsks ( uid %s, time %s NOT NULL, l2_rate INTEGER, soft_rate INTEGER, pps_rate INTEGER,"
+      "L2_H0 INTEGER, L2_V0 INTEGER,"
+      "L2_H1 INTEGER, L2_V1 INTEGER,"
+      "L2_H2 INTEGER, L2_V2 INTEGER,"
+      "L2_H3 INTEGER, L2_V3 INTEGER,"
+      "L2_H4 INTEGER, L2_V4 INTEGER,"
+      "L2_H5 INTEGER, L2_V5 INTEGER,"
+      "L2_H6 INTEGER, L2_V6 INTEGER,"
+      "L2_H7 INTEGER, L2_V7 INTEGER,"
+      "L2_H8 INTEGER, L2_V8 INTEGER,"
+      "L2_H9 INTEGER, L2_V9 INTEGER,"
+      "L2_H10 INTEGER, L2_V10 INTEGER,"
+      "L2_H11 INTEGER, L2_V11 INTEGER,"
+      ")\n;",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  DB_MAKE_INDEX(daq_hsk, time)
+}
+
+int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
+{
+
+  FILE * f = begin_sql_stream(h);
+
+
+
+  return commit_sql_stream(h);
+}
+
+
+
 
 static void ss_init(FILE *f, pueo_db_handle_t * h)
 {
