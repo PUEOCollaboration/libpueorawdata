@@ -7,6 +7,7 @@ R__LOAD_LIBRARY(build/libpueorawdata.so);
 void wfs_plot(const char * f, int index = 0)
 {
 
+  gStyle->SetLineScalePS(1);
   pueo_handle_t h;
   pueo_handle_init(&h, f,"r");
 
@@ -18,6 +19,7 @@ void wfs_plot(const char * f, int index = 0)
 
   int idx = 0;
 
+  int iplot = 0;
   for (int isurf = 0; isurf < 28; isurf++)
   {
     TCanvas * c = new TCanvas(Form("c%d",isurf),Form("LINK %d, SURF %d", isurf/7, isurf % 7), 1800, 1000);
@@ -32,19 +34,26 @@ void wfs_plot(const char * f, int index = 0)
       {
         g->SetPoint(i,i/3., wfs.wfs[idx].data[i]);
       }
-      g->SetTitle(Form("RMS=%f;ns;adc", g->GetRMS(2)));
+      g->SetTitle(Form("Link %d Slot %d CH %d, RMS=%f;ns;adc", isurf / 7, isurf % 7, ichan, g->GetRMS(2)));
       g->GetYaxis()->SetTitleOffset(1.7);
       g->GetYaxis()->CenterTitle();
       g->GetXaxis()->CenterTitle();
       g->GetXaxis()->SetRangeUser(0,1024/3.);
-      g->Draw("alp");
+      g->Draw("al");
 
       gPad->SetRightMargin(0.05);
       gPad->SetLeftMargin(0.15);
       gPad->SetGridx();
       gPad->SetGridy();
       idx++;
-    }
+
+     }
+     if (isurf % 7< 6 )
+     {
+        c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
+        iplot++;
+     }
+
     c->Show();
   }
   printf("\n");
