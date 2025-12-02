@@ -306,9 +306,9 @@ int pueo_read_packet_nav_sat(pueo_handle_t * h, pueo_nav_sat_t * n, int ver)
 {
 
   (void) ver;
+  memset(n, 0, sizeof(*n));
   int nrd = h->read_bytes(offsetof(pueo_nav_sat_t, sats), n, h);
-  nrd += h->read_bytes(n->nsats_visible * (sizeof(n->sats)/255), n->sats, h );
-  memset(n + nrd, 0, sizeof(n) - nrd);
+  nrd += h->read_bytes(n->nsats_visible * (sizeof(n->sats[0])), n->sats, h );
   return nrd;
 }
 
