@@ -428,7 +428,7 @@ int pueo_db_insert_single_waveform(pueo_db_handle_t *h, const pueo_single_wavefo
   int min = INT_MAX;
   double sum2= 0;
   double sum = 0;
-  int N = wf->wf.length;
+  int N = 1024;
   for (int i = 0; i < N; i++)
   {
     int v = wf->wf.data[i];
@@ -445,7 +445,8 @@ int pueo_db_insert_single_waveform(pueo_db_handle_t *h, const pueo_single_wavefo
   fprintf(f, "INSERT INTO single_waveforms(time, run, event, channel, max, min, rms)"
              "VALUES (%u.%09u, %d, %d, %d, %d, %d, %f);",
               wf->event_second,  wf->readout_time.utc_nsecs,
-              wf->run, wf->event, wf->wf.channel_id, max, min, rms
+              wf->run, wf->event, wf->wf.channel_id, max, min, rms,
+              ( (double) wf->event_time - wf->last_pps) / (wf->last_pps - wf->llast_pps)
              );
 
   return commit_sql_stream(h);
@@ -732,7 +733,7 @@ static void nav_pos_init(FILE *f, pueo_db_handle_t *h)
 static void single_wf_init(FILE * f, pueo_db_handle_t *h)
 {
 
-  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max INTEGER, min INTEGER, rms REAL);\n",
+  fprintf(f,"CREATE TABLE IF NOT EXISTS single_waveforms ( uid %s, time %s NOT NULL, run INTEGER, event INTEGER, channel INTEGER, max INTEGER, min INTEGER, rms REAL, subsecond REAL);\n",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
