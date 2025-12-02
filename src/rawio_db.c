@@ -388,7 +388,6 @@ UNSUPPORTED_INSERT_DB(full_waveforms)
 UNSUPPORTED_INSERT_DB(sensors_disk)
 
 
-STUB_INSERT_DB(slow)
 STUB_INSERT_DB(nav_sat)
 
 int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
@@ -416,6 +415,17 @@ int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
   }
 
   fprintf(f,")\n");
+
+  return commit_sql_stream(h);
+}
+
+int pueo_db_insert_slow(pueo_db_handle_t * h, const pueo_slow_t* slow) {
+  
+  FILE * f = begin_sql_stream(h);
+  fprintf(f, "INSERT INTO slow_packets(time, ncmds, cpu_uptime) "
+             "VALUES (TO_TIMESTAMP(%i.0), %i, %i);",
+      slow->cpu_time, slow->ncmds, slow->cpu_uptime
+  );
 
   return commit_sql_stream(h);
 }
@@ -727,8 +737,6 @@ static void nav_pos_init(FILE *f, pueo_db_handle_t *h)
 
 }
 
-
-
 static void single_wf_init(FILE * f, pueo_db_handle_t *h)
 {
 
@@ -737,6 +745,16 @@ static void single_wf_init(FILE * f, pueo_db_handle_t *h)
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
   DB_MAKE_INDEX(single_waveform, time)
+}
+
+static void slow_init(FILE * f, pueo_db_handle_t *h)
+{
+
+  fprintf(f, "CREATE TABLE IF NOT EXISTS slow_packets ( uid %s, time %s NOT NULL, ncmds INTEGER, cpu_uptime INTEGER );\n",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  DB_MAKE_INDEX(slow_packet, time);
 }
 
 static void cmd_echo_init(FILE *f, pueo_db_handle_t *h)
@@ -792,6 +810,7 @@ static int init_db(pueo_db_handle_t * h)
   single_wf_init(f,h);
   cmd_echo_init(f,h);
   logs_init(f,h);
+  slow_init(f,h);
 
   commit_sql_stream(h);
 
