@@ -347,7 +347,7 @@ typedef struct pueo_cmd_echo
 
 #define PUEO_CMD_ECHO_VER 0
 
-
+#define PUEO_NUM_L2 12
 typedef struct pueo_slow
 {
   // 0
@@ -383,7 +383,7 @@ typedef struct pueo_slow
   uint32_t hsk_uptime : 24;
 
   //32
-  uint16_t L2_rates[12][2];
+  uint16_t L2_rates[PUEO_NUM_L2][2];
 
   //80
 
