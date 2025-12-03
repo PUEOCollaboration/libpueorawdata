@@ -4,7 +4,7 @@ R__LOAD_LIBRARY(build/libpueorawdata.so);
 #include "pueo/rawdata.h"
 #include "pueo/rawio.h"
 
-void wfs_plot(const char * f, int index = 0, bool plot = true)
+void wfs_plot(const char * f, int index = 0, bool plot = true, const char * save = "plot.pdf")
 {
 
   gStyle->SetLineScalePS(1);
@@ -31,6 +31,7 @@ void wfs_plot(const char * f, int index = 0, bool plot = true)
     {
       c->cd(ichan+1);
       TGraph * g = new TGraph(wfs.wfs[idx].length);
+      g->SetEditable(false);
       int idx = isurf*8+ichan;
       for (int i = 0; i < g->GetN(); i++)
       {
@@ -52,7 +53,7 @@ void wfs_plot(const char * f, int index = 0, bool plot = true)
      }
      if (isurf % 7< 6 )
      {
-//        c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
+        if (save) c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
         iplot++;
      }
 
