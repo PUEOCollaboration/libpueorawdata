@@ -533,7 +533,7 @@ typedef struct pueo_daq_hsk
     uint16_t ms_elapsed;
     uint8_t surf_link;
     uint8_t surf_slot;
-  } surfs[PUEO_NSURF];
+  } surfs[PUEO_NSURF];  // note, that some are probably garbage
 
   pueo_time_t l2_readout_time;
   uint32_t Hscalers[12];

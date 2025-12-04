@@ -63,6 +63,17 @@ extern "C"
 //2 are virtual, will throw them out later
 #define PUEO_NSURF 28
 #define PUEO_NCHAN_PER_SURF 8
+// how many surfs are actually populated
+#define PUEO_NREALSURF 26
+
+//convert from real surf index to daq surf index
+#define PUEO_IREALSURF_TO_ISURF(i)   ( i < 20 ? i : i+1 )
+#define PUEO_SURF_LINK(i)   ( i / 7)
+#define PUEO_SURF_SLOT(i)   ( i % 7)
+
+#define PUEO_IREALSURF_LINK(i)   ( PUEO_SURF_LINK(PUEO_IREALSURF_TO_ISURF(i)))
+#define PUEO_IREALSURF_SLOT(i)   ( PUEO_SURF_SLOT(PUEO_IREALSURF_TO_ISURF(i)))
+
 #define PUEO_NCHAN (PUEO_NSURF * PUEO_NCHAN_PER_SURF)
 
 #define PUEO_NBEAMS 48
