@@ -82,6 +82,7 @@ typedef enum e_pueo_datatype
   PUEO_NAV_SAT =0x5a75,
   PUEO_NAV_POS =0x1a75,
   PUEO_DAQ_HSK =0xdacc,
+  PUEO_DAQ_HSK_SUMMARY =0xdac5,
   PUEO_SS =0x501a,
   PUEO_SENSORS_TELEM =0xb1de,
   PUEO_SENSORS_DISK =0xcb1d,
@@ -510,6 +511,35 @@ typedef struct pueo_priority
   uint16_t signal_level : 2; //set by prioritizer
 } pueo_priority_t;
 
+typedef struct pueo_daq_hsk_summary
+{
+  struct
+  {
+    struct
+    {
+      uint32_t thresh_avg : 15;
+      uint32_t scaler_avg : 12;
+      uint32_t scaler_rms_div_16 : 5;
+    } beams[PUEO_NBEAMS];
+  } surf[PUEO_NREALSURF];
+
+  uint8_t Hscalers_avg[12];  //saturate at 255
+  uint8_t Vscalers_avg[12];
+
+  uint64_t MIE_total_H_avg : 9;
+  uint64_t MIE_total_V_avg : 9;
+  uint64_t aux_total_avg : 6;
+  uint64_t pps_rate : 2;
+  uint64_t global_total_avg : 10;
+  uint64_t global_total_min : 10;
+  uint64_t global_total_max : 10;
+  uint64_t global_total_rms : 8;
+
+  uint32_t start_second;
+  uint32_t end_second;
+} pueo_daq_hsk_summary_t;
+
+#define PUEO_DAQ_HSK_SUMMARY_VER 0
 
 
 typedef struct pueo_daq_hsk
@@ -545,10 +575,17 @@ typedef struct pueo_daq_hsk
   uint32_t pps_rate;
   uint32_t ext_rate;
 
+  uint16_t MIE_total_H;
+  uint16_t MIE_total_V;
+  uint16_t LF_total_H;
+  uint16_t LF_total_V;
+  uint16_t aux_total;
+  uint16_t global_total;
+
 } pueo_daq_hsk_t;
 
 
-#define PUEO_DAQ_HSK_VER 0
+#define PUEO_DAQ_HSK_VER 1
 
 
 

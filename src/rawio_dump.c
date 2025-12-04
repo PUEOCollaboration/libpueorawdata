@@ -338,6 +338,52 @@ int pueo_dump_nav_sat(FILE *f, const pueo_nav_sat_t * n)
   DUMPFINISH();
 }
 
+int pueo_dump_daq_hsk_summary(FILE * f, const pueo_daq_hsk_summary_t * hsk)
+{
+  DUMPINIT(f);
+  DUMPSTART("daq_hsk");
+
+  // we need to extract some of the bitfields, I tihnk, otherwise printf might get confused? I'm not actually sure if tha'ts true, but either way it will make it easier t oprint
+
+  DUMPU32(hsk, start_second);
+  DUMPU32(hsk, end_second);
+  DUMPU64(hsk, global_total_avg);
+  DUMPU64(hsk, global_total_min);
+  DUMPU64(hsk, global_total_max);
+  DUMPU64(hsk, global_total_rms);
+  DUMPU64(hsk, MIE_total_H_avg);
+  DUMPU64(hsk, MIE_total_V_avg);
+  DUMPU64(hsk, aux_total_avg);
+  DUMPU64(hsk, pps_rate);
+  DUMPARRAY(hsk,Hscalers_avg,12,"%hhu");
+  DUMPARRAY(hsk,Vscalers_avg,12,"%hhu");
+
+  DUMPSTARTARR("surfs");
+  for (int i = 0; i < PUEO_NREALSURF; i++)
+  {
+    DUMPSTARTARROBJ();
+    DUMPKEYVAL("MI_surf_idx", "%d", i);
+    DUMPKEYVAL("surf_link", "%d", PUEO_IMISURF_SLOT(i));
+    DUMPKEYVAL("surf_slot", "%d", PUEO_IMISURF_SLOT(i));
+
+    DUMPSTARTARR("beams");
+    for (int j = 0; j < PUEO_NBEAMS; j++)
+    {
+      DUMPSTARTARROBJ();
+      DUMPKEYVAL("threshold_average","%u", hsk->surf[i].beams[j].thresh_avg);
+      DUMPKEYVAL("scaler_average","%u", hsk->surf[i].beams[j].scaler_avg);
+      DUMPKEYVAL("scaler_rms","%u", 16 * hsk->surf[i].beams[j].scaler_rms_div_16);
+      DUMPENDARROBJ();
+    }
+    DUMPENDARR();
+    DUMPENDARROBJ();
+  }
+  DUMPENDARR();
+
+  DUMPEND();
+  DUMPFINISH();
+}
+
 //TODO add more things
 int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
 {

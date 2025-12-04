@@ -81,6 +81,43 @@ typedef struct pueo_single_waveform_v0
 } pueo_single_waveform_v0_t;
 
 
+typedef struct pueo_daq_hsk_v0
+{
+  struct
+  {
+    struct
+    {
+      uint64_t threshold : 18;
+      uint64_t pseudothreshold : 18;
+      uint64_t scaler : 12;
+      uint64_t pseudoscaler : 12;
+      uint64_t in_mask : 1;
+      uint64_t scaler_bank : 1;
+    } beams[PUEO_NBEAMS];
+
+    uint32_t agc_scale[PUEO_NCHAN_PER_SURF];
+    uint16_t agc_offset[PUEO_NCHAN_PER_SURF];
+
+    pueo_time_t readout_time_start;
+    uint16_t ms_elapsed;
+    uint8_t surf_link;
+    uint8_t surf_slot;
+  } surfs[PUEO_NSURF];  // note, that some are probably garbage
+
+  pueo_time_t l2_readout_time;
+  uint32_t Hscalers[12];
+  uint32_t Vscalers[12];
+
+  pueo_time_t scaler_readout_time;;
+  uint32_t turfio_L1_rate[4][7];
+  uint32_t soft_rate;
+  uint32_t pps_rate;
+  uint32_t ext_rate;
+
+} pueo_daq_hsk_v0_t;
+
+
+
 #endif
 
 

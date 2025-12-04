@@ -707,6 +707,11 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
   DB_MAKE_INDEX(daq_hsk, time)
 }
 
+//TODO SOMEONE PLEASE DO THIS @PARTYKEITH
+static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
+{
+}
+
 int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
 {
 
@@ -716,6 +721,18 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
 
   return commit_sql_stream(h);
 }
+
+int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summary_t *hsk)
+{
+
+  FILE * f = begin_sql_stream(h);
+
+
+
+  return commit_sql_stream(h);
+}
+
+
 
 
 

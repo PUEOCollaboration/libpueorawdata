@@ -182,7 +182,8 @@ int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
   X(PUEO_SS, ss)\
   X(PUEO_TIMEMARK, timemark)\
   X(PUEO_LOGS, logs)\
-  X(PUEO_DAQ_HSK, daq_hsk)
+  X(PUEO_DAQ_HSK, daq_hsk)\
+  X(PUEO_DAQ_HSK_SUMMARY, daq_hsk_summary)
 
 
 //  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)
