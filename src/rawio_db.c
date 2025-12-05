@@ -388,7 +388,6 @@ UNSUPPORTED_INSERT_DB(full_waveforms)
 UNSUPPORTED_INSERT_DB(sensors_disk)
 
 
-STUB_INSERT_DB(slow)
 STUB_INSERT_DB(nav_sat)
 
 int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
@@ -416,6 +415,52 @@ int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
   }
 
   fprintf(f,")\n");
+
+  return commit_sql_stream(h);
+}
+
+int pueo_db_insert_slow(pueo_db_handle_t * h, const pueo_slow_t* slow) {
+  
+  FILE * f = begin_sql_stream(h);
+  fprintf(f, "INSERT INTO slow_packets(time, ncmds, time_since_last_cmd, "
+             "last_cmd, sipd_uptime, cpu_uptime, can_ping_world, starlink_on, "
+             "los_on, gpu_present, nic_present, turf_seen, hsk_seen, ss_seen, "
+             "current_run, current_run_secs, current_run_events, acqd_running, "
+             "prioritizerd_running, current_run_rf_events, hsk_uptime, "
+             "pals_A_index, pals_A_free, pals_B_index, pals_B_free, "
+             "ssd0_free, ssd1_free, ssd2_free, ssd3_free, ssd4_free, "
+             "heading_abx, heading_boreas, heading_cpt7, turf_fix_type");
+  for(int i = 0; i < PUEO_NUM_L2; i++) {
+    fprintf(f, ", L2_rates_V_%i", i);
+  }
+  for(int i = 0; i < PUEO_NUM_L2; i++) {
+    fprintf(f, ", L2_rates_H_%i", i);
+  }
+  fprintf(f, " ) "
+             "VALUES (TO_TIMESTAMP(%i.0), %i, %i, "
+             "%i, %i, %i, %i, %i, "
+             "%i, %i, %i, %i, %i, %i, "
+             "%i, %i, %i, %i, "
+             "%i, %i, %i, "
+             "%i, %i, %i, %i, "
+             "%i, %i, %i, %i, %i, "
+             "%i, %i, %i, %i",
+      slow->cpu_time, slow->ncmds, slow->time_since_last_cmd,
+      slow->last_cmd, slow->sipd_uptime, slow->cpu_uptime, slow->can_ping_world, slow->starlink_on,
+      slow->los_on, slow->gpu_present, slow->nic_present, slow->turf_seen, slow->hsk_seen, slow->ss_seen,
+      slow->current_run, slow->current_run_secs, slow->current_run_events, slow->acqd_running,
+      slow->prioritizerd_running, slow->current_run_rf_events, slow->hsk_uptime,
+      slow->pals[0].index, slow->pals[0].free, slow->pals[1].index, slow->pals[1].free,
+      slow->ssd.ssd0_free, slow->ssd.ssd1_free, slow->ssd.ssd2_free, slow->ssd.ssd3_free, slow->ssd.ssd4_free,
+      slow->nav.heading_abx, slow->nav.heading_boreas, slow->nav.heading_cpt7, slow->nav.turf_fix_type
+  );
+  for(int i = 0; i < PUEO_NUM_L2; i++) {
+    fprintf(f, ", %i", slow->L2_rates[i][0]);
+  }
+  for(int i = 0; i < PUEO_NUM_L2; i++) {
+    fprintf(f, ", %i", slow->L2_rates[i][1]);
+  }
+  fprintf(f, ");");
 
   return commit_sql_stream(h);
 }
@@ -780,8 +825,6 @@ static void nav_pos_init(FILE *f, pueo_db_handle_t *h)
 
 }
 
-
-
 static void single_wf_init(FILE * f, pueo_db_handle_t *h)
 {
 
@@ -790,6 +833,30 @@ static void single_wf_init(FILE * f, pueo_db_handle_t *h)
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
   DB_MAKE_INDEX(single_waveform, time)
+}
+
+static void slow_init(FILE * f, pueo_db_handle_t *h)
+{
+
+  fprintf(f, "CREATE TABLE IF NOT EXISTS slow_packets ( uid %s, time %s NOT NULL, ncmds INTEGER, time_since_last_cmd INTEGER, "
+             "last_cmd INTEGER, sipd_uptime INTEGER, cpu_uptime INTEGER, can_ping_world INTEGER, starlink_on INTEGER, "
+             "los_on INTEGER, gpu_present INTEGER, nic_present INTEGER, turf_seen INTEGER, hsk_seen INTEGER, ss_seen INTEGER, "
+             "current_run INTEGER, current_run_secs INTEGER, current_run_events INTEGER, acqd_running INTEGER, "
+             "prioritizerd_running INTEGER, current_run_rf_events INTEGER, hsk_uptime INTEGER, "
+             "pals_A_index INTEGER, pals_A_free INTEGER, pals_B_index INTEGER, pals_B_free INTEGER, "
+             "ssd0_free INTEGER, ssd1_free INTEGER, ssd2_free INTEGER, ssd3_free INTEGER, ssd4_free INTEGER, "
+             "heading_abx INTEGER, heading_boreas INTEGER, heading_cpt7 INTEGER, turf_fix_type INTEGER\n",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+  for(int i = 0; i < PUEO_NUM_L2; i++) {
+    fprintf(f, ", L2_rates_V_%i INTEGER", i);
+  }
+  for(int i = 0; i < PUEO_NUM_L2; i++) {
+    fprintf(f, ", L2_rates_H_%i INTEGER", i);
+  }
+  fprintf(f, ");");
+
+  DB_MAKE_INDEX(slow_packet, time);
 }
 
 static void cmd_echo_init(FILE *f, pueo_db_handle_t *h)
@@ -845,6 +912,7 @@ static int init_db(pueo_db_handle_t * h)
   single_wf_init(f,h);
   cmd_echo_init(f,h);
   logs_init(f,h);
+  slow_init(f,h);
 
   commit_sql_stream(h);
 
