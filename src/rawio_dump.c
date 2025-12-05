@@ -43,7 +43,7 @@ static int pueo_dump_waveform(FILE *f, const pueo_waveform_t * wf)
   DUMPINIT(f)
   DUMPSTART("waveform");
   DUMPU8(wf,channel_id);
-  DUMPX8(wf,flags);
+  DUMPX8(wf,surf_word);
   DUMPU16(wf,length);
   DUMPARRAY(wf,data,wf->length,"%hd");
   DUMPEND();
@@ -60,10 +60,15 @@ int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
   DUMPU32(wf,event_time);
   DUMPU32(wf,last_pps);
   DUMPU32(wf,llast_pps);
-  DUMPX32(wf,trigger_meta[0]);
-  DUMPX32(wf,trigger_meta[1]);
-  DUMPX32(wf,trigger_meta[2]);
-  DUMPX32(wf,trigger_meta[3]);
+
+  DUMPX32(wf,deadtime_counter);
+  DUMPX32(wf,deadtime_counter_last_pps);
+  DUMPX32(wf,deadtime_counter_llast_pps);
+  DUMPX32(wf,L2_mask);
+  DUMPBOOL(wf,soft_trigger);
+  DUMPBOOL(wf,pps_trigger);
+  DUMPBOOL(wf,ext_trigger);
+
   ret+=pueo_dump_waveform(f,&wf->wf);
   DUMPEND();
   DUMPFINISH();
@@ -79,10 +84,16 @@ int pueo_dump_full_waveforms(FILE *f, const pueo_full_waveforms_t * wf)
   DUMPU32(wf,event_time);
   DUMPU32(wf,last_pps);
   DUMPU32(wf,llast_pps);
-  DUMPX32(wf,trigger_meta[0]);
-  DUMPX32(wf,trigger_meta[1]);
-  DUMPX32(wf,trigger_meta[2]);
-  DUMPX32(wf,trigger_meta[3]);
+
+  DUMPX32(wf,deadtime_counter);
+  DUMPX32(wf,deadtime_counter_last_pps);
+  DUMPX32(wf,deadtime_counter_llast_pps);
+  DUMPX32(wf,L2_mask);
+  DUMPBOOL(wf,soft_trigger);
+  DUMPBOOL(wf,pps_trigger);
+  DUMPBOOL(wf,ext_trigger);
+
+
   for (int i = 0; i < PUEO_NCHAN; i++)
   {
     ret+=pueo_dump_waveform(f,&wf->wfs[i]);

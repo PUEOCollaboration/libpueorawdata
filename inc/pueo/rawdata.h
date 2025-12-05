@@ -126,7 +126,7 @@ _Static_assert(sizeof(pueo_time_t) == 8, "doh");
 typedef struct pueo_waveform
 {
   uint8_t channel_id; // wow, we are close to this limit aren't we?
-  uint8_t flags;
+  uint8_t surf_word; //   L1 word for this surf
   uint16_t length; // buffer length
   int16_t data[PUEO_MAX_BUFFER_LENGTH];
 } pueo_waveform_t;
@@ -141,7 +141,14 @@ typedef struct pueo_full_waveforms
   uint32_t event_time;
   uint32_t last_pps;
   uint32_t llast_pps;
-  uint32_t trigger_meta[4];
+  uint32_t deadtime_counter;
+  uint32_t deadtime_counter_last_pps;
+  uint32_t deadtime_counter_llast_pps;
+  uint32_t L2_mask : 24;
+  uint32_t soft_trigger : 1;
+  uint32_t pps_trigger : 1;
+  uint32_t ext_trigger : 1;
+  uint32_t reserved : 5;
   pueo_time_t readout_time;
   pueo_waveform_t wfs[PUEO_NCHAN];
 } pueo_full_waveforms_t;
@@ -156,7 +163,15 @@ typedef struct pueo_single_waveform
   uint32_t event_time;
   uint32_t last_pps;
   uint32_t llast_pps;
-  uint32_t trigger_meta[4];
+  uint32_t deadtime_counter;
+  uint32_t deadtime_counter_last_pps;
+  uint32_t deadtime_counter_llast_pps;
+  uint32_t L2_mask : 24;
+  uint32_t soft_trigger : 1;
+  uint32_t pps_trigger : 1;
+  uint32_t ext_trigger : 1;
+  uint32_t reserved : 5;
+
   pueo_time_t readout_time;
   pueo_waveform_t wf;
 } pueo_single_waveform_t;

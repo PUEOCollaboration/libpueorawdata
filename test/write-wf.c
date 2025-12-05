@@ -5,7 +5,7 @@
 int main(int nargs, char ** args)
 {
 
-  pueo_single_waveform_t wf =  {.run = 123, .event = 456, .wf = { .channel_id = 101, .flags = 0x0f, .length = 1024 }};
+  pueo_single_waveform_t wf =  {.run = 123, .event = 456, .wf = { .channel_id = 101, .surf_word = 0x00, .length = 1024 }};
 
   for (int i = 0; i < 1024;i++) wf.wf.data[i] = i;
 
