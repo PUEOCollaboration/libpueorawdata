@@ -788,7 +788,7 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
       "MIE_total_H , MIE_total_V ,"
       "LF_total_H , LF_total_V ,"
       "aux_total , global_total"
-      ")\n;");
+      ")");
 
   fprintf(f, " VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) hsk->scaler_readout_time.utc_secs,  (uint32_t) hsk->scaler_readout_time.utc_nsecs);
     for(int i = 0; i < 4; i++) {
