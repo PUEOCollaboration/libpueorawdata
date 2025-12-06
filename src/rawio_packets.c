@@ -255,7 +255,7 @@ int pueo_read_packet_cmd_echo(pueo_handle_t *h, pueo_cmd_echo_t * e, int ver)
 {
   (void) ver;
   int nrd = h->read_bytes(offsetof(pueo_cmd_echo_t,data),e,h );
-  nrd +=- h->read_bytes(e->len_m1+1, e->data, h);
+  nrd += h->read_bytes(e->len_m1+1, e->data, h);
   memset(e->data+e->len_m1+1, 0, sizeof(e->data) - e->len_m1 - 1);
   return nrd;
 }
