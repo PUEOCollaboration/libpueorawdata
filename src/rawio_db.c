@@ -778,7 +778,7 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
 {
 
   FILE * f = begin_sql_stream(h);
-  fprintf(f, "INSERT INTO daq_hsk(time, ");
+  fprintf(f, "INSERT INTO daq_hsk(time");
     for(int i = 0; i < 4; i++) {
       for(int j=0;j<7; j++){
         fprintf(f, ", turfio%i_surf%i_L1rate", i,j);
@@ -816,7 +816,7 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
 {
 
   FILE * f = begin_sql_stream(h);
-  fprintf(f, "INSERT INTO daq_hsk_summary(time, ");
+  fprintf(f, "INSERT INTO daq_hsk_summary(time");
     for(int i = 0; i < PUEO_NREALSURF; i++) {
       for(int j=0;j<PUEO_NBEAMS; j++){
         fprintf(f, ", surf%i_beams%i_thresh_avg, surf%i_beams%i_scaler_avg, surf%i_beams%i_scaler_rms_div_16", i,j,i,j,i,j);
