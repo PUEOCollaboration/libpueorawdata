@@ -744,7 +744,7 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
     fprintf(f,", L2_rateH INTEGER, L2_rateV INTEGER, soft_rate INTEGER, pps_rate INTEGER, ext_rate INTEGER, "
       "MIE_total_H INTEGER, MIE_total_V INTEGER,"
       "LF_total_H INTEGER, LF_total_V INTEGER,"
-      "aux_total INTEGER, global_total INTEGER,"
+      "aux_total INTEGER, global_total INTEGER"
       ")\n;");
 
   DB_MAKE_INDEX(daq_hsk, time)
@@ -787,7 +787,7 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
   fprintf(f,", L2_rateH , L2_rateV , soft_rate , pps_rate , ext_rate , "
       "MIE_total_H , MIE_total_V ,"
       "LF_total_H , LF_total_V ,"
-      "aux_total , global_total ,"
+      "aux_total , global_total"
       ")\n;");
 
   fprintf(f, " VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) hsk->scaler_readout_time.utc_secs,  (uint32_t) hsk->scaler_readout_time.utc_nsecs);
