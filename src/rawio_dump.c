@@ -3,6 +3,7 @@
 #include "float16_guard.h"
 #include <stdio.h>
 #include "pueo/rawio.h"
+#include <string.h>
 #include "pueo/sensor_ids.h"
 
 
@@ -312,6 +313,31 @@ int pueo_dump_logs(FILE *f, const pueo_logs_t * l)
   DUMPKEYVAL("daemon","%.*s", l->daemon_len, l->buf);
   DUMPKEYVAL("grep","%.*s", l->grep_len, l->buf + l->daemon_len);
   DUMPKEYVAL("logs","%.*s", l->msg_len, l->buf + l->daemon_len + l->grep_len);
+  DUMPEND();
+  DUMPFINISH();
+}
+
+int pueo_dump_file_download(FILE *f, const pueo_file_download_t * dl)
+{
+  DUMPINIT(f);
+  DUMPSTART("file_download");
+  DUMPU32(dl, mtime);
+  DUMPBOOL(dl, read_ok);
+  DUMPU32(dl, offset);
+  char fname_padded[31] = {0};
+  memcpy(fname_padded, dl->fname, sizeof(dl->fname));
+  DUMPKEYVAL("filename","%s", fname_padded);
+  DUMPU16(dl, len);
+
+  if (dl->binary)
+  {
+    DUMPARRAY(dl,bytes,dl->len,"0x%x");
+  }
+  else
+  {
+    DUMPKEYVAL("text","%.*s", dl->len, dl->bytes);
+  }
+
   DUMPEND();
   DUMPFINISH();
 }

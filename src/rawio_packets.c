@@ -255,15 +255,44 @@ int pueo_read_packet_cmd_echo(pueo_handle_t *h, pueo_cmd_echo_t * e, int ver)
 {
   (void) ver;
   int nrd = h->read_bytes(offsetof(pueo_cmd_echo_t,data),e,h );
-  nrd +=- h->read_bytes(e->len_m1+1, e->data, h);
+  nrd += h->read_bytes(e->len_m1+1, e->data, h);
   memset(e->data+e->len_m1+1, 0, sizeof(e->data) - e->len_m1 - 1);
   return nrd;
 }
+
+int pueo_write_packet_file_download(pueo_handle_t * h, const pueo_file_download_t * dl)
+{
+ return  h->write_bytes(offsetof(pueo_file_download_t, bytes) + dl->len, dl, h);
+}
+
+
+pueo_packet_head_t pueo_packet_header_for_file_download(const pueo_file_download_t *dl, int ver)
+{
+  pueo_packet_head_t hd = { .type = PUEO_FILE_DOWNLOAD, .f1 = 0xf1, .version = ver};
+  uint32_t len = offsetof(pueo_file_download_t,bytes) + dl->len;
+  uint16_t crc = CRC16_START;
+  crc = pueo_crc16_continue(crc, dl, len);
+  hd.num_bytes = len;
+  hd.cksum = crc;
+  return hd;
+}
+
+int pueo_read_packet_file_download(pueo_handle_t *h, pueo_file_download_t * dl, int ver)
+{
+  (void) ver;
+  int nrd = h->read_bytes(offsetof(pueo_file_download_t,bytes), dl, h);
+  nrd += h->read_bytes(dl->len, dl->bytes, h);
+  memset (dl->bytes + dl->len, 0, sizeof(dl->bytes) - dl->len);
+  return nrd;
+}
+
+
 
 int pueo_write_packet_logs(pueo_handle_t * h, const pueo_logs_t * l)
 {
   return h->write_bytes(offsetof(pueo_logs_t, buf)  + l->daemon_len + l->grep_len +l->msg_len,l, h);
 }
+
 
 pueo_packet_head_t pueo_packet_header_for_logs(const pueo_logs_t *l, int ver)
 {

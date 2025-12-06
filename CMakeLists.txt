@@ -79,6 +79,9 @@ endif()
 add_executable(write-wf test/write-wf.c)
 target_link_libraries(write-wf pueorawdata)
 
+add_executable(write-cmd-echo test/write-cmd-echo.c)
+target_link_libraries(write-cmd-echo pueorawdata)
+
 add_executable(read-wf test/read-wf.c)
 target_link_libraries(read-wf pueorawdata)
 
