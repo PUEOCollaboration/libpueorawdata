@@ -504,7 +504,7 @@ int pueo_db_insert_nav_att(pueo_db_handle_t *h, const pueo_nav_att_t * att)
 
   FILE * f = begin_sql_stream(h);
   fprintf(f,"INSERT INTO nav_atts (readout_time, gps_time, lat, lon, alt, heading,"
-            " heading_sigma, pitch, pitch_sigma, roll, roll_sigma, hdop, vdop, source, nsats, flags, temperature, antenna_current_0, antenna_current_1, antenna_current_2"
+            " heading_sigma, pitch, pitch_sigma, roll, roll_sigma, hdop, vdop, source, nsats, flags, temperature, antenna_current_0, antenna_current_1, antenna_current_2)"
            " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
            " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
            (uint64_t) att->readout_time.utc_secs, (uint32_t) att->readout_time.utc_nsecs, (uint64_t) att->gps_time.utc_secs,
@@ -520,7 +520,7 @@ int pueo_db_insert_nav_pos(pueo_db_handle_t *h, const pueo_nav_pos_t * pos)
 
   FILE * f = begin_sql_stream(h);
   fprintf(f,"INSERT INTO nav_poss (readout_time, gps_time, lat, lon, alt,"
-            "hdop, vdop, source, nsats, flags, x, y, z, vx, vy, vz,"
+            "hdop, vdop, source, nsats, flags, x, y, z, vx, vy, vz)"
            " VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u), %f, %f, %f, %f,"
            " %f, %f, %f, %f, %f, %f, %f, '%c', %d, %d);",
            (uint64_t) pos->readout_time.utc_secs, (uint32_t) pos->readout_time.utc_nsecs, (uint64_t) pos->gps_time.utc_secs,
