@@ -403,7 +403,7 @@ int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
         i,i,i,i,i,i);
   }
 
-  fprintf(f, "VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) ss->readout_time.utc_secs,  (uint32_t) ss->readout_time.utc_nsecs);
+  fprintf(f, ") VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) ss->readout_time.utc_secs,  (uint32_t) ss->readout_time.utc_nsecs);
 
   for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
   {
