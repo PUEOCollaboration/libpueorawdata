@@ -745,6 +745,9 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
       "L2_H9 INTEGER, L2_V9 INTEGER,"
       "L2_H10 INTEGER, L2_V10 INTEGER,"
       "L2_H11 INTEGER, L2_V11 INTEGER,"
+      "MIE_total_H INTEGER, MIE_total_V INTEGER,"
+      "LF_total_H INTEGER, LF_total_V INTEGER,"
+      "aux_total INTEGER, global_total INTEGER,"
       ")\n;",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
@@ -755,6 +758,25 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
 //TODO SOMEONE PLEASE DO THIS @PARTYKEITH
 static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
 {
+  fprintf(f, "CREATE TABLE IF NOT EXISTS daq_hsk_summary ( uid %s, time %s NOT NULL",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+    for(int i = 0; i < PUEO_NREALSURF; i++) {
+      for(int j=0;j<PUEO_NBEAMS; j++){
+        fprintf(f, ", surf%i_beams%i_thresh_avg INTEGER, surf%i_beams%i_scaler_avg INTEGER, surf%i_beams%i_scaler_rms_div_16 INTEGER", i,j,i,j,i,j);
+      }
+    }
+    for(int j=0;j<12; j++){
+        fprintf(f, ", L2_H%i_scaler_avg INTEGER ",j);
+    }
+    for(int j=0;j<12; j++){
+        fprintf(f, ", L2_V%i_scaler_avg INTEGER ",j);
+    }
+    fprintf(f,", MIE_total_H_avg INTEGER, MIE_total_V_avg INTEGER, aux_total_avg INTEGER, pps_rate INTEGER, global_total_avg INTEGER, global_total_min INTEGER, global_total_max INTEGER, global_total_rms INTEGER , start_second INTEGER, duration INTEGER");
+  fprintf(f, ");\n");
+
+  DB_MAKE_INDEX(daq_hsk_summary, time);
+
 }
 
 int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
@@ -771,8 +793,42 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
 {
 
   FILE * f = begin_sql_stream(h);
+  fprintf(f, "INSERT INTO daq_hsk_summary(time, ");
+    for(int i = 0; i < PUEO_NREALSURF; i++) {
+      for(int j=0;j<PUEO_NBEAMS; j++){
+        fprintf(f, ", surf%i_beams%i_thresh_avg, surf%i_beams%i_scaler_avg, surf%i_beams%i_scaler_rms_div_16", i,j,i,j,i,j);
+      }
+    }
+    for(int j=0;j<12; j++){
+        fprintf(f, ", L2_H%i_scaler_avg",j);
+    }
+    for(int j=0;j<12; j++){
+        fprintf(f, ", L2_V%i_scaler_avg",j);
+    }
+  fprintf(f,", MIE_total_H_avg, MIE_total_V_avg, aux_total_avg, pps_rate, global_total_avg, global_total_min, global_total_max, global_total_rms, start_second, duration");
 
+  //fprintf(f, "VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) ss->readout_time.utc_secs,  (uint32_t) ss->readout_time.utc_nsecs);
 
+  fprintf(f, " ) VALUES (TO_TIMESTAMP(%i.0) ", hsk->end_second);
+    for(int i = 0; i < PUEO_NREALSURF; i++) {
+      for(int j=0;j<PUEO_NBEAMS; j++){
+        fprintf(f, ", %i, %i, %i", hsk->surf[i].beams[j].thresh_avg,hsk->surf[i].beams[j].scaler_avg,hsk->surf[i].beams[j].scaler_rms_div_16);
+      }
+    }
+    for(int j=0;j<12; j++){
+      fprintf(f, ", %i",hsk->Hscalers_avg[j]);
+    }
+    for(int j=0;j<12; j++){
+      fprintf(f, ", %i",hsk->Vscalers_avg[j]);
+    }
+    fprintf(f,", %i, %i, %i, %i, %i, %i, %i, %i, %i, %i", 
+      hsk->MIE_total_H_avg, hsk->MIE_total_V_avg, hsk->aux_total_avg,
+      hsk->pps_rate, hsk->global_total_avg, hsk->global_total_min,
+      hsk->global_total_max, hsk->global_total_rms, hsk->start_second,
+      (int)hsk->end_second-(int)hsk->start_second
+    );
+
+  fprintf(f, ");");
 
   return commit_sql_stream(h);
 }
