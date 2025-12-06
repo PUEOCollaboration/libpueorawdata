@@ -732,25 +732,19 @@ static void timemark_init(FILE *f, pueo_db_handle_t *h)
 //TODO fill in the rest of this
 static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
 {
-  fprintf(f,"CREATE TABLE IF NOT EXISTS daq_hsks ( uid %s, time %s NOT NULL, l2_rate INTEGER, soft_rate INTEGER, pps_rate INTEGER,"
-      "L2_H0 INTEGER, L2_V0 INTEGER,"
-      "L2_H1 INTEGER, L2_V1 INTEGER,"
-      "L2_H2 INTEGER, L2_V2 INTEGER,"
-      "L2_H3 INTEGER, L2_V3 INTEGER,"
-      "L2_H4 INTEGER, L2_V4 INTEGER,"
-      "L2_H5 INTEGER, L2_V5 INTEGER,"
-      "L2_H6 INTEGER, L2_V6 INTEGER,"
-      "L2_H7 INTEGER, L2_V7 INTEGER,"
-      "L2_H8 INTEGER, L2_V8 INTEGER,"
-      "L2_H9 INTEGER, L2_V9 INTEGER,"
-      "L2_H10 INTEGER, L2_V10 INTEGER,"
-      "L2_H11 INTEGER, L2_V11 INTEGER,"
+  fprintf(f,"CREATE TABLE IF NOT EXISTS daq_hsk ( uid %s, time %s NOT NULL ",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+    for(int i = 0; i < 4; i++) {
+      for(int j=0;j<7; j++){
+        fprintf(f, ", turfio%i_surf%i_L1rate INTEGER", i,j);
+      }
+    }
+    fprintf(f,", L2_rateH INTEGER, L2_rateV INTEGER, soft_rate INTEGER, pps_rate INTEGER, ext_rate INTEGER, "
       "MIE_total_H INTEGER, MIE_total_V INTEGER,"
       "LF_total_H INTEGER, LF_total_V INTEGER,"
       "aux_total INTEGER, global_total INTEGER,"
-      ")\n;",
-      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
-      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+      ")\n;");
 
   DB_MAKE_INDEX(daq_hsk, time)
 }
@@ -783,8 +777,36 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
 {
 
   FILE * f = begin_sql_stream(h);
+  fprintf(f, "INSERT INTO daq_hsk(time, ");
+    for(int i = 0; i < 4; i++) {
+      for(int j=0;j<7; j++){
+        fprintf(f, ", turfio%i_surf%i_L1rate", i,j);
+      }
+    }
+  fprintf(f,", L2_rateH , L2_rateV , soft_rate , pps_rate , ext_rate , "
+      "MIE_total_H , MIE_total_V ,"
+      "LF_total_H , LF_total_V ,"
+      "aux_total , global_total ,"
+      ")\n;");
 
-
+  fprintf(f, " VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) hsk->scaler_readout_time.utc_secs,  (uint32_t) hsk->scaler_readout_time.utc_nsecs);
+    for(int i = 0; i < 4; i++) {
+      for(int j=0;j<7; j++){
+        fprintf(f, ", %i", hsk->turfio_L1_rate[i][j]);
+      }
+    }
+  int sumL2H=0;
+  int sumL2V=0;
+  for(int i=0;i<12;i++){
+    sumL2H+=(int) hsk->Hscalers[i];
+    sumL2V+=(int) hsk->Vscalers[i];
+  }
+  fprintf(f,", %i, %i, %i, %i, %i, %i, %i, %i, %i,%i,%i", 
+      sumL2H, sumL2V, hsk->soft_rate,hsk->pps_rate,hsk->ext_rate,
+      hsk->MIE_total_H, hsk->MIE_total_V, hsk->LF_total_H,
+      hsk->LF_total_V,hsk->aux_total,hsk->global_total
+    );
+  fprintf(f, ");");
 
   return commit_sql_stream(h);
 }
