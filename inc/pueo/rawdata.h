@@ -88,6 +88,7 @@ typedef enum e_pueo_datatype
   PUEO_SENSORS_DISK =0xcb1d,
   PUEO_CMD_ECHO = 0xecc0,
   PUEO_LOGS = 0x7a11,
+  PUEO_FILE_DOWNLOAD = 0xd1d1,
   PUEO_SLOW = 0x510e,
   PUEO_TIMEMARK = 0xc10c
 } pueo_datatype_t;
@@ -603,6 +604,22 @@ typedef struct pueo_daq_hsk
 #define PUEO_DAQ_HSK_VER 1
 
 
+//plenty of headroom here!
+#define PUEO_MAX_FILE_DOWNLOAD_LENGTH 65000
+
+typedef struct pueo_file_download
+{
+  uint32_t offset : 31;
+  uint32_t read_ok : 1; // did we read it fine?
+  uint32_t mtime : 31;
+  uint32_t binary :1;
+  char fname[30]; //the front may be truncated
+  uint16_t len; //check with pahole if this aligned ok
+  uint8_t bytes[PUEO_MAX_FILE_DOWNLOAD_LENGTH];
+} pueo_file_download_t;
+
+
+#define PUEO_FILE_DOWNLOAD_VER 0
 
 #ifdef __cplusplus
 }

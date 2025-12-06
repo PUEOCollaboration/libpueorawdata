@@ -389,6 +389,7 @@ UNSUPPORTED_INSERT_DB(sensors_disk)
 
 
 STUB_INSERT_DB(nav_sat)
+STUB_INSERT_DB(file_download)
 
 int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
 {
