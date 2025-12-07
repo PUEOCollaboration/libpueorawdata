@@ -22,46 +22,25 @@ int main(int nargs, char ** args)
 
   printf("Prioritizer Initialized\n");
 
-  pueo_prio_cfg_opt_t c;
-
-  c.noiseThreshold = 0.158; //if above this, drop into Starlink Bin
-  c.tdrsSignalThreshold = 0.138; //if above this, drop into TDRSS Bin
-  c.extraSignalThreshold = -1; //Another signal value if desired
-  c.rmsThreshold = 16; //if channel RMS exceeds this value, count as "loud"
-  c.fullBlastThreshold = 87; //number of channels that must be "loud" to classify as full payload blast
-
-  c.topBlastThreshold = 1.5; //Threshold ratio of pkpk for largest top ring / largest bottom ring
-  c.bottomBlastThreshold = 0.5;
-  c.frontBackThreshold = 12; //Threshold ratio of pkpk for largest front antenna / largest back antenna
-  c.aboveHorizontal = 5; //in deg, sets all signals that reconstruct above this elevation as noise
-
-  c.scRiseTimeLowLim = 0.4; //Lower limit for rise time integration
-  c.scRiseTimeUpLim = 0.7; //Upper limit for rise time integration
-
-  c.lowpass = 750; //in MHz, lowpass cutoff
-  c.highpass = 100; //in MHz, highpass cutoff
-
-  //For Filter Kernel, all values in MHz. For multiple notches, do "XX, XX, ..."
-  c.filterCenters = "370";
-  c.filterSpans = "10";
-
-
+  const pueo_prio_cfg_opt_t c = {.noiseThreshold = 0.156, .tdrsSignalThreshold = 0.138, .extraSignalThreshold = -1, .rmsThreshold = 16,
+                           .fullBlastThreshold = 20, .topBlastThreshold = 1.5, .bottomBlastThreshold = 0.5, .frontBackThreshold = 6,
+                           .aboveHorizontal = 5, .scRiseTimeLowLim = 0.4, .scRiseTimeUpLim = 0.7, .lowpass = 750, .highpass = 100, 
+                           .filterCenters = "370.", .filterSpans = "10."};
   prio.pueo_prio_configure(&c);
 
   printf("Prioritizer Configured\n");
 
-  char base_filename[] = "/mnt/storagea/wfs/run0200/0";
-  char extension[] = "00.wfs.dat.zstd";
+  char base_filename[] = "/mnt/storagea/wfs/run0367/";
+  char extension[] = "00.wfs.dat";
   char wf_file[46]; // Buffer to hold the full filename
 
   int prior_1=0;
   int prior_2=0;
-
   int n_in_batch = 100;
   
   pueo_handle_t h;
-  for (int i=1; i<35; i++){
-    snprintf(wf_file, sizeof(wf_file), "%s%03d%s", base_filename, i, extension);
+  for (int i=280; i<451; i++){
+    snprintf(wf_file, sizeof(wf_file), "%s%04d%s", base_filename, i, extension);
     
     static pueo_full_waveforms_t all_wfs[PUEO_PRIO_MAX_BATCH] = {0};
     static pueo_prior_Event_t events[PUEO_PRIO_MAX_BATCH];
@@ -73,8 +52,9 @@ int main(int nargs, char ** args)
       int read = pueo_read_full_waveforms(&h, &all_wfs[n]);
       //printf("read: %d\n", read);
       if (read <= 0) break;
+      printf("L2 Mask: %d\n", all_wfs[n].L2_mask);
       memcpy(&events[n].allwfms, &all_wfs[n], sizeof(all_wfs[n]));
-      events[n].trigL2 = 0;
+      events[n].trigL2 = n % 24;
       n++;
     }
 
@@ -95,9 +75,15 @@ int main(int nargs, char ** args)
         }
         if (results[n].priority.signal_level == 2){
           prior_2 += 1;
+          printf("File: %d\n",i);
+          printf("Event: %d\n",n);
+          printf("Full Blast: %d\n", results[n].priority.fullpayload_blast_flag);
+          printf("Front/Back Blast: %d\n", results[n].priority.frontback_blast_flag);
         }
       }
     }
+
+    pueo_handle_close(&h);
   }
 
   printf("Priority 1: %d \n",prior_1);
