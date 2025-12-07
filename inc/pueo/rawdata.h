@@ -610,7 +610,7 @@ typedef struct pueo_daq_hsk
 typedef struct pueo_file_download
 {
   uint32_t offset : 31;
-  uint32_t read_ok : 1; // did we read it fine?
+  uint32_t read_ok : 1; // did we read it fine? (to disambiguate between empty and non-existent)
   uint32_t mtime : 31;
   uint32_t binary :1;
   char fname[30]; //the front may be truncated
