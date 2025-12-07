@@ -818,7 +818,6 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
     for(int i = 0; i < PUEO_NREALSURF; i++) {
         fprintf(f, ", surf%i_thresh_avg_beamavg, surf%i_scaler_avg_beamavg, surf%i_scaler_rms_div_16_beamavg, surf%i_max_thresh_avg, surf%i_threshold_avg_beamMaxIndex, surf%i_scaler_avg_forMaxBeam, surf%i_scaler_rms_div_16_forMaxBeam", i,i,i,i,i,i,i);
     }
-      fprintf(f, "", i,i,i,i);
     for(int j=0;j<12; j++){
         fprintf(f, ", L2_H%i_scaler_avg",j);
     }
@@ -851,7 +850,7 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
           sclr_rms_avg_sum += v2;
         }
         if(max_index>PUEO_NBEAMS) max_index=0;
-        fprintf(f, ", %f, %f, %f, %i, %i, %i, %i", thr_avg_sum/N,sclr_avg_sum/N,sclr_rms_avg_sum/N,,v,max_index,hsk->surf[i].beams[max_index].scaler_avg,hsk->surf[i].beams[max_index].scaler_rms_div_16);
+        fprintf(f, ", %f, %f, %f, %i, %i, %i, %i", thr_avg_sum/N,sclr_avg_sum/N,sclr_rms_avg_sum/N,v,max_index,hsk->surf[i].beams[max_index].scaler_avg,hsk->surf[i].beams[max_index].scaler_rms_div_16);
     }
     for(int j=0;j<12; j++){
       fprintf(f, ", %i",hsk->Hscalers_avg[j]);
