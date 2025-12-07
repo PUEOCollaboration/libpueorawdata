@@ -757,9 +757,7 @@ static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
     for(int i = 0; i < PUEO_NREALSURF; i++) {
-      for(int j=0;j<PUEO_NBEAMS; j++){
-        fprintf(f, ", surf%i_beams%i_thresh_avg INTEGER, surf%i_beams%i_scaler_avg INTEGER, surf%i_beams%i_scaler_rms_div_16 INTEGER", i,j,i,j,i,j);
-      }
+        fprintf(f, ", surf%i_thresh_avg_beamavg INTEGER, surf%i_scaler_avg_beamavg INTEGER, surf%i_scaler_rms_div_16_beamavg INTEGER, surf%i_max_thresh_avg INTEGER, surf%i_threshold_avg_beamMaxIndex INTEGER, surf%i_scaler_avg_forMaxBeam INTEGER, surf%i_scaler_rms_div_16_forMaxBeam INTEGER", i,i,i,i,i,i,i);
     }
     for(int j=0;j<12; j++){
         fprintf(f, ", L2_H%i_scaler_avg INTEGER ",j);
@@ -818,10 +816,9 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
   FILE * f = begin_sql_stream(h);
   fprintf(f, "INSERT INTO daq_hsk_summarys(time");
     for(int i = 0; i < PUEO_NREALSURF; i++) {
-      for(int j=0;j<PUEO_NBEAMS; j++){
-        fprintf(f, ", surf%i_beams%i_thresh_avg, surf%i_beams%i_scaler_avg, surf%i_beams%i_scaler_rms_div_16", i,j,i,j,i,j);
-      }
+        fprintf(f, ", surf%i_thresh_avg_beamavg, surf%i_scaler_avg_beamavg, surf%i_scaler_rms_div_16_beamavg, surf%i_max_thresh_avg, surf%i_threshold_avg_beamMaxIndex, surf%i_scaler_avg_forMaxBeam, surf%i_scaler_rms_div_16_forMaxBeam", i,i,i,i,i,i,i);
     }
+      fprintf(f, "", i,i,i,i);
     for(int j=0;j<12; j++){
         fprintf(f, ", L2_H%i_scaler_avg",j);
     }
@@ -834,9 +831,27 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
 
   fprintf(f, " ) VALUES (TO_TIMESTAMP(%i.0) ", hsk->end_second);
     for(int i = 0; i < PUEO_NREALSURF; i++) {
-      for(int j=0;j<PUEO_NBEAMS; j++){
-        fprintf(f, ", %i, %i, %i", hsk->surf[i].beams[j].thresh_avg,hsk->surf[i].beams[j].scaler_avg,hsk->surf[i].beams[j].scaler_rms_div_16);
-      }
+      // calc averages per beam
+        int max = 0;
+        int max_index = 0;
+        double thr_avg_sum = 0;
+        double sclr_avg_sum = 0;
+        double sclr_rms_avg_sum = 0;
+        int N = PUEO_NBEAMS;
+        for (int j = 0; j < N; j++){
+          int v = (int) hsk->surf[i].beams[j].thresh_avg;
+          int v1 = (int) hsk->surf[i].beams[j].scaler_avg;
+          int v2 = (int) hsk->surf[i].beams[j].scaler_rms_div_16;
+          if (v > max){
+            max = v;
+            max_index=j;
+          }
+          thr_avg_sum += v;
+          sclr_avg_sum += v1;
+          sclr_rms_avg_sum += v2;
+        }
+        if(max_index>PUEO_NBEAMS) max_index=0;
+        fprintf(f, ", %f, %f, %f, %i, %i, %i, %i", thr_avg_sum/N,sclr_avg_sum/N,sclr_rms_avg_sum/N,,v,max_index,hsk->surf[i].beams[max_index].scaler_avg,hsk->surf[i].beams[max_index].scaler_rms_div_16);
     }
     for(int j=0;j<12; j++){
       fprintf(f, ", %i",hsk->Hscalers_avg[j]);
