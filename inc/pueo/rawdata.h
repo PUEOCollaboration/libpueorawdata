@@ -432,9 +432,24 @@ typedef struct pueo_slow
   } nav;
   //96
 
+  int8_t NIC_temperature;
+  int8_t SFC_temperature; 
+
+  uint32_t pwr_from_sun    : 11;
+  uint32_t pwr_usage       : 11;
+  uint32_t battery_state   : 3;
+  uint32_t AMPA_current    : 4;
+  uint32_t VPol_Crate_on   : 1;
+  uint32_t HPol_Crate_on   : 1;
+  uint32_t SFC_Voltage_on  : 1; // this was is redudant because how the hell do you get this packet if the SFC is off??
+
+  uint8_t  VPol_Current; // range 0,20 in real units (in data taking mode it is railed at 20 at the sensor lvl by design flaw)
+  uint8_t  HPol_Current; // range 0,20 in real units (in data taking mode it is railed at 20 at sensor lvl by design flaw)
+  uint8_t  SFC_Current; // 0,20 in real units (usually sits at ~4.5A , but includes current of GPU which goes to ~8A if prioritizer is running)
+  
 } pueo_slow_t;
 
-#define PUEO_SLOW_VER 1
+#define PUEO_SLOW_VER 2
 
 
 #define PUEO_SS_NUM_SENSORS 8
