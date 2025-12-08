@@ -659,7 +659,7 @@ int pueo_db_insert_cmd_echo(pueo_db_handle_t * h, const pueo_cmd_echo_t * e)
 int pueo_db_insert_logs(pueo_db_handle_t *h, const pueo_logs_t * l)
 {
   FILE * f = begin_sql_stream(h);
-  fprintf(f,"INSERT INTO logs(time, is_until, since_until, daemon, grep, logs) VALUES"
+  fprintf(f,"INSERT INTO logs(time, is_until, since_or_until, daemon, grep, logs) VALUES"
              "(TO_TIMESTAMP(%u), %d, %hu, '%.*s', '%.*s', '%.*s');",
              l->utc_retrieved, (int) l->is_until, l->rel_time_since_or_until,
              l->daemon_len, l->buf,
