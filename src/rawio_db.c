@@ -407,9 +407,9 @@ int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
 
   for (int i = 0; i < PUEO_SS_NUM_SENSORS; i++)
   {
-        fprintf(f, ", %hu, %hu, %hu, %hu, %f, %f",
-        (uint16_t) ss->ss[i].x1, (uint16_t) ss->ss[i].x2,
-        (uint16_t) ss->ss[i].y1, (uint16_t) ss->ss[i].y2,
+        fprintf(f, ", %u, %u, %u, %u, %f, %f",
+        (uint32_t) ss->ss[i].x1, (uint32_t) ss->ss[i].x2,
+        (uint32_t) ss->ss[i].y1, (uint32_t) ss->ss[i].y2,
         PUEO_SS_TEMPERATURE_CONVERT_SS(ss->ss[i].tempSS),
         PUEO_SS_TEMPERATURE_CONVERT_ADS1220(ss->ss[i].tempADS1220)
         );
