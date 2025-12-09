@@ -553,9 +553,11 @@ typedef struct pueo_daq_hsk_summary
 
   uint32_t start_second;
   uint32_t end_second;
+
+  uint8_t enable_mask_fraction[26]; // out of 255 
 } pueo_daq_hsk_summary_t;
 
-#define PUEO_DAQ_HSK_SUMMARY_VER 0
+#define PUEO_DAQ_HSK_SUMMARY_VER 1
 
 
 typedef struct pueo_daq_hsk
@@ -598,10 +600,12 @@ typedef struct pueo_daq_hsk
   uint16_t aux_total;
   uint16_t global_total;
 
+  uint32_t l2_enable_mask;
+
 } pueo_daq_hsk_t;
 
 
-#define PUEO_DAQ_HSK_VER 1
+#define PUEO_DAQ_HSK_VER 2
 
 
 //plenty of headroom here!
