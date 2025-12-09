@@ -104,3 +104,6 @@ target_link_libraries(pueo-init-db pueorawdata)
 
 add_executable(read-packets test/read-packets.c)
 target_link_libraries(read-packets pueorawdata)
+
+add_executable(read-events test/read-events.c)
+target_link_libraries(read-events pueorawdata)
