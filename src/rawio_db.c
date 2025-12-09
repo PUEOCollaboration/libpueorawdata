@@ -449,9 +449,9 @@ int pueo_db_insert_slow(pueo_db_handle_t * h, const pueo_slow_t* slow) {
              "%i, %i, %i, "
              "%i, %i, %i, %i, "
              "%i, %i, %i, %i, %i, "
-             "%i, %i, %i, %i"
-             "%i, %i, %i, %i"
-             "%i, %i, %i, %i"
+             "%i, %i, %i, %i, "
+             "%i, %i, %i, %i, "
+             "%i, %i, %i, %i, "
              "%i, %i, %i, %i",
       slow->cpu_time, slow->ncmds, slow->time_since_last_cmd,
       slow->last_cmd, slow->sipd_uptime, slow->cpu_uptime, slow->can_ping_world, slow->starlink_on,
