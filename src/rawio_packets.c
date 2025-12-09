@@ -70,6 +70,7 @@ SIMPLE_PUEO_IO_IMPL(timemark,TIMEMARK)
 SIMPLE_PUEO_IO_IMPL(nav_pos,NAV_POS)
 SIMPLE_PUEO_IO_IMPL(daq_hsk,DAQ_HSK)
 SIMPLE_PUEO_IO_IMPL(daq_hsk_summary,DAQ_HSK_SUMMARY)
+SIMPLE_PUEO_IO_IMPL(priorities,PRIORITIES)
 
 ///////// More complicated implementations here
 

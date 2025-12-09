@@ -450,4 +450,17 @@ int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
 }
 
 
+int pueo_dump_priorities(FILE * f, const pueo_priorities_t *phsk)
+{
+  DUMPINIT(f);
+  DUMPSTART("priorities");
+
+
+
+  DUMPEND();
+  DUMPFINISH()
+
+}
+
+
 

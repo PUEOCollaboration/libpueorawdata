@@ -90,7 +90,8 @@ typedef enum e_pueo_datatype
   PUEO_LOGS = 0x7a11,
   PUEO_FILE_DOWNLOAD = 0xd1d1,
   PUEO_SLOW = 0x510e,
-  PUEO_TIMEMARK = 0xc10c
+  PUEO_TIMEMARK = 0xc10c,
+  PUEO_PRIORITIES = 0x5cad
 } pueo_datatype_t;
 
 /**
@@ -526,6 +527,21 @@ typedef struct pueo_priority
   uint16_t cal_type : 2;
   uint16_t signal_level : 2; //set by prioritizer
 } pueo_priority_t;
+
+#define PUEO_PRIORITY_FORMAT_STRING  " trig_type: %s, topring_blast: %s\n, ";
+
+
+typedef struct pueo_priorities
+{
+
+
+
+} pueo_priorities_t;
+
+
+#define PUEO_PRIORITIES_VER 0
+
+
 
 typedef struct pueo_daq_hsk_summary
 {
