@@ -59,8 +59,8 @@ typedef struct pueo_prio_cfg_opt
   double aboveHorizontal;
   double scRiseTimeLowLim;
   double scRiseTimeUpLim;
-  char * filterCenters;
-  char * filterSpans;
+  double filterCenters[8];
+  double filterSpans[8];
   double lowpass;
   double highpass;
 
@@ -91,7 +91,7 @@ typedef struct pueo_prior_Event
 #define PUEO_PRIO_FUNCTIONS(FN)\
   FN(void, pueo_prio_init, (void))\
   FN(void, pueo_prio_configure, (const pueo_prio_cfg_opt_t *passed_config))\
-  FN(pueo_prio_result_t*, pueo_prio_compute, (const   pueo_prior_Event_t * events, int N, pueo_prio_cfg_opt_t config))
+  FN(const pueo_prio_result_t*, pueo_prio_compute, (const pueo_prior_Event_t * events, int N))
 
 #define PUEO_PRIO_DECLARE(ret, name, args)\
 PUEO_EXTERN ret name args;
