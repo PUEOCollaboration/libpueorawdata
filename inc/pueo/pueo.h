@@ -72,9 +72,9 @@ extern "C"
 #define PUEO_IREALSURF_TO_ISURF(i)   ( i < 20 ? i : i+1 )
 
 //convert from MI surf to daq surf index
-#define PUEO_IMISURF_TO_ISURF(i)   ( i < 7  ? i :\
-                                     i < 14 ? i+1:\
-                                     i < 21 ? i+2:\
+#define PUEO_IMISURF_TO_ISURF(i)   ( i < 6  ? i :\
+                                     i < 12 ? i+1:\
+                                     i < 18 ? i+2:\
                                      i+3)
 #define PUEO_SURF_LINK(i)   ( i / 7)
 #define PUEO_SURF_SLOT(i)   ( i % 7)
