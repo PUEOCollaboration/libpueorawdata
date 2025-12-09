@@ -417,6 +417,10 @@ int pueo_dump_daq_hsk_summary(FILE * f, const pueo_daq_hsk_summary_t * hsk)
   }
   DUMPENDARR();
 
+  DUMPSTARTARR("L2_averages");
+  for (int i = 0; i < 26; i++) printf("%f%s", hsk->enable_mask_fraction[i]/255.,  i < 25 ? "," : "");
+  DUMPENDARR();
+
   DUMPEND();
   DUMPFINISH();
 }
@@ -431,6 +435,7 @@ int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
   DUMPTIME(hsk, l2_readout_time);
   DUMPU32(hsk, soft_rate);
   DUMPU32(hsk, pps_rate);
+  DUMPU32(hsk, l2_enable_mask);
 
   DUMPARRAY(hsk,Hscalers,12,"%u");
   DUMPARRAY(hsk,Vscalers,12,"%u");
@@ -438,6 +443,19 @@ int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
   uint32_t total_L2 = 0;
   for (int i = 0; i < 12; i++) { total_L2 += hsk->Hscalers[i] + hsk->Vscalers[i]; }
   DUMPKEYVAL("total_L2_rate", "%u", total_L2);
+
+  DUMPEND();
+  DUMPFINISH()
+
+}
+
+
+int pueo_dump_priorities(FILE * f, const pueo_priorities_t *phsk)
+{
+  DUMPINIT(f);
+  DUMPSTART("priorities");
+
+
 
   DUMPEND();
   DUMPFINISH()

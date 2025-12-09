@@ -90,7 +90,8 @@ typedef enum e_pueo_datatype
   PUEO_LOGS = 0x7a11,
   PUEO_FILE_DOWNLOAD = 0xd1d1,
   PUEO_SLOW = 0x510e,
-  PUEO_TIMEMARK = 0xc10c
+  PUEO_TIMEMARK = 0xc10c,
+  PUEO_PRIORITIES = 0x5cad
 } pueo_datatype_t;
 
 /**
@@ -542,6 +543,21 @@ typedef struct pueo_priority
   uint16_t signal_level : 2; //set by prioritizer
 } pueo_priority_t;
 
+#define PUEO_PRIORITY_FORMAT_STRING  " trig_type: %s, topring_blast: %s\n, ";
+
+
+typedef struct pueo_priorities
+{
+
+
+
+} pueo_priorities_t;
+
+
+#define PUEO_PRIORITIES_VER 0
+
+
+
 typedef struct pueo_daq_hsk_summary
 {
   struct
@@ -568,9 +584,11 @@ typedef struct pueo_daq_hsk_summary
 
   uint32_t start_second;
   uint32_t end_second;
+
+  uint8_t enable_mask_fraction[26]; // out of 255 
 } pueo_daq_hsk_summary_t;
 
-#define PUEO_DAQ_HSK_SUMMARY_VER 0
+#define PUEO_DAQ_HSK_SUMMARY_VER 1
 
 
 typedef struct pueo_daq_hsk
@@ -613,10 +631,12 @@ typedef struct pueo_daq_hsk
   uint16_t aux_total;
   uint16_t global_total;
 
+  uint32_t l2_enable_mask;
+
 } pueo_daq_hsk_t;
 
 
-#define PUEO_DAQ_HSK_VER 1
+#define PUEO_DAQ_HSK_VER 2
 
 
 //plenty of headroom here!
