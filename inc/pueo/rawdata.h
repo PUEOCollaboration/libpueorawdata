@@ -181,12 +181,7 @@ typedef struct pueo_priority
   uint16_t botring_blast_flag : 1; //set by prioritizer
   uint16_t fullpayload_blast_flag : 1; //set by prioritizer
   uint16_t frontback_blast_flag : 1; //set by prioritizer
-  uint16_t anthro_base1_flag : 1;
-  uint16_t anthro_base2_flag : 1;
-  uint16_t anthro_base3_flag : 1;
-  uint16_t anthro_base4_flag : 1;
-  uint16_t anthro_base5_flag : 1;
-  uint16_t anthro_base6_flag : 1;
+  uint16_t anthro_base_flag : 6;
   uint16_t cal_type : 2;
   uint16_t signal_level : 2; //set by prioritizer
 } pueo_priority_t;
