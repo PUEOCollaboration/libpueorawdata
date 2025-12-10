@@ -473,7 +473,7 @@ typedef struct pueo_slow
   //96
 
   int8_t NIC_temperature;
-  int8_t SFC_temperature; 
+  int8_t SFC_temperature;
 
   uint32_t pwr_from_sun    : 11;
   uint32_t pwr_usage       : 11;
@@ -486,7 +486,7 @@ typedef struct pueo_slow
   uint8_t  VPol_Current; // range 0,20 in real units (in data taking mode it is railed at 20 at the sensor lvl by design flaw)
   uint8_t  HPol_Current; // range 0,20 in real units (in data taking mode it is railed at 20 at sensor lvl by design flaw)
   uint8_t  SFC_Current; // 0,20 in real units (usually sits at ~4.5A , but includes current of GPU which goes to ~8A if prioritizer is running)
-  
+
 } pueo_slow_t;
 
 #define PUEO_SLOW_VER 1
