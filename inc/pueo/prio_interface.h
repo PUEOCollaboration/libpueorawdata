@@ -91,7 +91,8 @@ typedef struct pueo_prior_Event
 #define PUEO_PRIO_FUNCTIONS(FN)\
   FN(void, pueo_prio_init, (void))\
   FN(void, pueo_prio_configure, (const pueo_prio_cfg_opt_t *passed_config))\
-  FN(const pueo_prio_result_t*, pueo_prio_compute, (const pueo_prior_Event_t * events, int N))
+  FN(const pueo_prio_result_t*, pueo_prio_compute, (const pueo_prior_Event_t * events, int N))\
+  FN(void, pueo_prio_destroy, (void))
 
 #define PUEO_PRIO_DECLARE(ret, name, args)\
 PUEO_EXTERN ret name args;

@@ -23,7 +23,7 @@ int main(int nargs, char ** args)
   printf("Prioritizer Initialized\n");
 
 
-  const pueo_prio_cfg_opt_t c = {.noiseThreshold = 0.156, .tdrsSignalThreshold = 0.138, .extraSignalThreshold = -1, .rmsThreshold = 16,
+  const pueo_prio_cfg_opt_t c = {.noiseThreshold = 0.161, .tdrsSignalThreshold = 0.147, .extraSignalThreshold = -1, .rmsThreshold = 16,
                            .fullBlastThreshold = 20, .topBlastThreshold = 1.5, .bottomBlastThreshold = 0.5, .frontBackThreshold = 6,
                            .aboveHorizontal = 5, .scRiseTimeLowLim = 0.4, .scRiseTimeUpLim = 0.7, .lowpass = 750, .highpass = 100, 
                            .filterCenters = {370,}, .filterSpans = {10,}};
@@ -32,7 +32,7 @@ int main(int nargs, char ** args)
 
   printf("Prioritizer Configured\n");
 
-  char base_filename[] = "/mnt/storagea/wfs/run0383/";
+  char base_filename[] = "/mnt/storagea/wfs/run0579/";
   char extension[] = "00.wfs.dat";
   char wf_file[46]; // Buffer to hold the full filename
 
@@ -41,7 +41,7 @@ int main(int nargs, char ** args)
   int n_in_batch = 100;
   
   pueo_handle_t h;
-  for (int i=1; i<50; i++){
+  for (int i=1; i<100; i++){
     snprintf(wf_file, sizeof(wf_file), "%s%04d%s", base_filename, i, extension);
     
     static pueo_full_waveforms_t all_wfs[PUEO_PRIO_MAX_BATCH] = {0};
@@ -81,9 +81,11 @@ int main(int nargs, char ** args)
         //printf(" result { Rise Time Priority = %d, Front/Back Blast = %d, Full Payload Blast = %d, Top Ring Blast = %d, Bottom Ring Blast = %d} \n", results[n].priority.signal_level, results[n].priority.frontback_blast_flag, results[n].priority.fullpayload_blast_flag, results[n].priority.topring_blast_flag, results[n].priority.botring_blast_flag);
         //printf("Rise Time Priority = %d, Az = %f, Al = %f, Rise Time = %f \n", results[n].priority.signal_level, results[n].phi, results[n].theta, results[n].imp);
         if (results[n].priority.signal_level == 1){
-          //prior_1 += 1;
-          //printf("Prior 1 File: %d\n", i);
-          //printf("Event: %d\n", n);
+          prior_1 += 1;
+          printf("Prior 1 File: %d\n", i);
+          printf("Event: %d\n", n);
+          printf("Phi: %f\n",results[n].phi);
+          printf("Theta: %f\n",results[n].theta);
         }
         if (results[n].priority.signal_level == 2){
           prior_2 += 1;
