@@ -114,7 +114,9 @@ pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_wave
   pueo_packet_head_t hd = {.type = PUEO_SINGLE_WAVEFORM, .f1 = 0xf1, .version = ver};
   uint32_t len = 0;
   uint16_t crc = CRC16_START;
-  len +=  ver == 0 ? offsetof(pueo_single_waveform_t, readout_time) : offsetof(pueo_single_waveform_t, wf);
+  len +=  ver == 0 ? offsetof(pueo_single_waveform_t, readout_time) : 
+          ver == 1 ? offsetof(pueo_single_waveform_t, prio)  :
+          offsetof(pueo_single_waveform_t, wf);
   crc = pueo_crc16_continue(crc,p, len);
   update_len_cksum_waveform(&len,&crc,&p->wf);
   hd.num_bytes = len;
@@ -125,7 +127,8 @@ pueo_packet_head_t pueo_packet_header_for_single_waveform(const pueo_single_wave
 
 int pueo_read_packet_single_waveform(pueo_handle_t *h, pueo_single_waveform_t *p, int ver)
 {
-  size_t offs = ver == 0 ? offsetof(pueo_single_waveform_t,  readout_time) : offsetof(pueo_single_waveform_t, wf);
+  size_t offs = ver == 0 ? offsetof(pueo_single_waveform_t,  readout_time) :
+                ver == 1 ? offsetof(pueo_single_waveform_t, prio) :  offsetof(pueo_single_waveform_t, wf);
   if (ver == 0) memset(&p->readout_time, 0, sizeof(p->readout_time));
   int total_read = h->read_bytes(offs, p, h);
   if (total_read !=  (int) offs) return -1;

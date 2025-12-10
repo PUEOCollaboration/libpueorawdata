@@ -91,7 +91,7 @@ typedef enum e_pueo_datatype
   PUEO_FILE_DOWNLOAD = 0xd1d1,
   PUEO_SLOW = 0x510e,
   PUEO_TIMEMARK = 0xc10c,
-  PUEO_PRIORITIES = 0x5cad
+  PUEO_PRIORITIES = 0x5cad  // as close to scrandis as I can
 } pueo_datatype_t;
 
 /**
@@ -157,6 +157,42 @@ typedef struct pueo_full_waveforms
 
 #define PUEO_FULL_WAVEFORMS_VER 1
 
+#define PUEO_PRIO_TRIG_TYPE_FORCE 0
+#define PUEO_PRIO_TRIG_TYPE_LF 1
+#define PUEO_PRIO_TRIG_TYPE_MI 2
+#define PUEO_PRIO_TRIG_TYPE_LFANDMI 3
+
+#define PUEO_PRIO_CAL_TYPE_NONE 0
+#define PUEO_PRIO_CAL_TYPE_HICAL 1
+#define PUEO_PRIO_CAL_TYPE_GROUNDCAL 2
+#define PUEO_PRIO_CAL_TYPE_RESERVED 3
+
+#define PUEO_PRIO_SIGNAL_LEVEL_THERMAL 0
+#define PUEO_PRIO_SIGNAL_LEVEL_SIGNAL 1
+#define PUEO_PRIO_SIGNAL_LEVEL_BEST_SIGNAL 2
+#define PUEO_PRIO_SIGNAL_LEVEL_BESTEST_SIGNAL 3
+
+typedef struct pueo_priority
+{
+  uint16_t trig_type : 2;
+  uint16_t topring_blast_flag : 1; //set by prioritizer
+  uint16_t botring_blast_flag : 1; //set by prioritizer
+  uint16_t fullpayload_blast_flag : 1; //set by prioritizer
+  uint16_t frontback_blast_flag : 1; //set by prioritizer
+  uint16_t anthro_base1_flag : 1;
+  uint16_t anthro_base2_flag : 1;
+  uint16_t anthro_base3_flag : 1;
+  uint16_t anthro_base4_flag : 1;
+  uint16_t anthro_base5_flag : 1;
+  uint16_t anthro_base6_flag : 1;
+  uint16_t cal_type : 2;
+  uint16_t signal_level : 2; //set by prioritizer
+} pueo_priority_t;
+
+#define PUEO_PRIORITY_FORMAT_STRING \
+  "trig_type: %s,\ntopring_blast: %s, botring_blast_flag: %s, fullpayload_blast_flag: %s, frontback_blast_flag: %s\n"
+
+
 typedef struct pueo_single_waveform
 {
   uint32_t run;
@@ -175,10 +211,11 @@ typedef struct pueo_single_waveform
   uint32_t reserved : 5;
 
   pueo_time_t readout_time;
+  pueo_priority_t prio;
   pueo_waveform_t wf;
 } pueo_single_waveform_t;
 
-#define PUEO_SINGLE_WAVEFORM_VER 1
+#define PUEO_SINGLE_WAVEFORM_VER 2
 
 
 /* see pueo/encode.h to convert, once implemented*/
@@ -511,41 +548,8 @@ typedef struct pueo_logs
 #define PUEO_LOGS_VER 0
 
 
-#define PUEO_PRIO_TRIG_TYPE_FORCE 0
-#define PUEO_PRIO_TRIG_TYPE_LF 1
-#define PUEO_PRIO_TRIG_TYPE_MI 2
-#define PUEO_PRIO_TRIG_TYPE_LFANDMI 3
 
-#define PUEO_PRIO_CAL_TYPE_NONE 0
-#define PUEO_PRIO_CAL_TYPE_HICAL 1
-#define PUEO_PRIO_CAL_TYPE_GROUNDCAL 2
-#define PUEO_PRIO_CAL_TYPE_RESERVED 3
-
-#define PUEO_PRIO_SIGNAL_LEVEL_THERMAL 0
-#define PUEO_PRIO_SIGNAL_LEVEL_SIGNAL 1
-#define PUEO_PRIO_SIGNAL_LEVEL_BEST_SIGNAL 2
-#define PUEO_PRIO_SIGNAL_LEVEL_BESTEST_SIGNAL 3
-
-typedef struct pueo_priority
-{
-  uint16_t trig_type : 2;
-  uint16_t topring_blast_flag : 1; //set by prioritizer
-  uint16_t botring_blast_flag : 1; //set by prioritizer
-  uint16_t fullpayload_blast_flag : 1; //set by prioritizer
-  uint16_t frontback_blast_flag : 1; //set by prioritizer
-  uint16_t anthro_base1_flag : 1;
-  uint16_t anthro_base2_flag : 1;
-  uint16_t anthro_base3_flag : 1;
-  uint16_t anthro_base4_flag : 1;
-  uint16_t anthro_base5_flag : 1;
-  uint16_t anthro_base6_flag : 1;
-  uint16_t cal_type : 2;
-  uint16_t signal_level : 2; //set by prioritizer
-} pueo_priority_t;
-
-#define PUEO_PRIORITY_FORMAT_STRING  " trig_type: %s, topring_blast: %s\n, ";
-
-
+//histogrammed version of priority things, I think?
 typedef struct pueo_priorities
 {
 

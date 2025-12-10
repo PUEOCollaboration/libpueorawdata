@@ -80,6 +80,28 @@ typedef struct pueo_single_waveform_v0
   pueo_waveform_t wf;
 } pueo_single_waveform_v0_t;
 
+typedef struct pueo_single_waveform_v1
+{
+  uint32_t run;
+  uint32_t event;
+  uint32_t event_second;
+  uint32_t event_time;
+  uint32_t last_pps;
+  uint32_t llast_pps;
+  uint32_t deadtime_counter;
+  uint32_t deadtime_counter_last_pps;
+  uint32_t deadtime_counter_llast_pps;
+  uint32_t L2_mask : 24;
+  uint32_t soft_trigger : 1;
+  uint32_t pps_trigger : 1;
+  uint32_t ext_trigger : 1;
+  uint32_t reserved : 5;
+
+  pueo_time_t readout_time;
+  pueo_waveform_t wf;
+} pueo_single_waveform_v1_t;
+
+
 
 typedef struct pueo_daq_hsk_v0
 {
