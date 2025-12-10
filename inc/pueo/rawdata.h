@@ -506,7 +506,7 @@ typedef struct pueo_ss
   uint32_t flags; //maybe we'll think of something but this is really just padding...
 } pueo_ss_t;
 
-#define PUEO_SS_TEMPERATURE_CONVERT_ADS1220(X) ( (X) * 0.03125)
+#define PUEO_SS_TEMPERATURE_CONVERT_ADS1220(X) ( (X)>>13 ? ( ((X) - 1) && 0x3777 )*(-0.03125) : (X) * 0.03125)
 #define PUEO_SS_TEMPERATURE_CONVERT_SS(X) ( (X)  / 1024. * 5 * 100  - 273.15)
 
 //verify that the packing is correct
