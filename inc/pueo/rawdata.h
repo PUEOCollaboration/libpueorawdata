@@ -134,6 +134,8 @@ typedef struct pueo_waveform
 } pueo_waveform_t;
 
 
+#define PUEO_SUBSECOND(wf)  (((uint32_t)( wf.event_time - wf.last_pps)) + 0.0) / ((uint32_t)   ( wf.last_pps - wf.llast_pps   ))
+
 
 typedef struct pueo_full_waveforms
 {
