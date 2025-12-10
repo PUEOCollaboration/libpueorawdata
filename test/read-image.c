@@ -1,12 +1,9 @@
 #include "pueo/rawdata.h"
 #include "pueo/rawio.h"
+#include <stdint.h>
 
 #define PUEO_MAX_FILE_DOWNLOAD_LENGTH 65000
 
-struct image
-{
-  uint8_t bytes[PUEO_MAX_FILE_DOWNLOAD_LENGTH]
-};
 
 int main(int nargs, char ** args)
 {
@@ -25,18 +22,12 @@ int main(int nargs, char ** args)
   }
 
 
-  struct image f;
-  for(int i=0; i<PUEO_MAX_FILE_DOWNLOAD_LENGTH; i++)
-  {
-    f.bytes[i] = im.bytes[i];
-  }
-
   if (outfile)
   {
     FILE* file;
     file = fopen(outfile, "wb");
 
-    fwrite(&f, im.len, 1, file);
+    fwrite(im.bytes, im.len, 1, file);
 
     fclose(file);
   }
