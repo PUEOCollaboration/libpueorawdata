@@ -390,7 +390,7 @@ UNSUPPORTED_INSERT_DB(sensors_disk)
 
 STUB_INSERT_DB(nav_sat)
 STUB_INSERT_DB(file_download)
-STUB_INSERT_DB(priorities)
+STUB_INSERT_DB(saved_priorities)
 
 int pueo_db_insert_ss(pueo_db_handle_t * h, const pueo_ss_t* ss)
 {
