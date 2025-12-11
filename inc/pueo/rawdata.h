@@ -91,7 +91,9 @@ typedef enum e_pueo_datatype
   PUEO_FILE_DOWNLOAD = 0xd1d1,
   PUEO_SLOW = 0x510e,
   PUEO_TIMEMARK = 0xc10c,
-  PUEO_PRIORITIES = 0x5cad  // as close to scrandis as I can
+  PUEO_STARTRACKER = 0xe71c,
+  PUEO_PRIORITIES = 0x5cad,// as close to scrandis as I can
+  PUEO_SAVED_PRIORITIES = 0x7135  
 } pueo_datatype_t;
 
 /**
@@ -185,9 +187,6 @@ typedef struct pueo_priority
   uint16_t cal_type : 2;
   uint16_t signal_level : 2; //set by prioritizer
 } pueo_priority_t;
-
-#define PUEO_PRIORITY_FORMAT_STRING \
-  "trig_type: %s,\ntopring_blast: %s, botring_blast_flag: %s, fullpayload_blast_flag: %s, frontback_blast_flag: %s\n"
 
 
 typedef struct pueo_single_waveform
@@ -516,6 +515,15 @@ _Static_assert(sizeof(pueo_ss_t) == 16 * PUEO_SS_NUM_SENSORS + 16,"The sun explo
 
 #define PUEO_SS_VER 0
 
+
+typedef struct pueo_startracker
+{
+  pueo_time_t time1;
+  pueo_time_t time3;
+} pueo_startracker_t;
+
+#define PUEO_STARTRACKER_VER 0
+
 typedef struct pueo_timemark
 {
   pueo_time_t readout_time;
@@ -558,6 +566,15 @@ typedef struct pueo_priorities
 #define PUEO_PRIORITIES_VER 0
 
 
+
+typedef struct pueo_saved_priorities
+{
+  uint32_t run;
+  uint32_t event;
+  pueo_priority_t prio;
+} pueo_saved_priorities_t;
+
+#define PUEO_SAVED_PRIORITIES_VER 0
 
 typedef struct pueo_daq_hsk_summary
 {

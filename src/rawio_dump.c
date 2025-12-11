@@ -29,6 +29,7 @@ static __thread int dump_ntabs = 0;
 #define DUMPI16(x,wut) DUMPVAL(x,wut,"%hd")
 #define DUMPU8(x,wut) DUMPVAL(x,wut,"%hhu")
 #define DUMPX8(x,wut) DUMPVAL(x,wut,"0x%hhx")
+#define DUMPX16(x,wut) DUMPVAL(x,wut,"0x%hx")
 #define DUMPX32(x,wut) DUMPVAL(x,wut,"0x%x")
 #define DUMPFLT(x,wut) DUMPVAL(x,wut,"%f")
 #define DUMPSTR(x,wut) DUMPVAL(x,wut,"\"%s\"")
@@ -289,6 +290,16 @@ int pueo_dump_cmd_echo(FILE *f, const pueo_cmd_echo_t * e)
   DUMPFINISH();
 }
 
+int pueo_dump_startracker(FILE *f, const pueo_startracker_t * t)
+{
+  DUMPINIT(f);
+  DUMPSTART("startracker");
+  DUMPTIME(t,time1);
+  DUMPTIME(t,time3);
+  DUMPEND();
+  DUMPFINISH();
+}
+
 int pueo_dump_timemark(FILE *f, const pueo_timemark_t * t)
 {
   DUMPINIT(f);
@@ -450,13 +461,19 @@ int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
 }
 
 
-int pueo_dump_priorities(FILE * f, const pueo_priorities_t *phsk)
+int pueo_dump_saved_priorities(FILE * f, const pueo_saved_priorities_t *p)
 {
   DUMPINIT(f);
-  DUMPSTART("priorities");
-
-
-
+  DUMPSTART("saved_priorities");
+  DUMPU32(p, run);
+  DUMPU32(p, event);
+  DUMPBOOL(p, prio.topring_blast_flag);
+  DUMPBOOL(p, prio.botring_blast_flag);
+  DUMPBOOL(p, prio.fullpayload_blast_flag);
+  DUMPBOOL(p, prio.frontback_blast_flag);
+  DUMPX16(p, prio.anthro_base_flag);
+  DUMPU16(p, prio.cal_type);
+  DUMPU16(p, prio.signal_level);
   DUMPEND();
   DUMPFINISH()
 
