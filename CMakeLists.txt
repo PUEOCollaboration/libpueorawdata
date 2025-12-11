@@ -107,3 +107,6 @@ target_link_libraries(read-packets pueorawdata)
 
 add_executable(read-events test/read-events.c)
 target_link_libraries(read-events pueorawdata)
+
+add_executable(read-image test/read-image.c)
+target_link_libraries(read-image pueorawdata)
