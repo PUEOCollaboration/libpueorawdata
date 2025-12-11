@@ -314,6 +314,14 @@ int pueo_dump_timemark(FILE *f, const pueo_timemark_t * t)
   DUMPFINISH();
 }
 
+int pueo_dump_startracker(FILE *f, const pueo_startracker_t * t)
+{
+  DUMPINIT(f);
+  DUMPSTART("startracker");
+  DUMPEND();
+  DUMPFINISH();
+}
+
 int pueo_dump_logs(FILE *f, const pueo_logs_t * l)
 {
   DUMPINIT(f);
