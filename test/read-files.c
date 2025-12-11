@@ -11,6 +11,13 @@
 
 #include <stdlib.h>
 
+int is_directory(const char* path)
+{
+  struct stat path_stat;
+  stat(path, &path_stat);
+  return S_ISDIR(path_stat.st_mode);
+}
+
 int main(int nargs, char** args)
 {
   if(nargs < 3) {
@@ -39,7 +46,7 @@ int main(int nargs, char** args)
     if(packet -> head.type == PUEO_FILE_DOWNLOAD) {
       if (db) pueo_db_insert_packet(db, packet);
       const pueo_file_download_t* pfd = (const pueo_file_download_t*)(packet -> payload);
-      char fname = pfd -> fname;
+      char* fname = pfd -> fname;
 
       char* ofile = NULL;
       char* mode = NULL;
