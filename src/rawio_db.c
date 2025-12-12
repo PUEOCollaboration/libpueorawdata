@@ -559,7 +559,7 @@ int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
 int pueo_db_insert_startracker(pueo_db_handle_t * h, const pueo_startracker_t * st)
 {
   FILE * f = begin_sql_stream(h);
-  fprintf(f,"INSERT INTO startrackers(st1_timestamp_s, st1_timestamp_ns st3_timestamp_s, st3_timestamp_ns)"
+  fprintf(f,"INSERT INTO startrackers(st1_timestamp_s, st1_timestamp_ns, st3_timestamp_s, st3_timestamp_ns)"
              " VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %u);",
              st->time1.utc_secs, st->time1.utc_nsecs, st->time3.utc_secs, st->time3.utc_nsecs);
 
@@ -1045,6 +1045,7 @@ static int init_db(pueo_db_handle_t * h)
   daq_hsk_init(f,h);
   daq_hsk_summary_init(f,h);
   startracker_init(f,h);
+  timemark_init(f,h);
 
   commit_sql_stream(h);
 
