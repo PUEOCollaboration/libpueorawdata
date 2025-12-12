@@ -186,7 +186,8 @@ int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
   X(PUEO_DAQ_HSK, daq_hsk)\
   X(PUEO_DAQ_HSK_SUMMARY, daq_hsk_summary)\
   X(PUEO_FILE_DOWNLOAD, file_download)\
-  X(PUEO_SAVED_PRIORITIES, saved_priorities)
+  X(PUEO_SAVED_PRIORITIES, saved_priorities)\
+  X(PUEO_STARTRACKER, startracker)
 
 
 //  X(PUEO_ENCODED_WAVEFORM, encoded_waveform)

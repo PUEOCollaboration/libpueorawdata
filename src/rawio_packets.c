@@ -69,10 +69,11 @@ SIMPLE_PUEO_IO_IMPL(ss,SS)
 SIMPLE_PUEO_IO_IMPL(timemark,TIMEMARK)
 SIMPLE_PUEO_IO_IMPL(startracker,STARTRACKER)
 SIMPLE_PUEO_IO_IMPL(nav_pos,NAV_POS)
+SIMPLE_PUEO_IO_IMPL(startracker, STARTRACKER)
 SIMPLE_PUEO_IO_IMPL(daq_hsk,DAQ_HSK)
 SIMPLE_PUEO_IO_IMPL(daq_hsk_summary,DAQ_HSK_SUMMARY)
 SIMPLE_PUEO_IO_IMPL(saved_priorities,SAVED_PRIORITIES)
-
+  
 ///////// More complicated implementations here
 
 //helpers for pueo_waveform_t (which must be embedded into another datatype)
