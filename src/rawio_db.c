@@ -559,7 +559,7 @@ int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
 int pueo_db_insert_startracker(pueo_db_handle_t * h, const pueo_startracker_t * st)
 {
   FILE * f = begin_sql_stream(h);
-  fprintf(f,"INSERT INTO startrackers(st1_timestamp, st3_timestamp"
+  fprintf(f,"INSERT INTO startrackers(st1_timestamp, st3_timestamp)"
              " VALUES (TO_TIMESTAMP(%lu), TO_TIMESTAMP(%lu))",
              st->time1, st->time3);
 
@@ -753,7 +753,7 @@ static void timemark_init(FILE *f, pueo_db_handle_t *h)
 
 static void startracker_init(FILE *f, pueo_db_handle_t *h)
 {
-  fprintf(f,"CREATE TABLE IF NOT EXISTS startrackers (st1_timestamp %s, st3_timestamp %s)",
+  fprintf(f,"CREATE TABLE IF NOT EXISTS startrackers (st1_timestamp %s NOT NULL, st3_timestamp %s NOT NULL)",
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
