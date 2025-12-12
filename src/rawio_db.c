@@ -743,7 +743,7 @@ static void timemark_init(FILE *f, pueo_db_handle_t *h)
 {
   fprintf(f,"CREATE TABLE IF NOT EXISTS timemarks (uid %s, risetime %s NOT NULL, "
             "risetime_ns INTEGER,  falltime %s NOT NULL, falltime_ns INTEGER, "
-            "rise_count INTEGER, flags INTEGER, channel INTEGER)",
+            "rise_count INTEGER, flags INTEGER, channel INTEGER);\n",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
