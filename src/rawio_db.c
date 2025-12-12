@@ -1043,6 +1043,7 @@ static int init_db(pueo_db_handle_t * h)
   slow_init(f,h);
   daq_hsk_init(f,h);
   daq_hsk_summary_init(f,h);
+  startracker_init(f,h);
 
   commit_sql_stream(h);
 
