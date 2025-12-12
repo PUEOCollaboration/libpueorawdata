@@ -758,7 +758,7 @@ static void startracker_init(FILE *f, pueo_db_handle_t *h)
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
-  DB_MAKE_INDEX(startracker, time);
+  DB_MAKE_INDEX(startracker, st1_timestamp_s);
 }
 
 
