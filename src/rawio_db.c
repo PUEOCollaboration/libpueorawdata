@@ -753,7 +753,7 @@ static void timemark_init(FILE *f, pueo_db_handle_t *h)
 
 static void startracker_init(FILE *f, pueo_db_handle_t *h)
 {
-  fprintf(f,"CREATE TABLE IF NOT EXISTS startrackers (st1_timestamp %s NOT NULL, st3_timestamp %s NOT NULL)",
+  fprintf(f,"CREATE TABLE IF NOT EXISTS startrackers (st1_timestamp %s NOT NULL, st3_timestamp %s NOT NULL);\n",
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
