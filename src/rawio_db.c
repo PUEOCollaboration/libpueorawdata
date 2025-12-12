@@ -560,7 +560,7 @@ int pueo_db_insert_startracker(pueo_db_handle_t * h, const pueo_startracker_t * 
 {
   FILE * f = begin_sql_stream(h);
   fprintf(f,"INSERT INTO startrackers(st1_timestamp, st3_timestamp)"
-             " VALUES (TO_TIMESTAMP(%lu), TO_TIMESTAMP(%lu))",
+             " VALUES (TO_TIMESTAMP(%lu), TO_TIMESTAMP(%lu));",
              st->time1, st->time3);
 
 
