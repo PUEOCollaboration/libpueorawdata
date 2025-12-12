@@ -545,7 +545,7 @@ int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
 {
   FILE * f = begin_sql_stream(h);
   fprintf(f,"INSERT INTO timemarks(readout_time, readout_time_ns, risetime, risetime_ns, falltime, falltime_ns, rise_count,"
-             " flags, channel) VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %hu, %hhu, %hhu)",
+             " flags, channel) VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %u, %hu, %hhu, %hhu)",
              t->readout_time.utc_secs, t->readout_time.utc_nsecs,
              t->rising.utc_secs, t->rising.utc_nsecs,
              t->falling.utc_secs, t->falling.utc_nsecs,
