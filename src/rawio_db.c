@@ -559,9 +559,9 @@ int pueo_db_insert_timemark(pueo_db_handle_t * h, const pueo_timemark_t * t)
 int pueo_db_insert_startracker(pueo_db_handle_t * h, const pueo_startracker_t * st)
 {
   FILE * f = begin_sql_stream(h);
-  fprintf(f,"INSERT INTO startrackers(st1_timestamp, st3_timestamp)"
-             " VALUES (%u, %u);",
-             st->time1, st->time3);
+  fprintf(f,"INSERT INTO startrackers(st1_timestamp_s, st1_timestamp_ns st3_timestamp_s, st3_timestamp_ns)"
+             " VALUES (TO_TIMESTAMP(%lu), %u, TO_TIMESTAMP(%lu), %u);",
+             st->time1.utc_secs, st->time1.utc_nsecs, st->time3.utc_secs, st->time3.utc_nsecs);
 
 
   return commit_sql_stream(h);
@@ -753,9 +753,8 @@ static void timemark_init(FILE *f, pueo_db_handle_t *h)
 
 static void startracker_init(FILE *f, pueo_db_handle_t *h)
 {
-  fprintf(f,"CREATE TABLE IF NOT EXISTS startrackers (uid %s, time %s NOT NULL, st1_timestamp %s NOT NULL, st3_timestamp %s NOT NULL);\n",
+  fprintf(f,"CREATE TABLE IF NOT EXISTS startrackers (uid %s, st1_timestamp_s %s NOT NULL, st1_timestamp_ns INTEGER, st3_timestamp %s NOT NULL, st1_timestamp_ns INTEGER);\n",
       h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,  
-      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
       h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
 
