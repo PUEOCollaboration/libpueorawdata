@@ -75,6 +75,7 @@ SENSOR(W1Temps,  4V_Vicor_1W_Ch0,           'F','C')     \
 SENSOR(W1Temps,  12V_A_Flex_1W_Ch0,         'F','C')     \
 SENSOR(W1Temps,  12V_B_Flex_1W_Ch0,         'F','C')     \
 SENSOR(W1Temps,  12V_C_Flex_1W_Ch0,         'F','C')     \
+SENSOR(W1Temps,  SFC_NIC_1W_Ch1,            'F','C')     \
 SENSOR(W1Temps,  StaticRadPlate_Int_1W_Ch1, 'F','C')     \
 SENSOR(W1Temps,  OutboardFPB_Side_1W_Ch1,   'F','C')     \
 SENSOR(W1Temps,  NavEncl_Front_1W_Ch1,      'F','C')     \
@@ -103,7 +104,6 @@ SENSOR(W1Temps,  LFRxBox_Internal4_1W_Ch1,  'F','C')     \
 SENSOR(W1Temps,  LFRxBox_Internal5_1W_Ch1,  'F','C')     \
 SENSOR(W1Temps,  LFRxBox_Internal6_1W_Ch1,  'F','C')     \
 SENSOR(W1Temps,  LFRxBox_Internal7_1W_Ch1,  'F','C')     \
-SENSOR(W1Temps,  SFC_NIC_1W_Ch1,            'F','C')     \
 SENSOR(W1Temps,  Antenna0101_A186_1W_Ch2,   'F','C')     \
 SENSOR(W1Temps,  Antenna0104_A223_1W_Ch2,   'F','C')     \
 SENSOR(W1Temps,  Antenna0107_A011_1W_Ch2,   'F','C')     \
