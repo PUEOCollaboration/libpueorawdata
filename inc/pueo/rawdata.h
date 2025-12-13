@@ -92,7 +92,7 @@ typedef enum e_pueo_datatype
   PUEO_SLOW = 0x510e,
   PUEO_TIMEMARK = 0xc10c,
   PUEO_STARTRACKER = 0xe71c,
-  PUEO_PRIORITIES = 0x5cad,// as close to scrandis as I can
+  PUEO_PRIO_STATUS = 0x5cad,// as close to scrandis as I can
   PUEO_SAVED_PRIORITIES = 0x7135  
 } pueo_datatype_t;
 
@@ -554,17 +554,6 @@ typedef struct pueo_logs
 
 
 
-//histogrammed version of priority things, I think?
-typedef struct pueo_priorities
-{
-
-
-
-} pueo_priorities_t;
-
-
-#define PUEO_PRIORITIES_VER 0
-
 
 
 typedef struct pueo_saved_priorities
@@ -673,6 +662,22 @@ typedef struct pueo_file_download
 
 
 #define PUEO_FILE_DOWNLOAD_VER 0
+
+
+typedef struct pueo_prio_status
+{
+  pueo_time_t start_time;
+  pueo_time_t end_time;
+  float delay_frac[6];
+  float S_frac[4];
+  float blast_frac[4];
+  float anthro_frac[6]; // this won't do anything until we get this working!
+  uint32_t total_events;
+  uint32_t total_force;
+  float starlink_partition_free_GB;
+} pueo_prio_status_t;
+
+#define PUEO_PRIO_STATUS_VER 0
 
 #ifdef __cplusplus
 }

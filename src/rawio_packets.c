@@ -72,7 +72,8 @@ SIMPLE_PUEO_IO_IMPL(nav_pos,NAV_POS)
 SIMPLE_PUEO_IO_IMPL(daq_hsk,DAQ_HSK)
 SIMPLE_PUEO_IO_IMPL(daq_hsk_summary,DAQ_HSK_SUMMARY)
 SIMPLE_PUEO_IO_IMPL(saved_priorities,SAVED_PRIORITIES)
-  
+SIMPLE_PUEO_IO_IMPL(prio_status,PRIO_STATUS)
+
 ///////// More complicated implementations here
 
 //helpers for pueo_waveform_t (which must be embedded into another datatype)

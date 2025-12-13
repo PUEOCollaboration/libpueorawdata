@@ -476,7 +476,23 @@ int pueo_dump_saved_priorities(FILE * f, const pueo_saved_priorities_t *p)
   DUMPU16(p, prio.signal_level);
   DUMPEND();
   DUMPFINISH()
+}
 
+int pueo_dump_prio_status(FILE * f, const pueo_prio_status_t * s)
+{
+  DUMPINIT(f);
+  DUMPSTART("prio_status");
+  DUMPTIME(s,start_time);
+  DUMPTIME(s,end_time);
+  DUMPARRAY(s, delay_frac, 6, "%f");
+  DUMPARRAY(s, S_frac, 4, "%f");
+  DUMPARRAY(s, blast_frac, 4, "%f");
+  DUMPARRAY(s, anthro_frac, 6, "%f");
+  DUMPU32(s, total_events);
+  DUMPU32(s, total_force);
+  DUMPFLT(s, starlink_partition_free_GB);
+  DUMPEND();
+  DUMPFINISH();
 }
 
 

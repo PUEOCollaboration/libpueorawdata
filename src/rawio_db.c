@@ -788,6 +788,24 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
   DB_MAKE_INDEX(daq_hsk, time)
 }
 
+static void daq_prio_status_init (FILE *f, pueo_db_handle_t * h)
+{
+
+  fprintf(f, "CREATE TABLE IF NOT EXISTS prio_statuss( uid %s, start_time %s NOT NULL, end_time %s NOT NULL,",
+      h->type == DB_SQLITE  ? DB_INDEX_DEF_SQLITE : DB_INDEX_DEF_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL,
+      h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
+
+  fprintf(f, "delay0_frac REAL, delay1_frac REAL, delay2_frac REAL, delay3_frac REAL, delay4_frac REAL, delay5_frac REAL,");
+  fprintf(f, "S0_frac REAL, S1_frac REAL, S2_frac REAL, S3_frac REAL,");
+  fprintf(f, "topblast_frac REAL, botblast_frac REAL, fullblast_frac REAL, fbblast_frac REAL,");
+  fprintf(f, "base0_frac REAL, base1_frac REAL, base2_frac REAL, base3_frac REAL, base4_frac REAL, base5_frac REAL,");
+  fprintf(f, "nevents INTEGER, nsoftevents INTEGER, starlink_partition_free_GB REAL);\n");
+
+  DB_MAKE_INDEX(prio_status, end_time);
+}
+
+
 //TODO SOMEONE PLEASE DO THIS @PARTYKEITH
 static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
 {
@@ -808,6 +826,28 @@ static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
 
   DB_MAKE_INDEX(daq_hsk_summary, time);
 
+}
+
+
+int pueo_db_insert_prio_status(pueo_db_handle_t *h, const pueo_prio_status_t * st)
+{
+  FILE * f = begin_sql_stream(h);
+  fprintf(f, "INSERT INTO prio_statuss(start_time, end_time,");
+  fprintf(f, "delay0_frac, delay1_frac , delay2_frac , delay3_frac , delay4_frac , delay5_frac ,");
+  fprintf(f, "S0_frac , S1_frac , S2_frac , S3_frac ,");
+  fprintf(f, "topblast_frac , botblast_frac , fullblast_frac , fbblast_frac ,");
+  fprintf(f, "base0_frac , base1_frac , base2_frac , base3_frac , base4_frac , base5_frac ,");
+  fprintf(f, "nevents, nsoftevents, starlink_partition_free_GB) ");
+
+  fprintf(f, "VALUES(TO_TIMESTAMP(%lu.%09u), TO_TIMESTAMP(%lu.%09u),", st->start_time.utc_secs, st->start_time.utc_nsecs, st->end_time.utc_secs, st->end_time.utc_nsecs);
+  fprintf(f, "%f,%f,%f,%f,%f,%f,", st->delay_frac[0],  st->delay_frac[1], st->delay_frac[2], st->delay_frac[3], st->delay_frac[4], st->delay_frac[5]);
+  fprintf(f, "%f,%f,%f,%f,", st->S_frac[0], st->S_frac[1], st->S_frac[2], st->S_frac[3]);
+  fprintf(f, "%f,%f,%f,%f,", st->blast_frac[0], st->blast_frac[1], st->blast_frac[2], st->blast_frac[3]);
+  fprintf(f, "%f,%f,%f,%f,%f,%f,", st->anthro_frac[0],  st->anthro_frac[1], st->anthro_frac[2], st->anthro_frac[3], st->anthro_frac[4], st->anthro_frac[5]);
+  fprintf(f, "%u,%u,%f);\n", st->total_events, st->total_force, st->starlink_partition_free_GB);
+
+
+  return commit_sql_stream(h);
 }
 
 int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
@@ -1012,6 +1052,8 @@ static void logs_init (FILE * f, pueo_db_handle_t *h)
   h->type == DB_SQLITE  ? DB_TIME_TYPE_SQLITE : DB_TIME_TYPE_PGSQL);
   DB_MAKE_INDEX(log, time);
 }
+
+
 
 static int init_db(pueo_db_handle_t * h)
 {
