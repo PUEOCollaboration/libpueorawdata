@@ -498,11 +498,15 @@ int pueo_db_insert_single_waveform(pueo_db_handle_t *h, const pueo_single_wavefo
   double rms = sqrt(sum2/N-mean*mean);
 
 
-  fprintf(f, "INSERT INTO single_waveforms(time, run, event, channel, max, min, rms, subsecond)"
+  fprintf(f, "INSERT INTO single_waveforms(time, run, event, channel, max, min, rms, subsecond, "
+             "prio_trig_type, prio_topring_blast_flag, prio_botring_blast_flag, prio_fullpayload_blast_flag, "
+             "prio_frontback_blast_flag, prio_anthro_base_flag, prio_cal_type, prio_signal_level)"
              "VALUES (TO_TIMESTAMP(%u.%09u), %d, %d, %d, %d, %d, %f, %f);",
               wf->event_second,  wf->readout_time.utc_nsecs,
               wf->run, wf->event, wf->wf.channel_id, max, min, rms,
-              ( (double) wf->event_time - wf->last_pps) / (wf->last_pps - wf->llast_pps)
+              ( (double) wf->event_time - wf->last_pps) / (wf->last_pps - wf->llast_pps),
+              wf->prio.trig_type, wf->prio.topring_blast_flag, wf->prio.botring_blast_flag, wf->prio.fullpayload_blast_flag,
+              wf->prio.frontback_blast_flag, wf->prio.anthro_base_flag, wf->prio.cal_type, wf->prio.signal_level
              );
 
   return commit_sql_stream(h);
