@@ -323,14 +323,14 @@ int pueo_read_packet_logs(pueo_handle_t *h, pueo_logs_t * l, int ver)
 
 int pueo_write_packet_nav_sat(pueo_handle_t * h, const pueo_nav_sat_t * n)
 {
-  return h->write_bytes(offsetof(pueo_nav_sat_t, sats) + n->nsats_visible * (sizeof(n->sats)/255), n, h);
+  return h->write_bytes(offsetof(pueo_nav_sat_t, sats) + n->nsats_visible * (sizeof(*n->sats)), n, h);
 }
 
 pueo_packet_head_t pueo_packet_header_for_nav_sat(const pueo_nav_sat_t * n, int ver)
 {
 
   pueo_packet_head_t hd = { .type = PUEO_NAV_SAT, .f1 = 0xf1, .version = ver };
-  uint32_t len = offsetof(pueo_nav_sat_t, sats) + n->nsats_visible * (sizeof(n->sats)/255);
+  uint32_t len = offsetof(pueo_nav_sat_t, sats) + n->nsats_visible * (sizeof(*n->sats));
   uint16_t crc = CRC16_START;
   crc = pueo_crc16_continue(crc, n, len);
   hd.num_bytes = len;
@@ -344,7 +344,7 @@ int pueo_read_packet_nav_sat(pueo_handle_t * h, pueo_nav_sat_t * n, int ver)
   (void) ver;
   int nrd = h->read_bytes(offsetof(pueo_nav_sat_t, sats), n, h);
   nrd += h->read_bytes(n->nsats_visible * (sizeof(n->sats)/255), n->sats, h );
-  memset(n + nrd, 0, sizeof(n) - nrd);
+  memset(((uint8_t*)n) + nrd, 0, sizeof(*n) - nrd);
   return nrd;
 }
 
