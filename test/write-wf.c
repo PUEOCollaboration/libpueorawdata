@@ -1,11 +1,14 @@
 #include "pueo/rawdata.h"
 #include "pueo/rawio.h"
+#include <time.h>
 
 
 int main(int nargs, char ** args)
 {
 
-  pueo_single_waveform_t wf =  {.run = 123, .event = 456, .wf = { .channel_id = 101, .surf_word = 0x00, .length = 1024 }};
+  struct timespec now;
+  clock_gettime(CLOCK_REALTIME,&now);
+  pueo_single_waveform_t wf =  {.run = 123, .event = 456, .wf = { .channel_id = 101, .surf_word = 0x00, .length = 1024 }, .readout_time = {.utc_secs = now.tv_sec, .utc_nsecs = now.tv_nsec}};
 
   for (int i = 0; i < 1024;i++) wf.wf.data[i] = i;
 
