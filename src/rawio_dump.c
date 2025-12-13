@@ -5,6 +5,7 @@
 #include "pueo/rawio.h"
 #include <string.h>
 #include "pueo/sensor_ids.h"
+#include <inttypes.h>
 
 
 const char * dump_tabs="\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
@@ -20,10 +21,10 @@ static __thread int dump_ntabs = 0;
 #define DUMPSTARTARROBJ() ret+=fprintf(__F,"%.*s {\n", dump_ntabs++, dump_tabs)
 #define DUMPENDARROBJ() ret+=fprintf(__F,"%.*s },\n", dump_ntabs--, dump_tabs)
 #define DUMPKEYVAL(key,frmt,...) ret+=fprintf(__F, "%.*s\"" key "\": " frmt ",\n", dump_ntabs, dump_tabs, __VA_ARGS__)
-#define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%lu.%09u", (uint64_t) x->wut.utc_secs, (uint32_t) x->wut.utc_nsecs)
+#define DUMPTIME(x,wut) DUMPKEYVAL(#wut,"%" PRIu64 ".%09" PRIu64, x->wut.utc_secs, x->wut.utc_nsecs)
 #define DUMPVAL(x,wut,frmt) DUMPKEYVAL(#wut,frmt, x->wut)
-#define DUMPU32(x,wut) DUMPVAL(x,wut,"%u")
-#define DUMPU64(x,wut) DUMPVAL(x,wut,"%lu")
+#define DUMPU32(x,wut) DUMPVAL(x,wut,"%" PRIu32)
+#define DUMPU64(x,wut) DUMPVAL(x,wut,"%" PRIu64)
 #define DUMPU128(x,wut) DUMPVAL(x,wut,"%llu")
 #define DUMPU16(x,wut) DUMPVAL(x,wut,"%hu")
 #define DUMPI16(x,wut) DUMPVAL(x,wut,"%hd")
@@ -70,7 +71,7 @@ int pueo_dump_single_waveform(FILE *f, const pueo_single_waveform_t * wf)
   DUMPBOOL(wf,soft_trigger);
   DUMPBOOL(wf,pps_trigger);
   DUMPBOOL(wf,ext_trigger);
-
+  DUMPTIME(wf,readout_time);
   ret+=pueo_dump_waveform(f,&wf->wf);
   DUMPEND();
   DUMPFINISH();
@@ -86,6 +87,7 @@ int pueo_dump_full_waveforms(FILE *f, const pueo_full_waveforms_t * wf)
   DUMPU32(wf,event_time);
   DUMPU32(wf,last_pps);
   DUMPU32(wf,llast_pps);
+  DUMPTIME(wf,readout_time);
 
   DUMPX32(wf,deadtime_counter);
   DUMPX32(wf,deadtime_counter_last_pps);
