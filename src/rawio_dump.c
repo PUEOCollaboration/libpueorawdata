@@ -434,6 +434,22 @@ int pueo_dump_daq_hsk_summary(FILE * f, const pueo_daq_hsk_summary_t * hsk)
   for (int i = 0; i < 26; i++) printf("%f%s", hsk->enable_mask_fraction[i]/255.,  i < 25 ? "," : "");
   DUMPENDARR();
 
+  DUMPARRAY(hsk,turfio_words_recv,4,"%u");
+  DUMPU32(hsk,qwords_sent);
+  DUMPU32(hsk,events_sent);
+  DUMPU32(hsk,trigger_count);
+  DUMPU32(hsk,current_second);
+  DUMPU32(hsk,last_pps);
+  DUMPU32(hsk,llast_pps);
+  DUMPU32(hsk,last_dead);
+  DUMPU32(hsk,llast_dead);
+  DUMPU32(hsk,panic_count);
+  DUMPU32(hsk,occupancy);
+  DUMPU16(hsk, ack_count);
+  DUMPU16(hsk, latency);
+  DUMPU16(hsk, offset);
+  DUMPU16(hsk, pps_trig_offset);
+
   DUMPEND();
   DUMPFINISH();
 }
@@ -456,6 +472,23 @@ int pueo_dump_daq_hsk(FILE * f, const pueo_daq_hsk_t * hsk)
   uint32_t total_L2 = 0;
   for (int i = 0; i < 12; i++) { total_L2 += hsk->Hscalers[i] + hsk->Vscalers[i]; }
   DUMPKEYVAL("total_L2_rate", "%u", total_L2);
+
+  DUMPARRAY(hsk,turfio_words_recv,4,"%u");
+  DUMPU32(hsk,qwords_sent);
+  DUMPU32(hsk,events_sent);
+  DUMPU32(hsk,trigger_count);
+  DUMPU32(hsk,current_second);
+  DUMPU32(hsk,last_pps);
+  DUMPU32(hsk,llast_pps);
+  DUMPU32(hsk,last_dead);
+  DUMPU32(hsk,llast_dead);
+  DUMPU32(hsk,panic_count);
+  DUMPU32(hsk,occupancy);
+  DUMPU16(hsk, ack_count);
+  DUMPU16(hsk, latency);
+  DUMPU16(hsk, offset);
+  DUMPU16(hsk, pps_trig_offset);
+
 
   DUMPEND();
   DUMPFINISH()

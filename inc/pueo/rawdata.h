@@ -593,9 +593,28 @@ typedef struct pueo_daq_hsk_summary
   uint32_t end_second;
 
   uint8_t enable_mask_fraction[26]; // out of 255 
+                                    //
+                                    
+  //these are all point in time but mirrored from daq_hsk
+  uint32_t turfio_words_recv[4];
+  uint32_t qwords_sent;
+  uint32_t events_sent;
+  uint32_t trigger_count;
+  uint32_t current_second;
+  uint32_t last_pps;
+  uint32_t llast_pps;
+  uint32_t last_dead;
+  uint32_t llast_dead;
+  uint32_t panic_count;
+  uint32_t occupancy;
+  uint16_t ack_count;
+  uint16_t latency;
+  uint16_t offset;
+  uint16_t pps_trig_offset;
+
 } pueo_daq_hsk_summary_t;
 
-#define PUEO_DAQ_HSK_SUMMARY_VER 1
+#define PUEO_DAQ_HSK_SUMMARY_VER 2
 
 
 typedef struct pueo_daq_hsk
@@ -640,10 +659,25 @@ typedef struct pueo_daq_hsk
 
   uint32_t l2_enable_mask;
 
+  uint32_t turfio_words_recv[4];
+  uint32_t qwords_sent;
+  uint32_t events_sent;
+  uint32_t trigger_count;
+  uint32_t current_second;
+  uint32_t last_pps;
+  uint32_t llast_pps;
+  uint32_t last_dead;
+  uint32_t llast_dead;
+  uint32_t panic_count;
+  uint32_t occupancy;
+  uint16_t ack_count;
+  uint16_t latency;
+  uint16_t offset;
+  uint16_t pps_trig_offset;
 } pueo_daq_hsk_t;
 
 
-#define PUEO_DAQ_HSK_VER 2
+#define PUEO_DAQ_HSK_VER 3
 
 
 //plenty of headroom here!
