@@ -782,11 +782,11 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
     fprintf(f,", L2_rateH INTEGER, L2_rateV INTEGER, soft_rate INTEGER, pps_rate INTEGER, ext_rate INTEGER, "
       "MIE_total_H INTEGER, MIE_total_V INTEGER,"
       "LF_total_H INTEGER, LF_total_V INTEGER,"
-      "aux_total INTEGER, global_total INTEGER");
+      "aux_total INTEGER, global_total INTEGER, l2_enable_mask INTEGER");
     for(int j=0;j<4; j++){
         fprintf(f, ", turfio_words_recv_%i INTEGER",j);
     }
-    fprintf(f,", qwords_sent INTEGER, events_sent INTEGER, trigger_count INTEGER, current_second INTEGER, last_pps INTEGER, llast_pps INTEGER, last_dead INTEGER, llast_dead INTEGER, panic_count INTEGER, occupancy INTEGER, ack_count INTEGER, latency INTEGER, offset INTEGER, pps_trig_offset INTEGER");
+    fprintf(f,", qwords_sent INTEGER, events_sent INTEGER, trigger_count INTEGER, current_second INTEGER, last_pps INTEGER, llast_pps INTEGER, last_dead INTEGER, llast_dead INTEGER, panic_count INTEGER, occupancy INTEGER, ack_count INTEGER, latency INTEGER, trig_offset INTEGER, pps_trig_offset INTEGER");
     //  qwords_sent INTEGER ,events_sent INTEGER ,trigger_count INTEGER ,current_second INTEGER ,last_pps INTEGER ,llast_pps INTEGER ,last_dead INTEGER , // deadtime last updated every second llast_dead INTEGER , // deadtime of llast pps (updated every second)panic_count INTEGER ,occupancy INTEGER ,ack_count INTEGER ,latency INTEGER ,offset INTEGER ,pps_trig_offset INTEGER ,
     fprintf(f,")\n;");
 
@@ -833,7 +833,7 @@ static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
     for(int j=0;j<4; j++){
         fprintf(f, ", turfio_words_recv_%i INTEGER",j);
     }
-    fprintf(f,", qwords_sent INTEGER, events_sent INTEGER, trigger_count INTEGER, current_second INTEGER, last_pps INTEGER, llast_pps INTEGER, last_dead INTEGER, llast_dead INTEGER, panic_count INTEGER, occupancy INTEGER, ack_count INTEGER, latency INTEGER, offset INTEGER, pps_trig_offset INTEGER");
+    fprintf(f,", qwords_sent INTEGER, events_sent INTEGER, trigger_count INTEGER, current_second INTEGER, last_pps INTEGER, llast_pps INTEGER, last_dead INTEGER, llast_dead INTEGER, panic_count INTEGER, occupancy INTEGER, ack_count INTEGER, latency INTEGER, trig_offset INTEGER, pps_trig_offset INTEGER");
     //  qwords_sent INTEGER ,events_sent INTEGER ,trigger_count INTEGER ,current_second INTEGER ,last_pps INTEGER ,llast_pps INTEGER ,last_dead INTEGER , // deadtime last updated every second llast_dead INTEGER , // deadtime of llast pps (updated every second)panic_count INTEGER ,occupancy INTEGER ,ack_count INTEGER ,latency INTEGER ,offset INTEGER ,pps_trig_offset INTEGER ,
 
   fprintf(f, ");\n");
@@ -877,11 +877,11 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
   fprintf(f,", L2_rateH , L2_rateV , soft_rate , pps_rate , ext_rate , "
       "MIE_total_H , MIE_total_V ,"
       "LF_total_H , LF_total_V ,"
-      "aux_total , global_total");
+      "aux_total , global_total, l2_enable_mask");
     for(int j=0;j<4; j++){
         fprintf(f, ", turfio_words_recv_%i",j);
     }
-    fprintf(f,", qwords_sent, events_sent, trigger_count, current_second, last_pps, llast_pps, last_dead, llast_dead, panic_count, occupancy, ack_count, latency, offset, pps_trig_offset");
+    fprintf(f,", qwords_sent, events_sent, trigger_count, current_second, last_pps, llast_pps, last_dead, llast_dead, panic_count, occupancy, ack_count, latency, trig_offset, pps_trig_offset");
     fprintf(f,")");
 
   fprintf(f, " VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) hsk->scaler_readout_time.utc_secs,  (uint32_t) hsk->scaler_readout_time.utc_nsecs);
@@ -896,10 +896,10 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
     sumL2H+=(int) hsk->Hscalers[i];
     sumL2V+=(int) hsk->Vscalers[i];
   }
-  fprintf(f,", %i, %i, %i, %i, %i, %i, %i, %i, %i,%i,%i", 
+  fprintf(f,", %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i", 
       sumL2H, sumL2V, hsk->soft_rate,hsk->pps_rate,hsk->ext_rate,
       hsk->MIE_total_H, hsk->MIE_total_V, hsk->LF_total_H,
-      hsk->LF_total_V,hsk->aux_total,hsk->global_total
+      hsk->LF_total_V,hsk->aux_total,hsk->global_total, hsk->l2_enable_mask
     );
   for(int j=0;j<4; j++){
     fprintf(f, ", %i",hsk->turfio_words_recv[j]);
@@ -937,7 +937,7 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
     for(int j=0;j<4; j++){
         fprintf(f, ", turfio_words_recv_%i",j);
     }
-    fprintf(f,", qwords_sent, events_sent, trigger_count, current_second, last_pps, llast_pps, last_dead, llast_dead, panic_count, occupancy, ack_count, latency, offset, pps_trig_offset");
+    fprintf(f,", qwords_sent, events_sent, trigger_count, current_second, last_pps, llast_pps, last_dead, llast_dead, panic_count, occupancy, ack_count, latency, trig_offset, pps_trig_offset");
 
   fprintf(f, " ) VALUES (TO_TIMESTAMP(%i.0) ", hsk->end_second);
     for(int i = 0; i < PUEO_NREALSURF; i++) {
