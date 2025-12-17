@@ -782,8 +782,13 @@ static void daq_hsk_init(FILE *f, pueo_db_handle_t * h)
     fprintf(f,", L2_rateH INTEGER, L2_rateV INTEGER, soft_rate INTEGER, pps_rate INTEGER, ext_rate INTEGER, "
       "MIE_total_H INTEGER, MIE_total_V INTEGER,"
       "LF_total_H INTEGER, LF_total_V INTEGER,"
-      "aux_total INTEGER, global_total INTEGER"
-      ")\n;");
+      "aux_total INTEGER, global_total INTEGER");
+    for(int j=0;j<4; j++){
+        fprintf(f, ", turfio_words_recv_%i INTEGER",j);
+    }
+    fprintf(f,", qwords_sent INTEGER, events_sent INTEGER, trigger_count INTEGER, current_second INTEGER, last_pps INTEGER, llast_pps INTEGER, last_dead INTEGER, llast_dead INTEGER, panic_count INTEGER, occupancy INTEGER, ack_count INTEGER, latency INTEGER, offset INTEGER, pps_trig_offset INTEGER");
+    //  qwords_sent INTEGER ,events_sent INTEGER ,trigger_count INTEGER ,current_second INTEGER ,last_pps INTEGER ,llast_pps INTEGER ,last_dead INTEGER , // deadtime last updated every second llast_dead INTEGER , // deadtime of llast pps (updated every second)panic_count INTEGER ,occupancy INTEGER ,ack_count INTEGER ,latency INTEGER ,offset INTEGER ,pps_trig_offset INTEGER ,
+    fprintf(f,")\n;");
 
   DB_MAKE_INDEX(daq_hsk, time)
 }
@@ -822,6 +827,15 @@ static void daq_hsk_summary_init(FILE *f, pueo_db_handle_t * h)
         fprintf(f, ", L2_V%i_scaler_avg INTEGER ",j);
     }
     fprintf(f,", MIE_total_H_avg INTEGER, MIE_total_V_avg INTEGER, aux_total_avg INTEGER, pps_rate INTEGER, global_total_avg INTEGER, global_total_min INTEGER, global_total_max INTEGER, global_total_rms INTEGER , start_second INTEGER, duration INTEGER");
+    for(int j=0;j<26; j++){
+        fprintf(f, ", enable_mask_fraction_%i INTEGER",j);
+    }
+    for(int j=0;j<4; j++){
+        fprintf(f, ", turfio_words_recv_%i INTEGER",j);
+    }
+    fprintf(f,", qwords_sent INTEGER, events_sent INTEGER, trigger_count INTEGER, current_second INTEGER, last_pps INTEGER, llast_pps INTEGER, last_dead INTEGER, llast_dead INTEGER, panic_count INTEGER, occupancy INTEGER, ack_count INTEGER, latency INTEGER, offset INTEGER, pps_trig_offset INTEGER");
+    //  qwords_sent INTEGER ,events_sent INTEGER ,trigger_count INTEGER ,current_second INTEGER ,last_pps INTEGER ,llast_pps INTEGER ,last_dead INTEGER , // deadtime last updated every second llast_dead INTEGER , // deadtime of llast pps (updated every second)panic_count INTEGER ,occupancy INTEGER ,ack_count INTEGER ,latency INTEGER ,offset INTEGER ,pps_trig_offset INTEGER ,
+
   fprintf(f, ");\n");
 
   DB_MAKE_INDEX(daq_hsk_summary, time);
@@ -863,8 +877,12 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
   fprintf(f,", L2_rateH , L2_rateV , soft_rate , pps_rate , ext_rate , "
       "MIE_total_H , MIE_total_V ,"
       "LF_total_H , LF_total_V ,"
-      "aux_total , global_total"
-      ")");
+      "aux_total , global_total");
+    for(int j=0;j<4; j++){
+        fprintf(f, ", turfio_words_recv_%i",j);
+    }
+    fprintf(f,", qwords_sent, events_sent, trigger_count, current_second, last_pps, llast_pps, last_dead, llast_dead, panic_count, occupancy, ack_count, latency, offset, pps_trig_offset");
+    fprintf(f,")");
 
   fprintf(f, " VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) hsk->scaler_readout_time.utc_secs,  (uint32_t) hsk->scaler_readout_time.utc_nsecs);
     for(int i = 0; i < 4; i++) {
@@ -883,6 +901,16 @@ int pueo_db_insert_daq_hsk(pueo_db_handle_t *h, const pueo_daq_hsk_t *hsk)
       hsk->MIE_total_H, hsk->MIE_total_V, hsk->LF_total_H,
       hsk->LF_total_V,hsk->aux_total,hsk->global_total
     );
+  for(int j=0;j<4; j++){
+    fprintf(f, ", %i",hsk->turfio_words_recv[j]);
+  }
+  fprintf(f,", %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i", 
+    hsk->qwords_sent, hsk->events_sent, hsk->trigger_count,
+    hsk->current_second, hsk->last_pps, hsk->llast_pps,
+    hsk->last_dead, hsk->llast_dead, hsk->panic_count,
+    hsk->occupancy, hsk->ack_count, hsk->latency, hsk->offset, hsk->pps_trig_offset
+  );
+
   fprintf(f, ");");
 
   return commit_sql_stream(h);
@@ -903,8 +931,13 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
         fprintf(f, ", L2_V%i_scaler_avg",j);
     }
   fprintf(f,", MIE_total_H_avg, MIE_total_V_avg, aux_total_avg, pps_rate, global_total_avg, global_total_min, global_total_max, global_total_rms, start_second, duration");
-
-  //fprintf(f, "VALUES(TO_TIMESTAMP(%lu.%09u) ", (uint64_t) ss->readout_time.utc_secs,  (uint32_t) ss->readout_time.utc_nsecs);
+    for(int j=0;j<26; j++){
+        fprintf(f, ", enable_mask_fraction_%i",j);
+    }
+    for(int j=0;j<4; j++){
+        fprintf(f, ", turfio_words_recv_%i",j);
+    }
+    fprintf(f,", qwords_sent, events_sent, trigger_count, current_second, last_pps, llast_pps, last_dead, llast_dead, panic_count, occupancy, ack_count, latency, offset, pps_trig_offset");
 
   fprintf(f, " ) VALUES (TO_TIMESTAMP(%i.0) ", hsk->end_second);
     for(int i = 0; i < PUEO_NREALSURF; i++) {
@@ -942,8 +975,20 @@ int pueo_db_insert_daq_hsk_summary(pueo_db_handle_t *h, const pueo_daq_hsk_summa
       hsk->global_total_max, hsk->global_total_rms, hsk->start_second,
       (int)hsk->end_second-(int)hsk->start_second
     );
+    for(int j=0;j<26; j++){
+      fprintf(f, ", %i",hsk->enable_mask_fraction[j]);
+    }
+    for(int j=0;j<4; j++){
+      fprintf(f, ", %i",hsk->turfio_words_recv[j]);
+    }
+    fprintf(f,", %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i, %i", 
+      hsk->qwords_sent, hsk->events_sent, hsk->trigger_count,
+      hsk->current_second, hsk->last_pps, hsk->llast_pps,
+      hsk->last_dead, hsk->llast_dead, hsk->panic_count,
+      hsk->occupancy, hsk->ack_count, hsk->latency, hsk->offset, hsk->pps_trig_offset
+    );
 
-  fprintf(f, ");");
+    fprintf(f, ");");
 
   return commit_sql_stream(h);
 }
