@@ -605,3 +605,20 @@ int pueo_db_insert_packet(pueo_db_handle_t *h, const pueo_packet_t  *p)
 }
 
 
+
+
+const char *  pueo_packet_name(const pueo_packet_t * p)
+{
+
+#define X_PUEO_PACKET_NAME(PACKET_TYPE, TYPENAME)\
+  case PACKET_TYPE: \
+        return #TYPENAME;
+  switch (p->head.type)
+  {
+    PUEO_IO_DISPATCH_TABLE(X_PUEO_PACKET_NAME)
+
+    default:
+      return "unknown";
+  }
+}
+

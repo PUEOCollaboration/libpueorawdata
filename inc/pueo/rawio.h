@@ -162,6 +162,7 @@ int pueo_ll_read_realloc(pueo_handle_t *h, pueo_packet_t **dest);
 
 int pueo_dump_packet(FILE *f, const pueo_packet_t * p);
 
+const char * pueo_packet_name(const pueo_packet_t * p);
 
 /** IO dispatch table, for use with X macros. See https://en.wikipedia.org/wiki/X_Macro if you don't know what this is.
  *

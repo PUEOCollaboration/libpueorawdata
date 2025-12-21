@@ -94,6 +94,9 @@ target_link_libraries(read-wfs pueorawdata)
 add_executable(test-prio test/test-prio.c)
 target_link_libraries(test-prio pueorawdata)
 
+add_executable(packet-type test/packet-type.c)
+target_link_libraries(packet-type pueorawdata)
+
 
 add_executable(read-sensors-telem test/read-sensors-telem.c)
 target_link_libraries(read-sensors-telem pueorawdata)
