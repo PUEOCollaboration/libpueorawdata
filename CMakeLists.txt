@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.23)
 
 project(pueorawdata VERSION 0.1
                     DESCRIPTION "Read/write PUEO Raw data"
