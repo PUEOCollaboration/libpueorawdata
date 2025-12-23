@@ -7,7 +7,7 @@ project(pueorawdata VERSION 0.1
 include(GNUInstallDirs)
 add_library(pueorawdata SHARED)
 if(DEFINED ENV{PUEO_UTIL_INSTALL_DIR})
-  set(CMAKE_INSTALL_PREFIX "$ENV{PUEO_UTIL_INSTALL_DIR}" CACHE PATH "default in-source install" FORCE)
+  set(CMAKE_INSTALL_PREFIX "$ENV{PUEO_UTIL_INSTALL_DIR}" CACHE PATH "install to pueo util path, if env. var. is defined" FORCE)
 endif()
 
 # Require C17 with gcc extensions
