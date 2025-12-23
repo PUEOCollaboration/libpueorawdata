@@ -4,6 +4,11 @@ project(pueorawdata VERSION 0.1
                     DESCRIPTION "Read/write PUEO Raw data"
                     LANGUAGES C  CXX)
 
+if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS 12)
+  message(STATUS "If you are on the UChicago server: try `scl enable gcc-toolset-14 bash`")
+  message(FATAL_ERROR "Needs GCC 12+")
+endif()
+
 include(GNUInstallDirs)
 add_library(pueorawdata SHARED)
 if(DEFINED ENV{PUEO_UTIL_INSTALL_DIR})
