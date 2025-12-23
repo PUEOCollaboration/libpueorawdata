@@ -4,6 +4,12 @@ project(pueorawdata VERSION 0.1
                     DESCRIPTION "Read/write PUEO Raw data"
                     LANGUAGES C  CXX)
 
+include(GNUInstallDirs)
+add_library(pueorawdata SHARED)
+if(DEFINED ENV{PUEO_UTIL_INSTALL_DIR})
+  set(CMAKE_INSTALL_PREFIX "$ENV{PUEO_UTIL_INSTALL_DIR}" CACHE PATH "default in-source install" FORCE)
+endif()
+
 # Require C17 with gcc extensions
 # also float32 support
 set(CMAKE_C_STANDARD 17)
@@ -21,13 +27,45 @@ find_package(PostgreSQL)
 find_package(SQLite3)
 
 
-set (SOURCES src/rawio.c src/rawio_packets.c src/rawio_versions.c src/sensor_ids.c src/pueocrc.c src/rawio_dump.c src/rawio_db.c src/prio_interface.c)
-set(PUBLIC_HEADERS inc/pueo/rawdata.h inc/pueo/rawio.h inc/pueo/sensor_ids.h inc/pueo/sensor_ids_compat.h inc/pueo/pueo.h inc/pueo/prio_interface.h)
-set(PRIVATE_HEADERS src/float16_guard.h src/pueocrc.h src/rawio_packets.h src/rawio_versions.h)
-set(HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
+target_sources(pueorawdata PRIVATE
+  src/rawio.c
+  src/rawio_packets.c
+  src/rawio_versions.c
+  src/sensor_ids.c
+  src/pueocrc.c
+  src/rawio_dump.c
+  src/rawio_db.c
+  src/prio_interface.c
+)
 
-add_library(pueorawdata SHARED ${SOURCES} ${HEADERS})
-add_library(pueorawdata-static STATIC ${SOURCES} ${HEADERS})
+target_sources(pueorawdata PUBLIC
+  FILE_SET HEADERS
+  BASE_DIRS inc/ src  # <-- Everything in BASE_DIRS is available during the build
+  FILES  inc/pueo/rawdata.h        # <-- But only FILES will be installed
+         inc/pueo/rawio.h 
+         inc/pueo/sensor_ids.h 
+         inc/pueo/sensor_ids_compat.h 
+         inc/pueo/pueo.h 
+         inc/pueo/prio_interface.h
+)
+
+# Install this library and its headers, exporting as a CMake Target that downstream projects can import
+install(
+  TARGETS ${PROJECT_NAME} 
+  EXPORT ${PROJECT_NAME}Targets 
+  FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+# Generate a Targets.cmake file and directly install it
+# this is so that downstream projects can find the target created by this project.
+install(
+  EXPORT ${PROJECT_NAME}Targets
+  NAMESPACE pueorawdata::
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
+)
+
+
 
 #add_library(fakeprio SHARED test/fakeprio.c)
 #target_link_libraries(fakeprio pueorawdata)
@@ -40,13 +78,9 @@ target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
 target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB -lm -ldl)
 target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
 
-target_include_directories(pueorawdata PUBLIC inc)
-target_include_directories(pueorawdata PRIVATE src)
 target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
 target_include_directories(pueorawdata PRIVATE ${ZLIB_INCLUDE_DIR})
 
-target_include_directories(pueorawdata-static PUBLIC inc)
-target_include_directories(pueorawdata-static PRIVATE src)
 
 if (PostgreSQL_FOUND)
   message(STATUS "Found PostgreSQL")
