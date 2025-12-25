@@ -11,9 +11,6 @@ endif()
 
 include(GNUInstallDirs)
 add_library(pueorawdata SHARED)
-if(DEFINED ENV{PUEO_UTIL_INSTALL_DIR})
-  set(CMAKE_INSTALL_PREFIX "$ENV{PUEO_UTIL_INSTALL_DIR}" CACHE PATH "install to pueo util path, if env. var. is defined" FORCE)
-endif()
 
 # Require C17 with gcc extensions
 # also float32 support
