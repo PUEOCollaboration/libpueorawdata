@@ -37,10 +37,10 @@ void create_root_file_using_RDataFrame(const std::string& rawDataFileName, const
     power_db.clear();
     readoutTime = fwf.readout_time.utc_secs;
 
-    TGraph time_domain(fwf.wfs[53].length);
+    TGraph time_domain(fwf.wfs[18].length);
     for (int i = 0; i < time_domain.GetN(); i++)
     {
-      time_domain.SetPoint(i, i/3., fwf.wfs[53].data[i]);
+      time_domain.SetPoint(i, i/3., fwf.wfs[18].data[i]);
     }
 
     nicemc::FTPair wf_ftpair(time_domain);
@@ -61,7 +61,7 @@ void create_root_file_using_RDataFrame(const std::string& rawDataFileName, const
 
 void plot_waterfall(){
   std::string rootFileName("full_waveform.root");
-  // create_root_file_using_RDataFrame("2025-12-31-R005.wfs", rootFileName);
+  create_root_file_using_RDataFrame("2025-12-31-R005.wfs", rootFileName);
 
   ROOT::RDataFrame rdf(treename, rootFileName); 
 
@@ -69,9 +69,9 @@ void plot_waterfall(){
   auto firstReadoutTime_ptr = rdf.Min(branchNames[0]); // lazy
   auto lastReadoutTime_ptr = rdf.Max(branchNames[0]); //lazy
   
-  auto waterfall = rdf.Histo2D<std::vector<double>, std::vector<double>>(
+  auto waterfall = rdf.Profile2D(
     {
-      "", "Ch 54 (Known Chirping Channel) Spectrogram", 
+      "", "Ch 18 Spectrogram", 
       // accessing the pointer triggers rdf loop once here
       static_cast<int>(*numEvents_ptr), static_cast<double>(*firstReadoutTime_ptr), static_cast<double>(*lastReadoutTime_ptr), 
       100u, 0.0, 1.5
@@ -79,8 +79,11 @@ void plot_waterfall(){
     // x-axis is readout time, y is frequency, weight is power
     branchNames[0], branchNames[2], branchNames[1]
   );
+  // auto graph = rdf.Range(0,1).Graph(branchNames[2], branchNames[1]);
 
   TCanvas c1("", "", 1920, 1080);
+  // c1.Divide(1,2);
+  // c1.cd(1);
   waterfall->Draw("colz");
   waterfall->SetStats(kFALSE);
   waterfall->SetXTitle("Unix Epoch [seconds])");
@@ -88,5 +91,11 @@ void plot_waterfall(){
   waterfall->GetZaxis()->SetTitle("Power [db]");
   waterfall->GetZaxis()->SetLabelOffset(0.01);
   gPad->SetRightMargin(0.13);
+
+
+  // c1.cd(2);
+  // graph->Draw("ALP");
   c1.SaveAs("foobar.svg");
+
+
 }
