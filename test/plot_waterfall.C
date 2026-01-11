@@ -7,7 +7,7 @@
 
 // note: make sure this file contains pueo_full_waveforms_t and not other packet types
 // TODO: maybe add some sort of warning?
-void create_root_file(const std::filesystem::path& rawDataFileName) {
+void create_root_file(const std::filesystem::path& rawDataFileName, const std::string& rootFileName) {
 
   pueo_handle_t rawDataFileHandle;
   int err = pueo_handle_init(&rawDataFileHandle, rawDataFileName.c_str(), "r");
@@ -87,26 +87,31 @@ void create_root_file(const std::filesystem::path& rawDataFileName) {
   }
 
   ROOT::RDataFrame rdf(myTree);
-  rdf.Snapshot(myTree.GetName(), rawDataFileName.filename().replace_extension(".root").c_str());
+  rdf.Snapshot(myTree.GetName(), rootFileName.c_str());
 }
 
 void plot_waterfall(){
   std::filesystem::path rawDataFile("2025-12-31-R005.wfs");
-  std::filesystem::path rootFileName = rawDataFile.filename().replace_extension(".root");
+
+  std::filesystem::create_directory(rawDataFile.stem());
+  std::filesystem::path rootified = rawDataFile.stem() / (rawDataFile.stem().string() + ".root");
 
   // if .root file doesn't exist, create one
-  if (!std::filesystem::is_regular_file(rootFileName))
-    create_root_file(rawDataFile);
+  if (!std::filesystem::is_regular_file(rootified)){
+    printf("Converting %s to %s...\n", rawDataFile.c_str(), rootified.c_str());
+    create_root_file(rawDataFile, rootified);
+  }
 
   // read .root from disk to create an RDataFrame; syntax is (treename, filename)
-  ROOT::RDataFrame rdf(rootFileName.stem().c_str(), rootFileName.c_str());
+  ROOT::RDataFrame rdf(rawDataFile.stem().c_str(), rootified.c_str());
+  puts("Drawing spectrograms for all channels...\n");
 
   auto numEvents_ptr = rdf.Count(); // lazy
   auto firstReadoutTime_ptr = rdf.Min("readout time (UTC sec)"); // lazy
   auto lastReadoutTime_ptr = rdf.Max("readout time (UTC sec)"); //lazy
 
+  // create a vector to book all RDataFrame runs (ie the method call Profile2D() is lazy)
   std::vector<ROOT::RDF::RResultPtr<::TProfile2D>> waterfall_plots;
-
   std::vector<std::basic_string<char>> channel_column_names = rdf.GetColumnNames();
   channel_column_names.pop_back();
   channel_column_names.pop_back(); // last two columns are "frequency (GHz)" and "readout time (UTC sec)"
@@ -126,33 +131,21 @@ void plot_waterfall(){
     );
   }
 
-  TCanvas c1("", "", 1920, 1080);
-  c1.Divide(1,3);
-  c1.cd(1);
-  waterfall_plots[0]->Draw("colz");
-  waterfall_plots[0]->SetStats(kFALSE);
-  waterfall_plots[0]->SetXTitle("Unix Epoch [seconds])");
-  waterfall_plots[0]->SetYTitle("Frequency [GHz]");
-  waterfall_plots[0]->GetZaxis()->SetTitle("Power [db]");
-  waterfall_plots[0]->GetZaxis()->SetLabelOffset(0.01);
-  gPad->SetRightMargin(0.13);
-  c1.cd(2);
-  waterfall_plots[1]->Draw("colz");
-  waterfall_plots[1]->SetStats(kFALSE);
-  waterfall_plots[1]->SetXTitle("Unix Epoch [seconds])");
-  waterfall_plots[1]->SetYTitle("Frequency [GHz]");
-  waterfall_plots[1]->GetZaxis()->SetTitle("Power [db]");
-  waterfall_plots[1]->GetZaxis()->SetLabelOffset(0.01);
-  gPad->SetRightMargin(0.13);
-  c1.cd(3);
-  waterfall_plots[2]->Draw("colz");
-  waterfall_plots[2]->SetStats(kFALSE);
-  waterfall_plots[2]->SetXTitle("Unix Epoch [seconds])");
-  waterfall_plots[2]->SetYTitle("Frequency [GHz]");
-  waterfall_plots[2]->GetZaxis()->SetTitle("Power [db]");
-  waterfall_plots[2]->GetZaxis()->SetLabelOffset(0.01);
-  gPad->SetRightMargin(0.13);
-  c1.SaveAs("foobar.svg");
-
-  printf("ran this many times: %d", rdf.GetNRuns());
+  // now actually draw the histograms and save them, should only trigger the rdf loop once
+  for (int idx=0; idx<channel_column_names.size(); ++idx){
+    std::string this_channel = channel_column_names.at(idx);
+    TCanvas c1(this_channel.c_str(), "", 1920, 1080);
+    gPad->SetRightMargin(0.13);
+    waterfall_plots[idx]->Draw("colz");
+    waterfall_plots[idx]->SetStats(kFALSE);
+    waterfall_plots[idx]->SetXTitle("Time");
+    waterfall_plots[idx]->GetXaxis()->SetTimeDisplay(1);
+    waterfall_plots[idx]->GetXaxis()->SetNdivisions(3, kFALSE);
+    waterfall_plots[idx]->GetXaxis()->SetTimeFormat("%Y-%m-%d %H:%M:%S");
+    waterfall_plots[idx]->SetYTitle("Frequency [GHz]");
+    waterfall_plots[idx]->GetZaxis()->SetTitle("Power [db]");
+    waterfall_plots[idx]->GetZaxis()->SetLabelOffset(0.01);
+    c1.SaveAs(Form("%s.png", (rootified.parent_path() / this_channel).c_str()));
+  }
+  printf("The RDataFrame looped this many times: %d\n", rdf.GetNRuns()); // should be 2
 }
