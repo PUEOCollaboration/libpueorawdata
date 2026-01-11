@@ -2,6 +2,7 @@
 #include "FTPair.h"
 #include "ROOT/RDataFrame.hxx"
 #include "TCanvas.h"
+#include "TStyle.h" // to set CERN ROOT's epoch offset (default is 1990 Jan 1st and not 1970 Jan 1st)
 #include <stdio.h>
 #include <filesystem>
 
@@ -107,8 +108,14 @@ void plot_waterfall(){
   puts("Drawing spectrograms for all channels...\n");
 
   auto numEvents_ptr = rdf.Count(); // lazy
-  auto firstReadoutTime_ptr = rdf.Min("readout time (UTC sec)"); // lazy
-  auto lastReadoutTime_ptr = rdf.Max("readout time (UTC sec)"); //lazy
+  auto firstReadoutTime_ptr = rdf.Min<uint32_t>("readout time (UTC sec)"); // lazy
+  auto lastReadoutTime_ptr = rdf.Max<uint32_t>("readout time (UTC sec)"); //lazy
+
+  printf( // accessing the pointer triggers rdf loop once here
+    "The first event is at %u seconds since the UNIX epoch,"
+    "and the last event is at %u seconds\n",
+    *firstReadoutTime_ptr, *lastReadoutTime_ptr
+  );
 
   // create a vector to book all RDataFrame runs (ie the method call Profile2D() is lazy)
   std::vector<ROOT::RDF::RResultPtr<::TProfile2D>> waterfall_plots;
@@ -121,7 +128,6 @@ void plot_waterfall(){
       rdf.Profile2D<uint32_t, std::vector<double>>(
         {
           "", Form("%s Spectrogram", ch.c_str()),
-          // accessing the pointer triggers rdf loop once here
           static_cast<int>(*numEvents_ptr), static_cast<double>(*firstReadoutTime_ptr), static_cast<double>(*lastReadoutTime_ptr), 
           100u, 0.0, 1.5
         }, 
@@ -138,11 +144,12 @@ void plot_waterfall(){
     gPad->SetRightMargin(0.13);
     waterfall_plots[idx]->Draw("colz");
     waterfall_plots[idx]->SetStats(kFALSE);
+    waterfall_plots[idx]->SetYTitle("Frequency [GHz]");
+    gStyle->SetTimeOffset(0); // no offset so that we start from 1970 Jan 1st
     waterfall_plots[idx]->SetXTitle("Time");
     waterfall_plots[idx]->GetXaxis()->SetTimeDisplay(1);
-    waterfall_plots[idx]->GetXaxis()->SetNdivisions(3, kFALSE);
     waterfall_plots[idx]->GetXaxis()->SetTimeFormat("%Y-%m-%d %H:%M:%S");
-    waterfall_plots[idx]->SetYTitle("Frequency [GHz]");
+    waterfall_plots[idx]->GetXaxis()->SetNdivisions(3, kFALSE);
     waterfall_plots[idx]->GetZaxis()->SetTitle("Power [db]");
     waterfall_plots[idx]->GetZaxis()->SetLabelOffset(0.01);
     c1.SaveAs(Form("%s.png", (rootified.parent_path() / this_channel).c_str()));
