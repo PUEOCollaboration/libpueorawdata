@@ -73,7 +73,7 @@ install(
 # this is so that downstream projects can find the target created by this project.
 install(
   EXPORT ${PROJECT_NAME}Targets
-  NAMESPACE pueorawdata::
+  NAMESPACE PUEO::
   DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
