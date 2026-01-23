@@ -28,6 +28,9 @@ find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
 find_package(PostgreSQL)
 find_package(SQLite3)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "This creates compile_commands.json, useful for LSP" FORCE)
+
+
 
 target_sources(pueorawdata PRIVATE
   src/rawio.c
@@ -57,6 +60,13 @@ install(
   EXPORT ${PROJECT_NAME}Targets 
   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+# Install the Config file so that pueoEvent knows where to find pueoEventTargets.cmake
+# Why do this? cuz cmake is loves boiler plate I guess?
+install(
+  FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake"
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 )
 
 # Generate a Targets.cmake file and directly install it
