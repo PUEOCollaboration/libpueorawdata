@@ -51,11 +51,9 @@ void wfs_plot(const char * f, int index = 0, bool plot = true, const char * save
       idx++;
 
      }
-     if (isurf % 7< 6 )
-     {
-        if (save) c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
-        iplot++;
-     }
+
+     if (save) c->SaveAs(Form("plot.pdf%s", iplot == 0 ? "(" : iplot == 23 ? ")" : ""));
+     iplot++;
 
     c->Show();
   }
