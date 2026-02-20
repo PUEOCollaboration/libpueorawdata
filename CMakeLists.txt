@@ -55,7 +55,7 @@ install(
   TARGETS ${PROJECT_NAME} 
   EXPORT ${PROJECT_NAME}Targets 
   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION lib
 )
 
 # Install the Config file so that pueoEvent knows where to find pueoEventTargets.cmake
@@ -90,7 +90,6 @@ target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
 if (PostgreSQL_FOUND)
   message(STATUS "Found PostgreSQL")
   target_link_libraries(pueorawdata PRIVATE PostgreSQL::PostgreSQL)
-  # target_include_directories(pueorawdata PRIVATE ${PostgreSQL_INCLUDE_DIRS})
   target_compile_definitions(pueorawdata PRIVATE PGSQL_ENABLED)
 else()
   message(STATUS "PostgreSQL not found")
@@ -99,7 +98,6 @@ endif()
 if (SQLite3_FOUND)
   message(STATUS "Found SQLite3")
   target_link_libraries(pueorawdata PRIVATE ${SQLite3_LIBRARIES})
-  # target_include_directories(pueorawdata PRIVATE ${SQLite3_INCLUDE_DIRS})
   target_compile_definitions(pueorawdata PRIVATE SQLITE_ENABLED)
 else()
   message(STATUS "SQLite3 not found")
@@ -115,43 +113,23 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-add_executable(write-wf test/write-wf.c)
-target_link_libraries(write-wf pueorawdata)
+macro(add_program binary_name where)
+      add_executable(${binary_name} ${where}/${binary_name}.c)
+      target_link_libraries(${binary_name} pueorawdata)
+      install(TARGETS ${binary_name} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endmacro()
 
-add_executable(write-cmd-echo test/write-cmd-echo.c)
-target_link_libraries(write-cmd-echo pueorawdata)
+add_program(write-wf test)
+add_program(write-cmd-echo test)
+add_program(read-wf test)
+add_program(write-wfs test)
+add_program(read-wfs test)
+add_program(test-prio test)
+add_program(packet-type test)
+add_program(read-sensors-telem test)
+add_program(pueo-init-db progs)
+add_program(read-packets test)
+add_program(read-events test)
+add_program(read-image test)
+add_program(read-files test)
 
-add_executable(read-wf test/read-wf.c)
-target_link_libraries(read-wf pueorawdata)
-
-add_executable(write-wfs test/write-wfs.c)
-target_link_libraries(write-wfs pueorawdata)
-
-add_executable(read-wfs test/read-wfs.c)
-target_link_libraries(read-wfs pueorawdata)
-
-add_executable(test-prio test/test-prio.c)
-target_link_libraries(test-prio pueorawdata)
-
-add_executable(packet-type test/packet-type.c)
-target_link_libraries(packet-type pueorawdata)
-
-
-add_executable(read-sensors-telem test/read-sensors-telem.c)
-target_link_libraries(read-sensors-telem pueorawdata)
-
-add_executable(pueo-init-db progs/pueo-init-db.c)
-target_link_libraries(pueo-init-db pueorawdata)
-
-
-add_executable(read-packets test/read-packets.c)
-target_link_libraries(read-packets pueorawdata)
-
-add_executable(read-events test/read-events.c)
-target_link_libraries(read-events pueorawdata)
-
-add_executable(read-image test/read-image.c)
-target_link_libraries(read-image pueorawdata)
-
-add_executable(read-files test/read-files.c)
-target_link_libraries(read-files pueorawdata)
