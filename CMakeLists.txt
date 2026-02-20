@@ -6,7 +6,7 @@ project(pueorawdata VERSION 0.1
 
 if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS 13)
   message(STATUS "If you are on the UChicago server: try `scl enable gcc-toolset-14 bash`")
-  message(FATAL_ERROR "Needs GCC 13+")
+  message(FATAL_ERROR "Needs GCC 13+ for float32 support")
 endif()
 
 include(GNUInstallDirs)
@@ -21,10 +21,6 @@ set(default_build_type "RelWithDebInfo")
 set(WARNFLAGS -Wall -Wextra -Wno-missing-braces -Wno-override-init)
 
 find_package(ZLIB REQUIRED)
-
-find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
-find_library(ZSTD_LIBRARY NAMES zstd zstd_static)
-
 find_package(PostgreSQL)
 find_package(SQLite3)
 
@@ -87,18 +83,15 @@ install(
 
 
 target_compile_options(pueorawdata PRIVATE ${WARNFLAGS})
-target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB -lm -ldl)
+target_link_libraries(pueorawdata PRIVATE ZLIB::ZLIB m dl) # m for libm.so, dl for libdl.so
 target_link_libraries(pueorawdata PRIVATE ${ZSTD_LIBRARY})
-
-target_include_directories(pueorawdata PRIVATE ${ZSTD_INCLUDE_DIR})
-target_include_directories(pueorawdata PRIVATE ${ZLIB_INCLUDE_DIR})
 
 
 if (PostgreSQL_FOUND)
   message(STATUS "Found PostgreSQL")
   target_link_libraries(pueorawdata PRIVATE PostgreSQL::PostgreSQL)
-  target_include_directories(pueorawdata PRIVATE ${PostgreSQL_INCLUDE_DIRS})
-  add_compile_definitions(PGSQL_ENABLED)
+  # target_include_directories(pueorawdata PRIVATE ${PostgreSQL_INCLUDE_DIRS})
+  target_compile_definitions(pueorawdata PRIVATE PGSQL_ENABLED)
 else()
   message(STATUS "PostgreSQL not found")
 endif()
@@ -106,8 +99,8 @@ endif()
 if (SQLite3_FOUND)
   message(STATUS "Found SQLite3")
   target_link_libraries(pueorawdata PRIVATE ${SQLite3_LIBRARIES})
-  target_include_directories(pueorawdata PRIVATE ${SQLite3_INCLUDE_DIRS})
-  add_compile_definitions(SQLITE_ENABLED)
+  # target_include_directories(pueorawdata PRIVATE ${SQLite3_INCLUDE_DIRS})
+  target_compile_definitions(pueorawdata PIRVATE SQLITE_ENABLED)
 else()
   message(STATUS "SQLite3 not found")
 endif()
