@@ -26,29 +26,30 @@ find_package(SQLite3)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # this creates compile_commands.json, useful for LSP
 
-# An attempt to add non-stick cmake install prefix, surprisingly difficult :)
-# (but still allowing user to supply one via flag -DCMAKE_INSTALL_PREFIX=/example/path).
-# Priority:
-#   1) ${PUEO_UTIL_INSTALL_DIR}
-#   2) /pueo
+string(ASCII 27 Esc)
+set(GREEN "${Esc}[1;32m")
+set(BLUE "${Esc}[1;34m")
+set(Reset "${Esc}[0m")
 
-# note: if the user updates the environment variable, cmake install prefix should also update
-# ie don't cache (but the variable still needs to be CACHE type because maybe the user wants to
-# pass -DCMAKE_INSTALL_PREFIX...kind of a mess)
-if(DEFINED ENV{PUEO_UTIL_INSTALL_DIR} AND NOT CMAKE_INSTALL_PREFIX STREQUAL "$ENV{PUEO_UTIL_INSTALL_DIR}")
-  message(STATUS "Environment variable PUEO_UTIL_INSTALL_DIR is defined and will force the install location.")
-  set(CMAKE_INSTALL_PREFIX $ENV{PUEO_UTIL_INSTALL_DIR} CACHE STRING "highest priority" FORCE)
-  message(STATUS "Installing to ${CMAKE_INSTALL_PREFIX}")
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  if(DEFINED ENV{PUEO_UTIL_INSTALL_DIR} AND NOT CMAKE_INSTALL_PREFIX STREQUAL "$ENV{PUEO_UTIL_INSTALL_DIR}")
+    message(STATUS "Environment variable PUEO_UTIL_INSTALL_DIR is defined and will force the install location.")
+    set(CMAKE_INSTALL_PREFIX $ENV{PUEO_UTIL_INSTALL_DIR} CACHE STRING "highest priority" FORCE)
+    message(STATUS "${GREEN}Will install to ${CMAKE_INSTALL_PREFIX}${Reset}")
 
-elseif(EXISTS /pueo AND NOT CMAKE_INSTALL_PREFIX STREQUAL "/pueo")
-  message(STATUS "Directory /pueo found and will force the install location")
-  set(CMAKE_INSTALL_PREFIX /pueo CACHE STRING "Default install location on flight computer" FORCE)
-  message(STATUS "Installing to ${CMAKE_INSTALL_PREFIX}")
+  elseif(EXISTS /pueo AND NOT CMAKE_INSTALL_PREFIX STREQUAL "/pueo")
+    message(STATUS "Directory /pueo found and will force the install location")
+    set(CMAKE_INSTALL_PREFIX /pueo CACHE STRING "Default install location on flight computer" FORCE)
+    message(STATUS "${GREEN}Will install to ${CMAKE_INSTALL_PREFIX}${Reset}")
 
-# elseif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) <- doesn't work as expected upon second run
-elseif(CMAKE_INSTALL_PREFIX STREQUAL /usr/local) # <- only works on linux, but oh well
-  message(WARNING "Installing to ${CMAKE_INSTALL_PREFIX}; make sure that's what you want.")
+  elseif(CMAKE_INSTALL_PREFIX STREQUAL /usr/local) # <- only works on linux, but oh well
+    message(WARNING "Will install to ${CMAKE_INSTALL_PREFIX}; make sure that's what you want.")
+  endif()
+
+else()
+  message(STATUS "${GREEN}Will install to ${CMAKE_INSTALL_PREFIX}${Reset}")
 endif()
+message(STATUS "${BLUE}If the old value is cached, try running cmake again with --fresh.${Reset}")
 
 
 target_sources(pueorawdata PRIVATE
