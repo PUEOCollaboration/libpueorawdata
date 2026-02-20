@@ -6,7 +6,7 @@ project(pueorawdata VERSION 0.1
 
 if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS 13)
   message(STATUS "If you are on the UChicago server: try `scl enable gcc-toolset-14 bash`")
-  message(FATAL_ERROR "Needs GCC 13+ for float32 support")
+  message(FATAL_ERROR "Needs GCC 13+ for float16 support")
 endif()
 
 include(GNUInstallDirs)
