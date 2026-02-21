@@ -5,7 +5,8 @@ project(pueorawdata VERSION 0.1
                     LANGUAGES C  CXX)
 
 if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS 13)
-  message(STATUS "If you are on the UChicago server: try `scl enable gcc-toolset-14 bash`")
+  message("If you are on the UChicago server: try `scl enable gcc-toolset-14 bash` and run cmake again,")
+  message("Remember to clear the cache with the `--fresh` flag while re-running cmake.")
   message(FATAL_ERROR "Needs GCC 13+ for float16 support")
 endif()
 
