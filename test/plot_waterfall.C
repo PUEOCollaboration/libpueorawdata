@@ -10,7 +10,9 @@
 // TODO: maybe add some sort of warning?
 void create_root_file(const std::filesystem::path& raw, const std::string& root);
 
+
 void plot_waterfall(){
+  gSystem->Load("${PUEO_UTIL_INSTALL_DIR}/lib64/libNiceMC.so");
   std::filesystem::path rawData("2025-12-31-R005.wfs");
 
   std::filesystem::create_directory(rawData.stem());
