@@ -95,6 +95,12 @@ static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf)
 static void update_len_cksum_waveform(uint32_t * len, uint16_t * cksum, const pueo_waveform_t *wf)
 {
   if (!wf) return;
+  size_t length = wf->length;
+  if (wf->length > PUEO_MAX_BUFFER_LENGTH)
+  {
+    fprintf(stderr,"***WARNING*** wf length (%zu) seems malformed. Setting to PUEO_MAX_BUFFER_LENGTH\n", length);
+    length = PUEO_MAX_BUFFER_LENGTH;
+  }
   size_t size = offsetof(pueo_waveform_t,data) +wf->length *sizeof(*wf->data) ;
   if (cksum) *cksum = pueo_crc16_continue(*cksum, wf, size);
   if (len) *len += size;
