@@ -1,6 +1,8 @@
 #ifndef _PUEO_SENSOR_IDS_H
 #define _PUEO_SENSOR_IDS_H
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
  * \file pueo/sensor_ids.h
  *
@@ -395,5 +397,8 @@ const char * pueo_sensor_id_get_compat_subsystem_plus_name(uint16_t sensid, uint
 char pueo_sensor_id_get_compat_type_tag(uint16_t sensid, uint16_t magic);
 char pueo_sensor_id_get_compat_kind(uint16_t sensid, uint16_t magic);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
