@@ -77,18 +77,36 @@ SIMPLE_PUEO_IO_IMPL(prio_status,PRIO_STATUS)
 ///////// More complicated implementations here
 
 //helpers for pueo_waveform_t (which must be embedded into another datatype)
+//
+#define CHECK_WF_LENGTH(length) if (length > PUEO_MAX_BUFFER_LENGTH) { \
+    fprintf(stderr,"***WARNING*** wf length (%zu) seems malformed. Setting to PUEO_MAX_BUFFER_LENGTH\n", length);\
+    length = PUEO_MAX_BUFFER_LENGTH;\
+ }
+
+
+
 static int write_waveform(pueo_handle_t*h, const pueo_waveform_t * wf)
 {
-  return h->write_bytes(offsetof(pueo_waveform_t, data) + wf->length * sizeof(*wf->data), wf, h);
+  size_t length = wf->length;
+
+
+  CHECK_WF_LENGTH(length)
+
+  return h->write_bytes(offsetof(pueo_waveform_t, data) + length * sizeof(*wf->data), wf, h);
 }
+
 
 static int read_waveform(pueo_handle_t*h, pueo_waveform_t * wf)
 {
   int hdrsize = offsetof(pueo_waveform_t,data);
   int nrd = h->read_bytes(hdrsize, wf, h);
   if (nrd != (int) hdrsize) return -1;
-  nrd += h->read_bytes(wf->length*sizeof(*wf->data), wf->data, h);
-  if (nrd != (int) (hdrsize + wf->length*sizeof(*wf->data))) return -1;
+  size_t length = wf->length;
+
+  CHECK_WF_LENGTH(length)
+
+  nrd += h->read_bytes(length*sizeof(*wf->data), wf->data, h);
+  if (nrd != (int) (hdrsize + length*sizeof(*wf->data))) return -1;
   return nrd;
 }
 
@@ -96,12 +114,10 @@ static void update_len_cksum_waveform(uint32_t * len, uint16_t * cksum, const pu
 {
   if (!wf) return;
   size_t length = wf->length;
-  if (wf->length > PUEO_MAX_BUFFER_LENGTH)
-  {
-    fprintf(stderr,"***WARNING*** wf length (%zu) seems malformed. Setting to PUEO_MAX_BUFFER_LENGTH\n", length);
-    length = PUEO_MAX_BUFFER_LENGTH;
-  }
-  size_t size = offsetof(pueo_waveform_t,data) +wf->length *sizeof(*wf->data) ;
+
+  CHECK_WF_LENGTH(length);
+
+  size_t size = offsetof(pueo_waveform_t,data) + length *sizeof(*wf->data) ;
   if (cksum) *cksum = pueo_crc16_continue(*cksum, wf, size);
   if (len) *len += size;
 }
