@@ -95,6 +95,7 @@ _Static_assert(sizeof(sensor_kinds)*sizeof(const char *) == sizeof(sensor_names)
 
 _Static_assert(MAX_SENSORS < (1 << PUEO_SENSOR_ID_BITS));
 
+_Static_assert(MAX_SENSORS == PUEO_MAX_SENSORS) ;
 
 const char * pueo_sensor_id_get_subsystem(uint16_t sensid)
 {

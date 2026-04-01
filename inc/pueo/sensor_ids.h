@@ -374,6 +374,7 @@ SENSOR(DAQ,      I_SURF6_VR,                'F','I')
 enum e_pueo_sensors
 {
  CURRENT_PUEO_SENSORS(PUEO_SENSOR_ENUM_DEF)
+ PUEO_MAX_SENSORS
 };
 
 
